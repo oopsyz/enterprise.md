@@ -35,8 +35,9 @@ See [examples/](examples/) for working samples of each profile.
 
 1. Read the [full proposal](multi_level_repository_entrypoint_convention.md).
 2. Pick a conformance profile that fits your organization.
-3. Copy the matching example from [examples/](examples/) into your repositories.
-4. Customize entrypoints and catalogs for your actual repos and teams.
+3. Copy the relevant starter files from [templates/](templates/) into your repositories.
+4. Replace placeholder values with your organization's data.
+5. See [examples/](examples/) for complete working samples at each profile level.
 
 ## Repository Contents
 
@@ -44,6 +45,18 @@ See [examples/](examples/) for working samples of each profile.
 README.md                                          — this file
 AGENTS.md                                          — agent navigation for this repo
 multi_level_repository_entrypoint_convention.md    — the full proposal
+templates/                                         — starter templates for adoption
+  ENTERPRISE.md.template                           — enterprise entrypoint
+  SOLUTION.md.template                             — solution entrypoint
+  DOMAIN.md.template                               — domain entrypoint
+  AGENTS.{ea,sa,da,dev}.md.template                — role-specific AGENTS.md
+  initiatives.yml.template                         — enterprise routing catalog
+  domain-workstreams.yml.template                  — solution routing catalog
+  domain-registry.yml.template                     — domain governance registry
+  solution-index.yml.template                      — solution scope manifest
+  initiative-pipeline.yml.template                 — portfolio pipeline source
+  industry/
+    domain-registry.telco.yml.template             — telco ODA component baseline
 examples/
   profile-a/                                       — entrypoint-only example
   profile-b/                                       — routed automation example

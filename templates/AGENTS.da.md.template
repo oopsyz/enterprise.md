@@ -1,0 +1,5 @@
+# AGENTS
+
+Role: da
+Instruction: Read `DOMAIN.md` first (mandatory entrypoint).
+Guardrail: `DOMAIN.md` is a critical contract file. Preserve template section structure and keep mutable operational detail in linked canonical artifacts.

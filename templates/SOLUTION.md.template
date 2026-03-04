@@ -1,0 +1,68 @@
+# SOLUTION
+
+Solution architecture repo entrypoint. Owns the SA baseline and routes domain workstreams to domain repos.
+
+## Critical File Contract
+
+- Keep required section headings from this template.
+- Do not rename or delete required sections.
+- Keep this file concise: identity, routing semantics, and links.
+- Put detailed/mutable operational values in canonical artifacts and link them here.
+- If a required section has no content, keep it and write `Not applicable`.
+
+## Expected Layout
+
+```text
+SOLUTION.md                                        <- you are here
+AGENTS.md                                          <- repo-specific agent instructions
+VISION.md                                          <- (optional) solution intent and target outcomes
+ROADMAP.md                                         <- (optional) implementation phases
+solution-index.yml                                 <- machine-authoritative scope manifest
+architecture/
+|-- requirements/
+|   `-- requirements.yml                           <- requirements baseline
+|-- solution/
+|   |-- architecture-design.yml                    <- solution architecture baseline
+|   |-- interface-contracts.yml                    <- canonical interfaces
+|   `-- domain-workstreams.yml                     <- workstream selector catalog (WORKSTREAM_ID routing)
+`-- domains/
+    `-- <domain_id>/
+        `-- component-specs.yml                    <- (optional, co-located domain specs)
+```
+
+## Canonical Sources
+
+- `solution-index.yml` (machine-authoritative solution scope and repo mapping)
+- `architecture/solution/architecture-design.yml` (structured solution architecture)
+- `architecture/solution/interface-contracts.yml` (canonical interfaces)
+- `architecture/solution/domain-workstreams.yml` (workstream routing selector)
+- `architecture/requirements/requirements.yml` (requirements baseline)
+
+## Routing
+
+`WORKSTREAM_ID` -> `domain-workstreams.yml` -> `domain_repo_url`
+
+## SA Container Context
+
+When running in an SA container (`OPENARCHITECT_CONTAINER_ROLE=sa`), startup routing can write:
+- `.openarchitect/active-initiative.json`
+
+This file is a required initiative context reference for `SOLUTION.md` and should be treated as the machine-readable source for active initiative routing context.
+
+At minimum, `SOLUTION.md` should reference values from `.openarchitect/active-initiative.json` for:
+- `initiative_id`
+- `solution_repo_url` (SA repo URL)
+- initiative name/description/objectives (when present)
+- selector provenance (when present)
+
+If `.openarchitect/active-initiative.json` is missing (for example outside routed container startup), explicitly state that initiative context could not be resolved from runtime routing metadata.
+
+## Adjacent Entrypoints
+
+- `ENTERPRISE.md` in the EA repo (upstream portfolio context)
+- `DOMAIN.md` + `AGENTS.md` in each domain repo (downstream domain context; required)
+
+## Scope
+
+- Solution key: `<solution-key>`
+- Owners: SA: `<team>`, Domains: `<domain-list>`

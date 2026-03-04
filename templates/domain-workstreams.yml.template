@@ -1,0 +1,33 @@
+# SA workstream selector catalog (Git-first, no DB required)
+# Keep this file in SA repo at: architecture/solution/domain-workstreams.yml
+# This file models many-to-many routing: one initiative can span many domains,
+# and one domain can participate in many initiatives.
+# domain_id values should reference EA registry:
+#   architecture/enterprise/domain-registry.yml
+
+version: "1.0"
+workspace_id: <workspace-id-or-null>
+initiative_id: <initiative-id-or-null>
+generated_at_utc: <iso8601>
+generated_by: <sa-user-or-agent>
+workstreams:
+  - workstream_id: <ws-initiative-domain>
+    workstream_uuid: <uuid-v4>
+    initiative_id: <initiative-id>
+    domain_id: <domain-id>
+    domain_name: <domain display name>
+    oda_component_name: <TMF ODA component name-or-null>
+    name: <initiative x domain display name>
+    domain_repo_url: <https://github.com/<org>/<repo>-or-null>
+    tmfc_component_id: <TMFC###-or-null>
+    handoff_ref: <component-handoff-ref-or-null>
+    status: active
+    owner: <domain-arch-owner-or-team>
+    metadata:
+      priority: <high|medium|low>
+      milestone: <yyyy-q#-or-null>
+execution:
+  state: not_started
+  processed_workstreams: []
+  skipped_workstreams: []
+notes: <optional notes>
