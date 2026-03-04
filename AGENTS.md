@@ -2,12 +2,12 @@
 
 ## Identity
 
-This repository hosts the **Multi-Level Repository Entrypoint Convention** — a standards proposal extending `AGENTS.md` to enterprise-scale, multi-repository delivery.
+This repository hosts the **Multi-Level Repository Navigation and Routing Convention** — a standards proposal extending `AGENTS.md` to enterprise-scale, multi-repository delivery.
 
 ## Navigation
 
 - [README.md](README.md) — overview, quick start, contributing
-- [multi_level_repository_entrypoint_convention.md](multi_level_repository_entrypoint_convention.md) — full proposal specification
+- [multi_level_repository_navigation_and_routing_convention.md](multi_level_repository_navigation_and_routing_convention.md) — full proposal specification
 - [templates/](templates/) — starter templates for adoption (entrypoints, catalogs, AGENTS roles, industry baselines)
 - [examples/](examples/) — working examples for each conformance profile
 

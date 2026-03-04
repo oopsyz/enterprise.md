@@ -1,6 +1,6 @@
 # Templates
 
-Starter templates for adopting the Multi-Level Repository Entrypoint Convention. Copy and customize for your organization.
+Starter templates for adopting the Multi-Level Repository Navigation and Routing Convention. Copy and customize for your organization.
 
 ## Entrypoint Templates
 
@@ -42,7 +42,7 @@ Starter templates for adopting the Multi-Level Repository Entrypoint Convention.
 
 ## Usage
 
-1. Pick a conformance profile (A, B, or C) from the [proposal](../multi_level_repository_entrypoint_convention.md).
+1. Pick a conformance profile (A, B, or C) from the [proposal](../multi_level_repository_navigation_and_routing_convention.md).
 2. Copy the relevant templates into your repository.
 3. Remove the `.template` extension.
 4. Replace placeholder values (`<...>`) with your organization's data.

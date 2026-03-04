@@ -33,7 +33,7 @@ See [examples/](examples/) for working samples of each profile.
 
 ## Quick Start
 
-1. Read the [full proposal](multi_level_repository_entrypoint_convention.md).
+1. Read the [full proposal](multi_level_repository_navigation_and_routing_convention.md).
 2. Pick a conformance profile that fits your organization.
 3. Copy the relevant starter files from [templates/](templates/) into your repositories.
 4. Replace placeholder values with your organization's data.
@@ -44,7 +44,7 @@ See [examples/](examples/) for working samples of each profile.
 ```
 README.md                                          — this file
 AGENTS.md                                          — agent navigation for this repo
-multi_level_repository_entrypoint_convention.md    — the full proposal
+multi_level_repository_navigation_and_routing_convention.md    — the full proposal
 templates/                                         — starter templates for adoption
   ENTERPRISE.md.template                           — enterprise entrypoint
   SOLUTION.md.template                             — solution entrypoint

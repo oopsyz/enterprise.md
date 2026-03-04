@@ -1,4 +1,4 @@
-# Proposal: Multi-Level Repository Entrypoint Convention
+# Proposal: Multi-Level Repository Navigation and Routing Convention
 
 Status: Draft
 Audience: standards/community contributors, platform/tool builders, enterprise architecture teams
@@ -13,18 +13,11 @@ At scale, teams need:
 2. Deterministic cross-repository routing.
 3. Explicit ownership, governance, and failure behavior.
 
-## 2. Two-Layer Model (Separable)
+This proposal addresses these needs with level entrypoints (Layer A) and optional routing catalogs for automation (Layer B).
 
-This proposal defines two independent layers:
+## 2. Proposed Solution
 
-1. **Layer A: Entrypoint Convention**
-   1. Purpose: human/agent navigation and context discovery.
-   2. Tooling dependency: none.
-2. **Layer B: Routing Catalog Specification (optional)**
-   1. Purpose: deterministic machine routing between levels.
-   2. Tooling dependency: orchestration/runtime only.
-
-An organization can adopt Layer A without Layer B.
+This proposal is the solution to the problem in Section 1: it keeps repo-local guidance lightweight and human-friendly, while still enabling deterministic cross-repository routing for automation when needed.
 
 ### Guiding Principle: Progressive Disclosure Across Repositories
 
@@ -35,6 +28,17 @@ This proposal applies progressive disclosure at every scale instead of piling ev
 3. **Artifact level**: linked catalogs and design files disclose *the detail* -- only when you follow the link.
 
 Each layer reveals only what is relevant at that layer. Where routing catalogs exist, they are simply the coarsest grain of disclosure.
+
+To implement this principle, the proposal defines two independent layers (adoptable separately):
+
+1. **Layer A: Entrypoint Convention**
+   1. Purpose: human/agent navigation and context discovery.
+   2. Tooling dependency: none.
+2. **Layer B: Routing Catalog Specification (optional)**
+   1. Purpose: deterministic machine routing between levels (for example Enterprise repo to Solution repo to Domain repo).
+   2. Tooling dependency: orchestration/runtime only.
+
+An organization can adopt Layer A without Layer B.
 
 ```mermaid
 flowchart LR
