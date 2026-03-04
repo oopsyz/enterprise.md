@@ -26,6 +26,51 @@ This proposal defines two independent layers:
 
 An organization can adopt Layer A without Layer B.
 
+### Guiding Principle: Progressive Disclosure Across Repositories
+
+This proposal applies progressive disclosure at every scale instead of piling everything into one repository and one file:
+
+1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`) disclose *which repo* to go to next. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
+2. **File level** (Layer A): entrypoints disclose *what matters* in that repo. They are maps, not encyclopedias.
+3. **Artifact level**: linked catalogs and design files disclose *the detail* -- only when you follow the link.
+
+Each layer reveals only what is relevant at that layer. Where routing catalogs exist, they are simply the coarsest grain of disclosure.
+
+```mermaid
+flowchart LR
+    subgraph ER["Enterprise repo"]
+        EEntry["ENTERPRISE.md"]:::entry
+        ELocal["Other enterprise files\n(readmes, policies, strategy docs)"]:::artifact
+        ERoute["initiatives.yml\n(select solution repo)"]:::routing
+
+        EEntry -->|"links to"| ELocal
+        EEntry -->|"need a solution?"| ERoute
+    end
+
+    subgraph SR["Solution repo"]
+        SEntry["SOLUTION.md"]:::entry
+        SLocal["Other solution files\n(architecture, ADRs, roadmaps)"]:::artifact
+        SRoute["domain-workstreams.yml\n(select domain repo)"]:::routing
+
+        SEntry -->|"links to"| SLocal
+        SEntry -->|"need a domain?"| SRoute
+    end
+
+    subgraph DR["Domain repo"]
+        DEntry["DOMAIN.md"]:::entry
+        DLocal["Other domain files\n(ADRs, API specs, schemas)"]:::artifact
+
+        DEntry -->|"links to"| DLocal
+    end
+
+    ERoute -->|"open repo"| SEntry
+    SRoute -->|"open repo"| DEntry
+
+    classDef routing fill:#e8f4f8,stroke:#4a9aba;
+    classDef entry fill:#f0f8e8,stroke:#6aaa4a;
+    classDef artifact fill:#fdf5e8,stroke:#c8963a;
+```
+
 ## 3. Layer A: Entrypoint Convention
 
 ### 3.1 Entrypoint Files
@@ -226,6 +271,7 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 1. Fail closed on missing selector ID.
 2. Fail closed on ambiguous selector ID.
 3. Fail closed on non-routable status by default.
+4. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
 
 ## 6. Compatibility and Alias Policy
 
@@ -387,10 +433,9 @@ Bottom-up discovery:
 
 Recommended harness/context practices:
 
-1. Treat entrypoint files as maps, not encyclopedias.
+1. Treat entrypoint files as maps, not encyclopedias (see Section 2 guiding principle).
 2. Keep detailed knowledge in linked artifacts/docs.
-3. Use progressive disclosure.
-4. Add mechanical doc freshness checks in CI.
+3. Add mechanical doc freshness checks in CI.
 
 ## 15. Compatibility with agents.md
 
