@@ -1,0 +1,6 @@
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+initiatives:
+  - initiative_id: init-bss-modernization
+    solution_repo_url: https://github.com/acme/solution-bss
+    status: active

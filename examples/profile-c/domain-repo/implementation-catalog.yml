@@ -1,0 +1,12 @@
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+work_items:
+  - work_item_id: job-order-api-001
+    api_id: ORDER_API
+    repo_path: src/order-api
+    status: active
+
+  - work_item_id: job-order-events-001
+    api_id: ORDER_EVENTS
+    repo_path: src/order-events
+    status: active

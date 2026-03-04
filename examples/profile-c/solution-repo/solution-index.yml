@@ -1,0 +1,12 @@
+spec_name: solution-index
+spec_version: "1.0.0"
+solution:
+  solution_id: sol-bss-modernization
+  initiative_id: init-bss-modernization
+  name: BSS Modernization
+  owner: bss-architecture-team
+  domains:
+    - domain_id: order
+      domain_repo_url: https://github.com/acme/domain-order
+    - domain_id: billing
+      domain_repo_url: https://github.com/acme/domain-billing

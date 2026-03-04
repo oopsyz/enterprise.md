@@ -1,0 +1,14 @@
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+workstreams:
+  - workstream_id: ws-bss-order
+    initiative_id: init-bss-modernization
+    domain_id: order
+    domain_repo_url: https://github.com/acme/domain-order
+    status: active
+
+  - workstream_id: ws-bss-billing
+    initiative_id: init-bss-modernization
+    domain_id: billing
+    domain_repo_url: https://github.com/acme/domain-billing
+    status: active

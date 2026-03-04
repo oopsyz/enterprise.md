@@ -1,0 +1,15 @@
+spec_name: governance-state
+spec_version: "1.0.0"
+layers:
+  requirements:
+    status: approved
+    approved_by: product-owner
+    approved_at: "2026-02-28T10:00:00Z"
+  solution_architecture:
+    status: approved
+    approved_by: solution-architect
+    approved_at: "2026-03-01T14:00:00Z"
+  domain_architecture:
+    status: in_progress
+  implementation:
+    status: not_started

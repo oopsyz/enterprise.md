@@ -1,0 +1,14 @@
+spec_name: domain-registry
+spec_version: "1.0.0"
+domains:
+  - domain_id: order
+    name: Order Management
+    owner: order-team
+    domain_repo_url: https://github.com/acme/domain-order
+    status: active
+
+  - domain_id: billing
+    name: Billing & Invoicing
+    owner: billing-team
+    domain_repo_url: https://github.com/acme/domain-billing
+    status: active
