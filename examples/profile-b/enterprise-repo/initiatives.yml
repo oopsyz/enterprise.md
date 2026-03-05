@@ -1,7 +1,14 @@
-spec_name: multi-scale-routing
-spec_version: "1.0.0"
+# EA selector catalog (Git-first, no DB required)
+# Keep this file in EA repo at: architecture/portfolio/initiatives.yml
+
+version: "1.0"
+
 initiatives:
   - initiative_id: init-bss-modernization
+    name: BSS Modernization
     solution_repo_url: https://github.com/acme/solution-bss
     solution_entrypoint: SOLUTION.md
     status: active
+    owner: bss-architecture-team
+    metadata:
+      priority: high

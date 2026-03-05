@@ -19,7 +19,7 @@ If enterprise level is absent in your organization, replace with `Not applicable
 - Put detailed/mutable operational values in canonical artifacts and link them here.
 - If a required section has no content, keep it and write `Not applicable`.
 
-## Expected Layout
+## Knowledge Store Layout
 
 ```text
 DOMAIN.md                                          <- you are here

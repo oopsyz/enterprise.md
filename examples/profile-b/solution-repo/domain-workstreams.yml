@@ -1,14 +1,46 @@
-spec_name: multi-scale-routing
-spec_version: "1.0.0"
+# SA workstream selector catalog (Git-first, no DB required)
+# Keep this file in SA repo at: architecture/solution/domain-workstreams.yml
+
+version: "1.0"
+workspace_id: null
+initiative_id: init-bss-modernization
+generated_at_utc: "2026-03-01T10:00:00Z"
+generated_by: sa-bss-team
+
 workstreams:
   - workstream_id: ws-bss-order
     initiative_id: init-bss-modernization
     domain_id: order
+    domain_name: Order Management
+    oda_component_name: null
+    name: BSS Modernization x Order Management
     domain_repo_url: https://github.com/acme/domain-order
+    tmfc_component_id: null
+    handoff_ref: null
     status: active
+    owner: order-team
+    metadata:
+      priority: high
+      milestone: null
 
   - workstream_id: ws-bss-billing
     initiative_id: init-bss-modernization
     domain_id: billing
+    domain_name: Billing & Invoicing
+    oda_component_name: null
+    name: BSS Modernization x Billing & Invoicing
     domain_repo_url: https://github.com/acme/domain-billing
+    tmfc_component_id: null
+    handoff_ref: null
     status: active
+    owner: billing-team
+    metadata:
+      priority: high
+      milestone: null
+
+execution:
+  state: not_started
+  processed_workstreams: []
+  skipped_workstreams: []
+
+notes: null
