@@ -88,10 +88,10 @@ flowchart LR
 
 1. `AGENTS.md` remains the repo-local behavior contract.
 2. The level entrypoint for a repository SHOULD exist when that level is present.
-3. Entrypoints SHOULD stay concise and link to canonical machine artifacts instead of duplicating mutable data.
+3. Entrypoints SHOULD stay concise and link to canonical machine artifacts instead of duplicating mutable data. This is especially important when catalogs are generated -- the entrypoint links to the artifact; it does not replicate it.
 4. Each entrypoint MUST include one deterministic parent link when a parent level exists.
 5. Each entrypoint SHOULD include child links when child levels exist.
-6. If no parent or child exists, entrypoint MUST state `Not applicable`.
+6. If no parent level exists, the Parent section MUST state `Not applicable`. If no child level exists, the Children section MUST state `Not applicable`.
 
 ### 3.3 Parent Link Format
 
@@ -163,13 +163,13 @@ Not applicable
 
 ## 4. Bootstrap Discovery (Core for Routed Profiles)
 
-For routed profiles (Profile B/C), implementations MUST provide at least one deterministic enterprise-root bootstrap mechanism:
+For routed profiles (Profile B/C), implementations MUST provide at least one deterministic bootstrap mechanism that resolves the topmost level present in the organization:
 
 1. Explicit startup parameter.
 2. Environment variable.
 3. Well-known discovery endpoint.
 
-Implementations MUST document which mechanism is authoritative.
+The bootstrap target is the highest-level repository in the routing chain (enterprise repo for three-level organizations, solution repo for two-level organizations). Implementations MUST document which mechanism is authoritative.
 
 ## 5. Layer B: Routing Catalog Specification
 
@@ -184,7 +184,14 @@ This standard defines file names and semantics, not fixed directories.
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_repo_url` |
 | `implementation-catalog.yml` | Domain | `work_item_id` or `api_id` | implementation target/path |
 
-Format note: YAML is canonical for catalogs in this proposal. JSON is allowed for compatibility where machine pipelines already emit JSON.
+Format rules:
+
+1. YAML is the canonical format for all catalogs in this proposal.
+2. JSON is allowed only as a schema-equivalent compatibility projection (same fields, same semantics).
+3. When both YAML and JSON forms of a catalog exist, YAML is authoritative.
+4. Consumers that support JSON MUST fail closed if YAML and JSON content disagrees.
+
+Authorship note: Routing catalogs are typically generated artifacts -- produced by an intake pipeline that filters a richer source (for example `initiative-pipeline.yml`) and writes the selector manifest. Because they are generated, they must remain separate from the human-authored entrypoint (`ENTERPRISE.md`). Inlining them into the entrypoint would either make the entrypoint a generated file (conflicting with its role as a stable navigation guide) or introduce a hand-maintained duplicate that drifts from the pipeline source.
 
 ### 5.2 Versioning Contract
 
@@ -277,6 +284,12 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 3. Fail closed on non-routable status by default.
 4. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
 
+### 5.6 Selector Uniqueness
+
+1. Each selector field MUST be independently unique within a catalog.
+2. When a catalog supports multiple selector fields (for example `work_item_id` and `api_id` in `implementation-catalog.yml`), a value in one selector namespace MUST NOT collide with values in another.
+3. Implementations MUST fail closed on duplicate selector values.
+
 ## 6. Compatibility and Alias Policy
 
 Canonical keys:
@@ -295,7 +308,7 @@ Migration policy:
 Recommended CI checks:
 
 1. Validate schema and required fields.
-2. Verify selector uniqueness.
+2. Verify selector uniqueness (see Section 5.6).
 3. Verify status-policy compliance.
 4. Verify referenced repository URLs are reachable with CI identity (or provider API equivalent).
 5. Flag stale or inaccessible routing targets before runtime.
@@ -331,11 +344,13 @@ Required:
 Required:
 
 1. Profile A
-2. deterministic bootstrap discovery mechanism
-3. routing catalogs for level boundaries present:
-   1. enterprise->solution: `initiatives.yml`
-   2. solution->domain: `domain-workstreams.yml`
-   3. domain->implementation: `implementation-catalog.yml` (or compatible JSON form)
+2. deterministic bootstrap discovery mechanism for the topmost level present in the organization
+3. routing catalogs for each level boundary that exists in the organization:
+   1. enterprise->solution (when both enterprise and solution levels exist): `initiatives.yml`
+   2. solution->domain (when both solution and domain levels exist): `domain-workstreams.yml`
+   3. domain->implementation (when selector-driven domain->implementation routing boundary exists): `implementation-catalog.yml`
+
+A two-level organization (for example Solution + Domain only) satisfies Profile B with `domain-workstreams.yml` for solution->domain routing. It requires `implementation-catalog.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
 
 ### Profile C: Governed Enterprise
 
@@ -425,7 +440,7 @@ Top-down routing:
 
 1. `initiative_id` -> `initiatives.yml` -> solution repository
 2. `workstream_id` -> `domain-workstreams.yml` -> domain repository
-3. `work_item_id`/`api_id` -> `implementation-catalog.yml` -> implementation target
+3. `work_item_id`/`api_id` -> `implementation-catalog.yml` -> implementation target (when selector-driven domain->implementation routing boundary exists)
 
 Bottom-up discovery:
 
@@ -477,9 +492,9 @@ An implementation MAY map catalogs into architecture folders, for example:
 
 1. `architecture/portfolio/initiatives.yml`
 2. `architecture/solution/domain-workstreams.yml`
-3. `implementation-catalog.json` or `implementation-catalog.yml`
+3. `implementation-catalog.yml` (with optional `implementation-catalog.json` compatibility projection)
 
-An implementation MAY use environment bootstrap variables (for example `OPENARCHITECT_EA_REPO_URL`) as its concrete bootstrap mechanism.
+An implementation MAY use environment bootstrap variables (for example `OPENARCHITECT_ROOT_REPO_URL`) as its concrete bootstrap mechanism for the topmost level present.
 
 ## 18. Next Step
 

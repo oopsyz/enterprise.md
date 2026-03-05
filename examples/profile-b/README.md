@@ -4,7 +4,7 @@ This example adds deterministic routing catalogs on top of Profile A. Agents and
 
 ## Layout
 
-```
+```text
 enterprise-repo/
   AGENTS.md
   ENTERPRISE.md
@@ -23,10 +23,10 @@ domain-repo/
 
 ## What's New Over Profile A
 
-- `initiatives.yml` — routes `initiative_id` to solution repositories
-- `domain-workstreams.yml` — routes `workstream_id` to domain repositories
-- `implementation-catalog.yml` — routes `work_item_id`/`api_id` to implementation targets
-- Bootstrap discovery mechanism (e.g., environment variable `EA_REPO_URL`)
+- `initiatives.yml` -- routes `initiative_id` to solution repositories
+- `domain-workstreams.yml` -- routes `workstream_id` to domain repositories
+- `implementation-catalog.yml` -- routes `work_item_id`/`api_id` to implementation targets when selector-driven domain->implementation routing is used
+- Bootstrap discovery mechanism (for example environment variable `EA_REPO_URL`)
 
 ## When to Use
 
