@@ -5,10 +5,12 @@ domains:
     name: Order Management
     owner: order-team
     domain_repo_url: https://github.com/acme/domain-order
+    domain_entrypoint: DOMAIN.md
     status: active
 
   - domain_id: billing
     name: Billing & Invoicing
     owner: billing-team
     domain_repo_url: https://github.com/acme/domain-billing
+    domain_entrypoint: DOMAIN.md
     status: active

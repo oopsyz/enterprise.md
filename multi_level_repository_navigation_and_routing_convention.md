@@ -23,7 +23,7 @@ This proposal is the solution to the problem in Section 1: it keeps repo-local g
 
 This proposal applies progressive disclosure at every scale instead of piling everything into one repository and one file:
 
-1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`) disclose *which repo* to go to next. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
+1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`) disclose *which repo* to go to next, and may include explicit entrypoint fields for deterministic file targeting. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
 2. **File level** (Layer A): entrypoints disclose *what matters* in that repo. They are maps, not encyclopedias.
 3. **Artifact level**: linked catalogs and design files disclose *the detail* -- only when you follow the link.
 
@@ -188,7 +188,7 @@ This standard defines file names and semantics, not fixed directories.
 
 | Catalog | Level | Selector | Resolves |
 |---|---|---|---|
-| `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` |
+| `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_repo_url` |
 | `implementation-catalog.yml` | Domain | `work_item_id` or `api_id` | implementation target/path |
 
@@ -221,6 +221,11 @@ Runtime behavior:
 
 ### 5.3 Minimum Fields
 
+Cross-repo target fields:
+
+1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) alongside `solution_repo_url`.
+2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`).
+
 #### initiatives.yml
 
 ```yaml
@@ -229,6 +234,7 @@ spec_version: "1.0.0"
 initiatives:
   - initiative_id: init-example
     solution_repo_url: https://github.com/example/solution-repo
+    solution_entrypoint: SOLUTION.md
     status: active
 ```
 
@@ -366,6 +372,7 @@ Required:
 
 1. Profile B
 2. domain governance registry (for example `domain-registry.yml`)
+   1. when a domain entry includes `domain_repo_url`, it MUST include `domain_entrypoint`
 3. solution scope/index manifest (for example `solution-index.yml`)
 4. governance state artifact with minimum fields:
    1. `spec_name`
@@ -446,7 +453,7 @@ Recommended error codes:
 
 Top-down routing:
 
-1. `initiative_id` -> `initiatives.yml` -> solution repository
+1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint`
 2. `workstream_id` -> `domain-workstreams.yml` -> domain repository
 3. `work_item_id`/`api_id` -> `implementation-catalog.yml` -> implementation target (when selector-driven domain->implementation routing boundary exists)
 

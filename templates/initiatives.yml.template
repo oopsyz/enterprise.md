@@ -8,6 +8,7 @@
 # - This catalog may retain historical initiatives for traceability (for example `completed`/`archived`).
 # - Startup routing must be fail-closed and should route only when `status: active`.
 # - Initiatives without a real `solution_repo_url` should remain in the pipeline source artifact and must not be published here.
+# - Include `solution_entrypoint` so agents know exactly which file to read in the solution repo.
 
 version: "1.0"
 
@@ -15,6 +16,7 @@ initiatives:
   - initiative_id: init-bss-modernization
     name: BSS Modernization
     solution_repo_url: https://github.com/<github-org>/<solution-repo>
+    solution_entrypoint: SOLUTION.md # Read this file in the target solution repo
     status: active
     owner: sa-team-a
     metadata:
@@ -25,6 +27,7 @@ initiatives:
   - initiative_id: init-legacy-crm-sunset
     name: Legacy CRM Sunset
     solution_repo_url: https://github.com/<github-org>/<solution-repo-crm-sunset>
+    solution_entrypoint: SOLUTION.md # Read this file in the target solution repo
     status: completed
     owner: sa-team-b
     metadata:

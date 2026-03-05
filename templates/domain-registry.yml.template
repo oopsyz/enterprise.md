@@ -2,6 +2,7 @@
 # Keep this file in EA repo at: architecture/enterprise/domain-registry.yml
 # Validate with: docs/design/schemas/domain-registry.schema.json
 # Use domain-registry.telco.yml.template for Telco-specific one-ODA-component-per-domain baseline.
+# When a domain links to a repo, include `domain_entrypoint` so agents know which file to read.
 
 version: "1.0"
 enterprise_id: ent-example
@@ -9,6 +10,8 @@ domains:
   - domain_id: om
     name: Order Management
     owner: domain-arch-om
+    domain_repo_url: https://github.com/<github-org>/<domain-repo-order>
+    domain_entrypoint: DOMAIN.md # Read this file in the target domain repo
     status: active
     capabilities:
       - capability_id: cap-order-capture
@@ -35,6 +38,8 @@ domains:
   - domain_id: catalog
     name: Product Catalog
     owner: domain-arch-catalog
+    domain_repo_url: https://github.com/<github-org>/<domain-repo-catalog>
+    domain_entrypoint: DOMAIN.md # Read this file in the target domain repo
     status: active
     capabilities:
       - capability_id: cap-product-definition
