@@ -23,7 +23,7 @@ This proposal is the solution to the problem in Section 1: it keeps repo-local g
 
 This proposal applies progressive disclosure at every scale instead of piling everything into one repository and one file:
 
-1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`) disclose *which repo* to go to next, and may include explicit entrypoint fields for deterministic file targeting. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
+1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`) disclose the next stable target and, when needed, the exact workstream context to open. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
 2. **File level** (Layer A): entrypoints disclose *what matters* in that repo. They are maps, not encyclopedias.
 3. **Artifact level**: linked catalogs and design files disclose *the detail* -- only when you follow the link.
 
@@ -54,7 +54,7 @@ flowchart LR
     subgraph SR["Solution repo"]
         SEntry["SOLUTION.md"]:::entry
         SLocal["Other solution files\n(architecture, ADRs, roadmaps)"]:::artifact
-        SRoute["domain-workstreams.yml\n(select domain repo)"]:::routing
+        SRoute["domain-workstreams.yml\n(select domain workstream)"]:::routing
 
         SEntry -->|"links to"| SLocal
         SEntry -->|"need a domain?"| SRoute
@@ -68,7 +68,7 @@ flowchart LR
     end
 
     ERoute -->|"open repo"| SEntry
-    SRoute -->|"open repo"| DEntry
+    SRoute -->|"open workstream context"| DEntry
 
     classDef routing fill:#e8f4f8,stroke:#4a9aba;
     classDef entry fill:#f0f8e8,stroke:#6aaa4a;
@@ -89,7 +89,7 @@ flowchart LR
 1. `AGENTS.md` remains the repo-local behavior contract.
 2. The level entrypoint for a repository SHOULD exist when that level is present.
 3. Entrypoints SHOULD stay concise and link to canonical machine artifacts instead of duplicating mutable data. This is especially important when catalogs are generated -- the entrypoint links to the artifact; it does not replicate it.
-4. Upstream entrypoint links MUST be deterministic and level-explicit: `SOLUTION.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists; `DOMAIN.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists. `DOMAIN.md` MUST NOT require `SOLUTION.md` links for upstream navigation.
+4. Upstream entrypoint links MUST be deterministic and level-explicit: `SOLUTION.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists; `DOMAIN.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists. `DOMAIN.md` MUST NOT require `SOLUTION.md` links for upstream navigation because solution-to-domain associations are many-to-many and can change over time; those associations belong in routing catalogs and handoff artifacts, not in Markdown ancestry.
 5. When routing catalogs exist, downstream target information MUST be maintained in the canonical YAML catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`). Entrypoints MAY include lightweight navigation links, but SHOULD avoid duplicating exhaustive downstream mappings to prevent drift.
 6. If no upstream level exists, the Parent section MUST state `Not applicable`.
 7. Agents MUST start with `AGENTS.md`. `AGENTS.md` MUST direct readers to the repository's level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`) for architectural context and navigation.
@@ -189,7 +189,7 @@ This standard defines file names and semantics, not fixed directories.
 | Catalog | Level | Selector | Resolves |
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
-| `domain-workstreams.yml` | Solution | `workstream_id` | `domain_repo_url` |
+| `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
 | `implementation-catalog.yml` | Domain | `work_item_id` or `api_id` | implementation target/path |
 
 Format rules:
@@ -203,10 +203,11 @@ Authorship note: Routing catalogs are typically generated artifacts -- produced 
 
 ### 5.2 Versioning Contract
 
-All catalogs MUST include:
+Catalog headers MUST follow the canonical schema for that catalog type:
 
-1. `spec_name`
-2. `spec_version`
+1. `initiatives.yml` MUST include `version`.
+2. `domain-workstreams.yml` MUST include `version`.
+3. `implementation-catalog.yml` MUST include `spec_name` and `spec_version`.
 
 Version rules:
 
@@ -225,12 +226,16 @@ Cross-repo target fields:
 
 1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) alongside `solution_repo_url`.
 2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`).
+3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
+   `domain_id` is the stable target identity and remains required even when `workstream_repo_url` is sufficient for direct runtime resolution.
+4. `domain-workstreams.yml` entries MUST include `workstream_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository.
+5. `workstream_entrypoint` MAY be `null` while the workstream context has not yet been materialized. For any routable workstream status, `workstream_entrypoint` MUST be non-null.
+6. `domain-workstreams.yml` entries MAY include `workstream_path` to identify the repo-relative folder that contains the workstream artifacts.
 
 #### initiatives.yml
 
 ```yaml
-spec_name: multi-scale-routing
-spec_version: "1.0.0"
+version: "1.0"
 initiatives:
   - initiative_id: init-example
     solution_repo_url: https://github.com/example/solution-repo
@@ -241,13 +246,15 @@ initiatives:
 #### domain-workstreams.yml
 
 ```yaml
-spec_name: multi-scale-routing
-spec_version: "1.0.0"
+version: "1.0"
 workstreams:
   - workstream_id: ws-init-example-order
     initiative_id: init-example
     domain_id: order
-    domain_repo_url: https://github.com/example/order-domain-repo
+    workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md
+    workstream_git_ref: feature/ws-init-example-order
+    workstream_repo_url: https://github.com/example/order-domain-repo
+    workstream_path: inputs/workstreams/ws-init-example-order/
     status: active
 ```
 
@@ -364,7 +371,13 @@ Required:
    2. solution->domain (when both solution and domain levels exist): `domain-workstreams.yml`
    3. domain->implementation (when selector-driven domain->implementation routing boundary exists): `implementation-catalog.yml`
 
-A two-level organization (for example Solution + Domain only) satisfies Profile B with `domain-workstreams.yml` for solution->domain routing. It requires `implementation-catalog.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
+A two-level organization (for example Solution + Domain only) satisfies Profile B with `domain-workstreams.yml` for solution->domain workstream routing. It requires `implementation-catalog.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
+
+Profile B resolution rule:
+
+1. `domain-workstreams.yml` MUST be self-sufficient for runtime resolution when no authoritative `domain-registry.yml` is available.
+2. In that case, each workstream entry MUST include `workstream_repo_url`.
+3. When an authoritative `domain-registry.yml` is available at runtime, `workstream_repo_url` MAY be omitted and `domain_id` is resolved through the registry.
 
 ### Profile C: Governed Enterprise
 
@@ -444,6 +457,7 @@ Recommended error codes:
 1. Use `SOLUTION.md` and `DOMAIN.md`.
 2. Use routing catalogs only for boundaries that exist.
 3. `ENTERPRISE.md` and `initiatives.yml` are optional.
+4. In this topology, `DOMAIN.md` does not need a `SOLUTION.md` parent link. Solution-to-domain relationships remain many-to-many and are discovered from `domain-workstreams.yml` or equivalent handoff artifacts.
 
 ### 12.3 Three-Level (Enterprise + Solution + Domain)
 
@@ -454,14 +468,18 @@ Recommended error codes:
 Top-down routing:
 
 1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint`
-2. `workstream_id` -> `domain-workstreams.yml` -> domain repository
-3. `work_item_id`/`api_id` -> `implementation-catalog.yml` -> implementation target (when selector-driven domain->implementation routing boundary exists)
+2. `workstream_id` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
+3. Repository resolution for a workstream target:
+   1. use `workstream_repo_url` when present in `domain-workstreams.yml`
+   2. otherwise resolve `domain_id` -> authoritative `domain-registry.yml` -> `domain_repo_url`
+4. `work_item_id`/`api_id` -> `implementation-catalog.yml` -> implementation target (when selector-driven domain->implementation routing boundary exists)
 
 Bottom-up discovery:
 
-1. Domain agent reads `DOMAIN.md` upstream link to `ENTERPRISE.md` (when enterprise level exists); SA-to-DA routing context is provided via selector/data handoff artifacts.
-2. Solution agent reads `SOLUTION.md` parent link to `ENTERPRISE.md`.
-3. Agents use shared IDs (`initiative_id`, `workstream_id`, `domain_id`) for lineage reconstruction.
+1. Domain agent reads `DOMAIN.md` upstream link to `ENTERPRISE.md` when the enterprise level exists.
+2. If the enterprise level is absent, `DOMAIN.md` MAY have `Parent: Not applicable`; solution associations are still recovered from `domain-workstreams.yml` or equivalent handoff artifacts rather than Markdown parent links.
+3. Solution agent reads `SOLUTION.md` parent link to `ENTERPRISE.md` when the enterprise level exists.
+4. Agents use shared IDs (`initiative_id`, `workstream_id`, `domain_id`) for lineage reconstruction.
 
 ## 14. Companion Guidance: Agent Context Engineering (Non-Normative)
 

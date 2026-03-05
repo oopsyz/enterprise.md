@@ -34,7 +34,7 @@ domain-workstreams.yml                             <- workstream selector catalo
 
 ## Routing
 
-`WORKSTREAM_ID` -> `domain-workstreams.yml` -> `domain_repo_url`
+`WORKSTREAM_ID` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
 
 ## SA Container Context
 

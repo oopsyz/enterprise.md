@@ -4,6 +4,12 @@
 # and one domain can participate in many initiatives.
 # domain_id values should reference EA registry:
 #   architecture/enterprise/domain-registry.yml
+# A runtime may resolve `domain_id` through an authoritative EA
+# `domain-registry.yml` when available.
+# If no such registry is available at runtime, each workstream entry must be
+# self-sufficient and include `workstream_repo_url`.
+# `workstream_entrypoint` may be null before the workstream context exists, but
+# it must be concrete for any routable workstream status.
 
 version: "1.0"
 workspace_id: <workspace-id-or-null>
@@ -18,7 +24,10 @@ workstreams:
     domain_name: <domain display name>
     oda_component_name: <TMF ODA component name-or-null>
     name: <initiative x domain display name>
-    domain_repo_url: <https://github.com/<org>/<repo>-or-null>
+    workstream_entrypoint: <inputs/workstreams/<WORKSTREAM_ID>/WORKSTREAM.md-or-null>
+    workstream_git_ref: <branch-tag-or-commit-ref>
+    workstream_repo_url: <https://github.com/<org>/<domain-or-workstream-repo>>
+    workstream_path: <repo-relative-folder-or-null>
     tmfc_component_id: <TMFC###-or-null>
     handoff_ref: <component-handoff-ref-or-null>
     status: active

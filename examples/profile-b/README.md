@@ -24,7 +24,7 @@ domain-repo/
 ## What's New Over Profile A
 
 - `initiatives.yml` -- routes `initiative_id` to solution repositories
-- `domain-workstreams.yml` -- routes `workstream_id` to domain repositories
+- `domain-workstreams.yml` -- routes `workstream_id` to domain workstream context (`domain_id` + workstream entrypoint/ref)
 - `implementation-catalog.yml` -- routes `work_item_id`/`api_id` to implementation targets when selector-driven domain->implementation routing is used
 - Bootstrap discovery mechanism (for example environment variable `EA_REPO_URL`)
 

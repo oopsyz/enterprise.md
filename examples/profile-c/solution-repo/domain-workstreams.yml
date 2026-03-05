@@ -14,7 +14,10 @@ workstreams:
     domain_name: Order Management
     oda_component_name: null
     name: BSS Modernization x Order Management
-    domain_repo_url: https://github.com/acme/domain-order
+    workstream_entrypoint: inputs/workstreams/ws-bss-order/WORKSTREAM.md
+    workstream_git_ref: feature/ws-bss-order
+    workstream_repo_url: null
+    workstream_path: inputs/workstreams/ws-bss-order/
     tmfc_component_id: null
     handoff_ref: null
     status: active
@@ -29,7 +32,10 @@ workstreams:
     domain_name: Billing & Invoicing
     oda_component_name: null
     name: BSS Modernization x Billing & Invoicing
-    domain_repo_url: https://github.com/acme/domain-billing
+    workstream_entrypoint: inputs/workstreams/ws-bss-billing/WORKSTREAM.md
+    workstream_git_ref: feature/ws-bss-billing
+    workstream_repo_url: null
+    workstream_path: inputs/workstreams/ws-bss-billing/
     tmfc_component_id: null
     handoff_ref: null
     status: active
