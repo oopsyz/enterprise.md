@@ -2,13 +2,13 @@
 
 Purpose: Enterprise portfolio entrypoint for Acme Corp.
 
+## Read First
+
+1. This file - enterprise context and navigation
+
 ## Parent
 
 Not applicable
-
-## Children
-
-- [SOLUTION: BSS Modernization](https://github.com/acme/solution-bss/blob/main/SOLUTION.md)
 
 ## Canonical Artifacts
 

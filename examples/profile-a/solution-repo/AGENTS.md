@@ -1,9 +1,8 @@
 # AGENTS
 
-## Identity
+Role: sa
+Instruction: After reading this file, read `SOLUTION.md` (mandatory entrypoint).
+Guardrail: `SOLUTION.md` is a critical contract file. Preserve template section structure and keep mutable operational detail in linked canonical artifacts.
+References:
+- `SOLUTION.md` - solution-level entrypoint
 
-Solution architecture repository for BSS Modernization.
-
-## Navigation
-
-- [SOLUTION.md](SOLUTION.md) — solution-level entrypoint

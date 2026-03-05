@@ -1,9 +1,8 @@
 # AGENTS
 
-## Identity
+Role: ea
+Instruction: After reading this file, read `ENTERPRISE.md` (mandatory entrypoint).
+Guardrail: `ENTERPRISE.md` is a critical contract file. Preserve template section structure and keep mutable operational detail in linked canonical artifacts.
+References:
+- `ENTERPRISE.md` - enterprise-level entrypoint
 
-Enterprise architecture repository for Acme Corp.
-
-## Navigation
-
-- [ENTERPRISE.md](ENTERPRISE.md) — enterprise-level entrypoint

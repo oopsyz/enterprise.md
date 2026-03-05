@@ -1,6 +1,6 @@
 # Profile A: Entrypoint-Only
 
-This example shows the minimum adoption: `AGENTS.md` plus level entrypoints with parent/child links. No routing catalogs or tooling required.
+This example shows the minimum adoption: `AGENTS.md` plus level entrypoints with deterministic upstream parent links. No routing catalogs or tooling required.
 
 ## Layout
 

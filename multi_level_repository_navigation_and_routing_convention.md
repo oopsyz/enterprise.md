@@ -89,9 +89,16 @@ flowchart LR
 1. `AGENTS.md` remains the repo-local behavior contract.
 2. The level entrypoint for a repository SHOULD exist when that level is present.
 3. Entrypoints SHOULD stay concise and link to canonical machine artifacts instead of duplicating mutable data. This is especially important when catalogs are generated -- the entrypoint links to the artifact; it does not replicate it.
-4. Each entrypoint MUST include one deterministic parent link when a parent level exists.
-5. Each entrypoint SHOULD include child links when child levels exist.
-6. If no parent level exists, the Parent section MUST state `Not applicable`. If no child level exists, the Children section MUST state `Not applicable`.
+4. Upstream entrypoint links MUST be deterministic and level-explicit: `SOLUTION.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists; `DOMAIN.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists. `DOMAIN.md` MUST NOT require `SOLUTION.md` links for upstream navigation.
+5. When routing catalogs exist, downstream target information MUST be maintained in the canonical YAML catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`). Entrypoints MAY include lightweight navigation links, but SHOULD avoid duplicating exhaustive downstream mappings to prevent drift.
+6. If no upstream level exists, the Parent section MUST state `Not applicable`.
+7. Agents MUST start with `AGENTS.md`. `AGENTS.md` MUST direct readers to the repository's level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`) for architectural context and navigation.
+
+Implementation references:
+
+1. AGENTS handoff templates: `templates/AGENTS.ea.md.template`, `templates/AGENTS.sa.md.template`, `templates/AGENTS.da.md.template`.
+2. Level entrypoint templates: `templates/ENTERPRISE.md.template`, `templates/SOLUTION.md.template`, `templates/DOMAIN.md.template`.
+3. End-to-end examples: `examples/profile-a/`, `examples/profile-b/`, `examples/profile-c/`.
 
 ### 3.3 Parent Link Format
 
@@ -100,6 +107,7 @@ Accepted parent link forms:
 1. Absolute HTTPS URL to parent entrypoint file.
 2. Repository-relative path when parent is in the same repository.
 3. Stable repository identifier plus path (when URL is resolved at runtime).
+4. The Parent section SHOULD label upstream links by level (for example `ENTERPRISE`).
 
 Identifier note:
 
@@ -115,11 +123,11 @@ Identifier note:
 
 Purpose: Enterprise portfolio entrypoint.
 
+## Read First
+1. This file — enterprise context and navigation
+
 ## Parent
 Not applicable
-
-## Children
-- [SOLUTION: BSS Modernization](https://github.com/example/solution-bss/blob/main/SOLUTION.md)
 
 ## Canonical Artifacts
 - initiatives.yml
@@ -133,11 +141,11 @@ Not applicable
 
 Purpose: Solution architecture entrypoint.
 
+## Read First
+1. This file — solution context and navigation
+
 ## Parent
 - [ENTERPRISE](https://github.com/example/ea-repo/blob/main/ENTERPRISE.md)
-
-## Children
-- [DOMAIN: Order](https://github.com/example/domain-order/blob/main/DOMAIN.md)
 
 ## Canonical Artifacts
 - domain-workstreams.yml
@@ -151,11 +159,11 @@ Purpose: Solution architecture entrypoint.
 
 Purpose: Domain architecture entrypoint.
 
-## Parent
-- [SOLUTION](https://github.com/example/solution-bss/blob/main/SOLUTION.md)
+## Read First
+1. This file — domain context and navigation
 
-## Children
-Not applicable
+## Parent
+- [ENTERPRISE](https://github.com/example/ea-repo/blob/main/ENTERPRISE.md)
 
 ## Canonical Artifacts
 - implementation-catalog.yml
@@ -444,7 +452,7 @@ Top-down routing:
 
 Bottom-up discovery:
 
-1. Domain agent reads `DOMAIN.md` parent link to `SOLUTION.md`.
+1. Domain agent reads `DOMAIN.md` upstream link to `ENTERPRISE.md` (when enterprise level exists); SA-to-DA routing context is provided via selector/data handoff artifacts.
 2. Solution agent reads `SOLUTION.md` parent link to `ENTERPRISE.md`.
 3. Agents use shared IDs (`initiative_id`, `workstream_id`, `domain_id`) for lineage reconstruction.
 

@@ -1,15 +1,12 @@
 # AGENTS
 
-## Identity
+Role: ea
+Instruction: After reading this file, read `ENTERPRISE.md` (mandatory entrypoint).
+Guardrail: `ENTERPRISE.md` is a critical contract file. Preserve template section structure and keep mutable operational detail in linked canonical artifacts.
+References:
+- `ENTERPRISE.md` - enterprise-level entrypoint
+- `initiatives.yml` - enterprise-to-solution routing catalog
+- `domain-registry.yml` - domain governance registry
+Bootstrap:
+- Set `EA_REPO_URL` to this repository's clone URL for runtime discovery.
 
-Enterprise architecture repository for Acme Corp (governed).
-
-## Navigation
-
-- [ENTERPRISE.md](ENTERPRISE.md) — enterprise-level entrypoint
-- [initiatives.yml](initiatives.yml) — enterprise-to-solution routing catalog
-- [domain-registry.yml](domain-registry.yml) — domain governance registry
-
-## Bootstrap
-
-Set `EA_REPO_URL` to this repository's clone URL for runtime discovery.

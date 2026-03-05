@@ -2,6 +2,14 @@
 
 EA portfolio repo entrypoint. Routes initiatives to solution repos via the Git-first decomposition cascade.
 
+## Read First
+
+1. This file - enterprise context and navigation
+
+## Parent
+
+Not applicable
+
 ## Critical File Contract
 
 - Keep required section headings from this template.
@@ -29,7 +37,7 @@ architecture/
     `-- governance.yml                    <- (optional)
 ```
 
-## Canonical Sources
+## Canonical Artifacts
 
 - `architecture/portfolio/initiative-pipeline.yml` (portfolio lifecycle source)
 - `architecture/portfolio/initiatives.yml` (runtime routing selector)
@@ -43,9 +51,4 @@ architecture/
 ## Policy
 
 - Active-only routing; fail-closed on non-active status.
-- Automation routes via selector catalogs; humans follow `SOLUTION.md` links in target repos.
-
-## Solutions (External)
-
-- `<solution-a>`: `<solution-repo-url>/blob/main/SOLUTION.md`
-- `<solution-b>`: `<solution-repo-url>/blob/main/SOLUTION.md`
+- Resolve solution targets from `architecture/portfolio/initiatives.yml` (canonical routing source).

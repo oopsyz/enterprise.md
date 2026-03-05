@@ -2,6 +2,15 @@
 
 Domain architecture repo entrypoint. Owns domain design baselines and produces a job catalog for developer routing.
 
+## Read First
+
+1. This file - domain context and navigation
+
+## Parent
+
+- [ENTERPRISE](<enterprise-repo-url>/blob/main/ENTERPRISE.md)
+If enterprise level is absent in your organization, replace with `Not applicable`.
+
 ## Critical File Contract
 
 - Keep required section headings from this template.
@@ -35,7 +44,7 @@ inputs/
     `-- <initiative_id>/...
 ```
 
-## Canonical Sources
+## Canonical Artifacts
 
 - `implementation-catalog.yml` (canonical work-item/API routing selector; optional `implementation-catalog.json` compatibility projection)
 - `architecture/domains/<domain>/*.yml` (domain design, component specs, data/workflow details)

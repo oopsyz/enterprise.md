@@ -2,6 +2,15 @@
 
 Solution architecture repo entrypoint. Owns the SA baseline and routes domain workstreams to domain repos.
 
+## Read First
+
+1. This file - solution context and navigation
+
+## Parent
+
+- [ENTERPRISE](<enterprise-repo-url>/blob/main/ENTERPRISE.md)
+If enterprise level is absent in your organization, replace with `Not applicable`.
+
 ## Critical File Contract
 
 - Keep required section headings from this template.
@@ -30,7 +39,7 @@ architecture/
         `-- component-specs.yml                    <- (optional, co-located domain specs)
 ```
 
-## Canonical Sources
+## Canonical Artifacts
 
 - `solution-index.yml` (machine-authoritative solution scope and repo mapping)
 - `architecture/solution/architecture-design.yml` (structured solution architecture)
@@ -56,11 +65,6 @@ At minimum, `SOLUTION.md` should reference values from `.openarchitect/active-in
 - selector provenance (when present)
 
 If `.openarchitect/active-initiative.json` is missing (for example outside routed container startup), explicitly state that initiative context could not be resolved from runtime routing metadata.
-
-## Adjacent Entrypoints
-
-- `ENTERPRISE.md` in the EA repo (upstream portfolio context)
-- `DOMAIN.md` + `AGENTS.md` in each domain repo (downstream domain context; required)
 
 ## Scope
 
