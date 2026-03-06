@@ -9,7 +9,7 @@
 # If no such registry is available at runtime, each workstream entry must be
 # self-sufficient and include `workstream_repo_url`.
 # `workstream_entrypoint` may be null before the workstream context exists, but
-# it must be concrete for any routable workstream status.
+# it must be non-null for any routable workstream status.
 
 version: "1.0"
 workspace_id: <workspace-id-or-null>
@@ -35,6 +35,27 @@ workstreams:
     metadata:
       priority: <high|medium|low>
       milestone: <yyyy-q#-or-null>
+
+  # Example: proposed new domain (not yet routable - pending EA domain registry approval)
+  # - workstream_id: ws-init-example-newdomain
+  #   workstream_uuid: <uuid-v4>
+  #   initiative_id: init-example
+  #   domain_id: newdomain
+  #   domain_name: New Domain
+  #   oda_component_name: <TMF ODA component name-or-null>
+  #   name: Example x New Domain
+  #   workstream_entrypoint: null
+  #   workstream_git_ref: <branch-tag-or-commit-ref>
+  #   workstream_repo_url: <https://github.com/<org>/<proposed-domain-repo>>
+  #   workstream_path: <repo-relative-folder-or-null>
+  #   tmfc_component_id: <TMFC###-or-null>
+  #   handoff_ref: <component-handoff-ref-or-null>
+  #   status: approved
+  #   owner: <proposed-owner>
+  #   metadata:
+  #     priority: <high|medium|low>
+  #     milestone: <yyyy-q#-or-null>
+
 execution:
   state: not_started
   processed_workstreams: []
