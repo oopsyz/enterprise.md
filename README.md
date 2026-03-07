@@ -20,6 +20,10 @@ Canonical specification:
 
 - [multi_level_repository_navigation_and_routing_convention.md](multi_level_repository_navigation_and_routing_convention.md)
 
+Codex-oriented implementation notes:
+
+- [reference/codex-app-integration/](reference/codex-app-integration/)
+
 ## Problem
 
 `AGENTS.md` works well for single-repository agent behavior, but enterprise delivery spans multiple repositories across architecture levels (enterprise, solution, domain). Teams need level-aware entrypoints, deterministic cross-repository routing, and explicit ownership and governance.
@@ -34,6 +38,28 @@ Two independent, separable layers:
 | **Layer B: Routing Catalog Specification** | Deterministic machine routing between levels via YAML catalogs and workstream context | Orchestration/runtime only |
 
 Organizations can adopt Layer A without Layer B.
+
+## Positioning
+
+`enterprise.md` is not a competing AI assistant, IDE, or coding agent.
+
+It is a proposed convention layer that existing tools can implement or follow in order to operate more effectively in enterprise multi-repository environments.
+
+In practical terms, the proposal defines:
+
+1. a navigation standard for repository-level and architecture-level entrypoints
+2. a deterministic routing standard for moving between enterprise, solution, domain, and implementation contexts
+3. a shared artifact-based context model for isolated sessions or threads
+4. a fail-closed governance model for enterprise-safe automation
+
+This means the relationship is:
+
+1. tools such as Codex, Claude Code, Cursor, and Copilot provide AI execution surfaces
+2. `enterprise.md` provides the repository and routing convention those tools can use across multi-repo delivery
+
+Short form:
+
+`enterprise.md` is the multi-repo coordination standard, not the coding assistant.
 
 ## Conformance Profiles
 
@@ -78,6 +104,15 @@ examples/
   profile-a/                                       -- entrypoint-only example
   profile-b/                                       -- routed automation example
   profile-c/                                       -- governed enterprise example
+reference/
+  harness-engineering.md                           -- reference note
+  codex-app-integration/                           -- Codex-oriented implementation notes
+    README.md                                      -- overview and progressive disclosure summary
+    ecosystem-positioning.md                       -- standards positioning and ecosystem diagram
+    official-codex-surfaces-and-fit.md             -- official Codex surface mapping
+    worker-container-to-codex-mapping.md           -- mapping from current worker_container model
+    codex-threads-context-and-progressive-disclosure.md -- isolated thread coordination model
+    resolve-codex-git-target-contract.md           -- proposed Codex resolver contract
 ```
 
 ## Contributing
