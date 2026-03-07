@@ -92,7 +92,7 @@ flowchart LR
 4. Upstream entrypoint links MUST be deterministic and level-explicit: `SOLUTION.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists; `DOMAIN.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists. `DOMAIN.md` MUST NOT require `SOLUTION.md` links for upstream navigation because solution-to-domain associations are many-to-many and can change over time; those associations belong in routing catalogs and handoff artifacts, not in Markdown ancestry.
 5. When routing catalogs exist, downstream target information MUST be maintained in the canonical YAML catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`). Entrypoints MAY include lightweight navigation links, but SHOULD avoid duplicating exhaustive downstream mappings to prevent drift.
 6. If no upstream level exists, the Parent section MUST state `Not applicable`.
-7. Agents MUST start with `AGENTS.md`. `AGENTS.md` MUST direct readers to the repository's level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`) for architectural context and navigation.
+7. Agents MUST start with `AGENTS.md`. `AGENTS.md` MUST instruct agents to always read the repository's level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`) for architectural context and navigation. The canonical instruction form is: `Always read <LEVEL>.md`.
 
 Implementation references:
 
