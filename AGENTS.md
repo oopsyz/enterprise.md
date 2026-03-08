@@ -20,6 +20,9 @@ This proposal defines:
 2. **Routing catalogs**: `initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml` - deterministic machine routing between levels.
 3. **Conformance profiles**: A (entrypoint-only), B (routed automation), C (governed enterprise).
 
+## Mandatory Entrypoints
+- Instruction: Always read `DOMAIN.md` (mandatory entrypoint for this level).
+
 ## Behavior
 
 - This is a specification repository, not a runtime system.
