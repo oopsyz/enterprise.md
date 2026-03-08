@@ -106,6 +106,7 @@ examples/
   profile-c/                                       -- governed enterprise example
 reference/
   harness-engineering.md                           -- reference note
+  machine-access-contract.md                       -- optional contract for querying canonical routing catalogs
   codex-app-integration/                           -- Codex-oriented implementation notes
     README.md                                      -- overview and progressive disclosure summary
     ecosystem-positioning.md                       -- standards positioning and ecosystem diagram

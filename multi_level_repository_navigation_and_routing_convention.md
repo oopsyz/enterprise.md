@@ -311,6 +311,38 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 2. When a catalog supports multiple selector fields (for example `work_item_id` and `api_id` in `implementation-catalog.yml`), a value in one selector namespace MUST NOT collide with values in another.
 3. Implementations MUST fail closed on duplicate selector values.
 
+### 5.7 Optional Machine Access Contract
+
+Implementations MAY expose machine access surfaces over canonical routing catalogs.
+
+This section defines query semantics only. Transport, invocation syntax, authentication, programming language, and deployment model are implementation-defined.
+
+Contract rules:
+
+1. Required operations:
+   1. `resolve`: return a single entry by canonical selector type and selector value.
+   2. `list`: return entries for a catalog, optionally filtered by exact-match status.
+   3. `validate`: report catalog integrity against the minimum checks in Section 7.
+2. Input contract:
+   1. `resolve` inputs MUST include a canonical selector type and selector value.
+   2. `list` inputs MAY include a catalog identifier and exact-match status filter.
+   3. Implementations MUST NOT require fuzzy search, keyword search, or inferred selector aliases for core resolution behavior.
+3. Output contract:
+   1. `resolve` responses MUST include the canonical fields required for that catalog type under Section 5.3.
+   2. `list` responses MUST preserve canonical entry semantics for every returned entry.
+   3. Implementations MAY add metadata or extension fields if canonical fields remain present and unmodified.
+4. Error contract:
+   1. Structured errors MUST include an `error_code`.
+   2. Implementations MUST support at least `ERR_SELECTOR_MISSING`, `ERR_SELECTOR_AMBIGUOUS`, and `ERR_SELECTOR_NOT_ROUTABLE`.
+   3. Implementations MAY also emit other error codes from Section 11 when applicable.
+5. Conflict rule:
+   1. Canonical YAML remains authoritative.
+   2. Implementations MUST NOT return results whose canonical semantics contradict the authoritative YAML content.
+6. Freshness rule:
+   1. Implementations MUST either return results consistent with the current authoritative YAML revision or explicitly declare the revision or staleness boundary represented by the response.
+
+Companion guidance and example realization patterns belong in `reference/machine-access-contract.md`.
+
 ## 6. Compatibility and Alias Policy
 
 Canonical keys:
@@ -331,8 +363,9 @@ Recommended CI checks:
 1. Validate schema and required fields.
 2. Verify selector uniqueness (see Section 5.6).
 3. Verify status-policy compliance.
-4. Verify referenced repository URLs are reachable with CI identity (or provider API equivalent).
-5. Flag stale or inaccessible routing targets before runtime.
+4. Verify catalog version compatibility against Section 5.2.
+5. Verify referenced repository URLs are reachable with CI identity (or provider API equivalent).
+6. Flag stale or inaccessible routing targets before runtime.
 
 ## 8. Ownership Model
 
