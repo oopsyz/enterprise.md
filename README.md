@@ -20,10 +20,6 @@ Canonical specification:
 
 - [multi_level_repository_navigation_and_routing_convention.md](multi_level_repository_navigation_and_routing_convention.md)
 
-Codex-oriented implementation notes:
-
-- [reference/codex-app-integration/](reference/codex-app-integration/)
-
 ## Problem
 
 `AGENTS.md` works well for single-repository agent behavior, but enterprise delivery spans multiple repositories across architecture levels (enterprise, solution, domain). Teams need level-aware entrypoints, deterministic cross-repository routing, and explicit ownership and governance.
@@ -107,18 +103,15 @@ examples/
 reference/
   harness-engineering.md                           -- reference note
   machine-access-contract.md                       -- optional contract for querying canonical routing catalogs
-  codex-app-integration/                           -- Codex-oriented implementation notes
-    README.md                                      -- overview and progressive disclosure summary
-    ecosystem-positioning.md                       -- standards positioning and ecosystem diagram
-    official-codex-surfaces-and-fit.md             -- official Codex surface mapping
-    worker-container-to-codex-mapping.md           -- mapping from current worker_container model
-    codex-threads-context-and-progressive-disclosure.md -- isolated thread coordination model
-    resolve-codex-git-target-contract.md           -- proposed Codex resolver contract
 ```
 
 ## Contributing
 
 This proposal is in draft. Feedback is welcome via issues or pull requests.
+
+## License
+
+This repository is licensed under Apache 2.0. See [LICENSE](LICENSE).
 
 ## Compatibility
 
