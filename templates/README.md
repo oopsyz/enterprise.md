@@ -45,7 +45,7 @@ Format note: YAML is canonical for routing catalogs. JSON is an optional schema-
 
 ## Usage
 
-1. Pick a conformance profile (A, B, or C) from the [proposal](../multi_level_repository_navigation_and_routing_convention.md).
+1. Pick a conformance profile (A, B, or C) from the [proposal](../enterprise_repo_convention.md).
 2. Copy the relevant templates into your repository.
 3. Remove the `.template` extension.
 4. Replace placeholder values (`<...>`) with your organization's data.

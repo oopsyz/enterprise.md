@@ -1,10 +1,10 @@
 # enterprise.md
 
-A proposed standard for multi-level repository navigation and routing conventions that extend `AGENTS.md` to enterprise-scale, multi-repository delivery.
+A proposed standard for multi-level repository navigation and deterministic routing conventions that extend `AGENTS.md` to enterprise-scale, multi-repository delivery.
 
 ## Status
 
-**Draft** - open for feedback.
+**Draft v0.3** - open for feedback.
 
 Classification: **Proposed Standard**.
 
@@ -18,7 +18,7 @@ Recommended reference text:
 
 Canonical specification:
 
-- [multi_level_repository_navigation_and_routing_convention.md](multi_level_repository_navigation_and_routing_convention.md)
+- [enterprise_repo_convention.md](enterprise_repo_convention.md)
 
 ## Problem
 
@@ -34,6 +34,12 @@ Two independent, separable layers:
 | **Layer B: Routing Catalog Specification** | Deterministic machine routing between levels via YAML catalogs and workstream context | Orchestration/runtime only |
 
 Organizations can adopt Layer A without Layer B.
+
+The proposal is built around progressive disclosure:
+
+1. Entry points provide concise navigation and context.
+2. Canonical catalogs carry deterministic routing data.
+3. Detailed design and implementation context stays in linked artifacts.
 
 ## Positioning
 
@@ -57,33 +63,65 @@ Short form:
 
 `enterprise.md` is the multi-repo coordination standard, not the coding assistant.
 
+## Key Rules
+
+1. `AGENTS.md` remains the repo-local behavior contract. See the [`AGENTS.md` convention](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) for background.
+2. Agents start with `AGENTS.md`, and `AGENTS.md` should direct them to always read the repository's level entrypoint.
+3. `ENTERPRISE.md`, `SOLUTION.md`, and `DOMAIN.md` are navigation entrypoints, not duplicated data stores.
+4. Upstream links are explicit by level: `SOLUTION.md` and `DOMAIN.md` link to `ENTERPRISE.md` when the enterprise level exists.
+5. `DOMAIN.md` does not use `SOLUTION.md` as a required parent link because solution-to-domain relationships are many-to-many and belong in routing catalogs or handoff artifacts. For example, a shared "identity" domain may serve both a "customer portal" solution and an "internal tools" solution simultaneously.
+6. YAML is canonical for routing catalogs; JSON is only an optional schema-equivalent projection.
+7. Routing fails closed on missing selectors, ambiguous selectors, and non-routable statuses by default.
+8. Implementations must not fall back to repo-name heuristics or keyword inference for core routing.
+
 ## Conformance Profiles
 
 | Profile | What you need |
 |---|---|
 | **A: Entrypoint-Only** | `AGENTS.md` + at least one level entrypoint |
-| **B: Routed Automation** | Profile A + bootstrap discovery + routing catalogs for boundaries that exist |
-| **C: Governed Enterprise** | Profile B + governance registry + governance state artifact |
+| **B: Routed Automation** | Profile A + deterministic bootstrap discovery for the topmost level present + routing catalogs for boundaries that exist |
+| **C: Governed Enterprise** | Profile B + governance registry, solution scope manifest, and governance state artifact |
 
 See [examples/](examples/) for working samples of each profile.
 
 Format note: YAML is canonical for routing catalogs. JSON is an optional schema-equivalent compatibility projection.
 
+## Routing Model
+
+Canonical catalogs and selectors:
+
+| Catalog | Level | Selector | Resolves |
+|---|---|---|---|
+| `initiatives.yml` | Enterprise | `initiative_id` | solution repository + `solution_entrypoint` |
+| `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + workstream context + repo target |
+| `implementation-catalog.yml` | Domain | `work_item_id` or `api_id` | implementation target/path |
+
+Default routable statuses are `active` and `in_progress`.
+
+Profile B and C implementations must provide at least one deterministic bootstrap mechanism for the topmost level present:
+
+1. Explicit startup parameter.
+2. Environment variable.
+3. Well-known discovery endpoint.
+
 ## Quick Start
 
-1. Read the [full proposal](multi_level_repository_navigation_and_routing_convention.md).
+1. Read the [full proposal](enterprise_repo_convention.md).
 2. Pick a conformance profile that fits your organization.
 3. Copy the relevant starter files from [templates/](templates/) into your repositories.
-4. Replace placeholder values with your organization's data.
-5. See [examples/](examples/) for complete working samples at each profile level.
+4. Define the bootstrap discovery mechanism if you are adopting Profile B or C (e.g., an `ENTERPRISE_REPO_URL` environment variable, a startup parameter, or a well-known endpoint like `https://config.example.com/enterprise-catalog`).
+5. Replace placeholder values with your organization's data and keep routing data in the canonical YAML catalogs.
+6. See [examples/](examples/) for complete working samples at each profile level.
 
 ## Repository Contents
 
 ```text
 README.md                                          -- this file
-AGENTS.md                                          -- agent navigation for this repo
-multi_level_repository_navigation_and_routing_convention.md    -- the full proposal
-templates/                                         -- starter templates for adoption
+LICENSE                                            -- Apache 2.0 license
+AGENTS.md                                          -- agent navigation for this repo (TODO: create)
+enterprise_repo_convention.md                      -- the full proposal
+templates/
+  README.md                                        -- template usage guide
   ENTERPRISE.md.template                           -- enterprise entrypoint
   SOLUTION.md.template                             -- solution entrypoint
   DOMAIN.md.template                               -- domain entrypoint
@@ -105,9 +143,27 @@ reference/
   machine-access-contract.md                       -- optional contract for querying canonical routing catalogs
 ```
 
+## Ownership Model
+
+Recommended default owners:
+
+| Artifact | Owner |
+|---|---|
+| `AGENTS.md` | Repository owners |
+| `ENTERPRISE.md` | EA |
+| `SOLUTION.md` | SA |
+| `DOMAIN.md` | DA |
+| `initiatives.yml` | EA/PMO |
+| `domain-workstreams.yml` | SA |
+| `implementation-catalog.yml` | DA |
+
+If roles are collapsed in one team or repository, ownership should be declared in the relevant entrypoint.
+
 ## Contributing
 
 This proposal is in draft. Feedback is welcome via issues or pull requests.
+
+When opening an issue, please indicate which layer (A or B) or conformance profile (A/B/C) your feedback relates to. For pull requests, keep changes focused on one section of the proposal at a time.
 
 ## License
 
