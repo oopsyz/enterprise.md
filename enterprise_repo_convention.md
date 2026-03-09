@@ -44,8 +44,10 @@ An organization can adopt Layer A without Layer B.
 flowchart LR
     subgraph ER["Enterprise repo"]
         EEntry["ENTERPRISE.md"]:::entry
-        ELocal["Other enterprise files\n(readmes, policies, strategy docs)"]:::artifact
-        ERoute["initiatives.yml\n(select solution repo)"]:::routing
+        ELocal["Other enterprise files
+        (readmes, policies, strategy docs)"]:::artifact
+        ERoute["initiatives.yml
+        (select solution repo)"]:::routing
 
         EEntry -->|"links to"| ELocal
         EEntry -->|"need a solution?"| ERoute
@@ -53,8 +55,10 @@ flowchart LR
 
     subgraph SR["Solution repo"]
         SEntry["SOLUTION.md"]:::entry
-        SLocal["Other solution files\n(architecture, ADRs, roadmaps)"]:::artifact
-        SRoute["domain-workstreams.yml\n(select domain workstream)"]:::routing
+        SLocal["Other solution files
+        (architecture, ADRs, roadmaps)"]:::artifact
+        SRoute["domain-workstreams.yml
+        (select domain workstream)"]:::routing
 
         SEntry -->|"links to"| SLocal
         SEntry -->|"need a domain?"| SRoute
@@ -62,7 +66,8 @@ flowchart LR
 
     subgraph DR["Domain repo"]
         DEntry["DOMAIN.md"]:::entry
-        DLocal["Other domain files\n(ADRs, API specs, schemas)"]:::artifact
+        DLocal["Other domain files
+        (ADRs, API specs, schemas)"]:::artifact
 
         DEntry -->|"links to"| DLocal
     end

@@ -44,8 +44,10 @@
 flowchart LR
     subgraph ER["企业仓库"]
         EEntry["ENTERPRISE.md"]:::entry
-        ELocal["其他企业层文件\n(readmes, policies, strategy docs)"]:::artifact
-        ERoute["initiatives.yml\n(选择解决方案仓库)"]:::routing
+        ELocal["其他企业层文件
+        (readmes, policies, strategy docs)"]:::artifact
+        ERoute["initiatives.yml
+        (选择解决方案仓库)"]:::routing
 
         EEntry -->|"链接到"| ELocal
         EEntry -->|"需要某个解决方案？"| ERoute
@@ -53,8 +55,10 @@ flowchart LR
 
     subgraph SR["解决方案仓库"]
         SEntry["SOLUTION.md"]:::entry
-        SLocal["其他解决方案文件\n(architecture, ADRs, roadmaps)"]:::artifact
-        SRoute["domain-workstreams.yml\n(选择领域工作流)"]:::routing
+        SLocal["其他解决方案文件
+        (architecture, ADRs, roadmaps)"]:::artifact
+        SRoute["domain-workstreams.yml
+        (选择领域工作流)"]:::routing
 
         SEntry -->|"链接到"| SLocal
         SEntry -->|"需要某个领域？"| SRoute
@@ -62,7 +66,8 @@ flowchart LR
 
     subgraph DR["领域仓库"]
         DEntry["DOMAIN.md"]:::entry
-        DLocal["其他领域文件\n(ADRs, API specs, schemas)"]:::artifact
+        DLocal["其他领域文件
+        (ADRs, API specs, schemas)"]:::artifact
 
         DEntry -->|"链接到"| DLocal
     end
