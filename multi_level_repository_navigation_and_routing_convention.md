@@ -192,6 +192,8 @@ This standard defines file names and semantics, not fixed directories.
 | `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
 | `implementation-catalog.yml` | Domain | `work_item_id` or `api_id` | implementation target/path |
 
+Catalog resolution is defined per boundary. This specification does not guarantee automatic selector propagation across boundaries; the caller must possess or obtain the selector for the next boundary independently. Implementations MAY define handoff mechanisms that carry selectors across boundaries, but such mechanisms are implementation-specific.
+
 Format rules:
 
 1. YAML is the canonical format for all catalogs in this proposal.
@@ -227,10 +229,13 @@ Cross-repo target fields:
 1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) alongside `solution_repo_url`.
 2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`).
 3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
+   When the enterprise level exists (i.e., `initiatives.yml` is present), entries MUST also include `initiative_id` to link the workstream to its originating initiative. When no enterprise level exists (two-level topology per Section 12.2), `initiative_id` MAY be omitted.
+   `initiative_id`, when present, enables correlation between workstreams and initiatives but does not create a normative routing step; the canonical selector for `domain-workstreams.yml` remains `workstream_id`.
    `domain_id` is the stable target identity and remains required even when `workstream_repo_url` is sufficient for direct runtime resolution.
 4. `domain-workstreams.yml` entries MUST include `workstream_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository.
 5. `workstream_entrypoint` MAY be `null` while the workstream context has not yet been materialized. For any routable workstream status, `workstream_entrypoint` MUST be non-null.
 6. `domain-workstreams.yml` entries MAY include `workstream_path` to identify the repo-relative folder that contains the workstream artifacts.
+7. `implementation-catalog.yml` entries MAY include `workstream_id` and `initiative_id` to enable bottom-up lineage from implementation artifacts to upstream workstreams and initiatives. These fields are standardized but not required; implementations that include them MUST use values consistent with the corresponding `domain-workstreams.yml` and `initiatives.yml` entries.
 
 #### initiatives.yml
 
@@ -268,6 +273,9 @@ work_items:
     api_id: ORDER_API
     repo_path: src/order
     status: active
+    # Optional upstream lineage fields (see Section 5.3 rule 7):
+    # workstream_id: ws-init-example-order
+    # initiative_id: init-example
 ```
 
 ### 5.4 Status Vocabulary (Normative)
@@ -296,14 +304,16 @@ Semantics:
 
 Routable by default: `active`, `in_progress`.
 
-Implementations MAY extend the routable set to include `approved` and/or `ready` by explicit configuration.
+Implementations MAY extend the routable set to include `approved` and/or `ready` by explicit configuration. Implementations that extend the routable set MUST declare the effective routable statuses in configuration or runtime metadata so that consumers can determine the active routing mask without implementation-specific knowledge.
 
 ### 5.5 Routing Policy
 
-1. Fail closed on missing selector ID.
-2. Fail closed on ambiguous selector ID.
-3. Fail closed on non-routable status by default.
+1. Fail closed on missing selector ID (`ERR_SELECTOR_MISSING`).
+2. Fail closed on ambiguous selector ID (`ERR_SELECTOR_AMBIGUOUS`).
+3. Fail closed on non-routable status by default (`ERR_SELECTOR_NOT_ROUTABLE`).
 4. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
+
+These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.7) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
 
 ### 5.6 Selector Uniqueness
 
@@ -494,11 +504,11 @@ Recommended error codes:
 
 ### 12.3 Three-Level (Enterprise + Solution + Domain)
 
-1. Use full Layer A + Layer B for end-to-end deterministic routing.
+1. Use full Layer A + Layer B for deterministic per-boundary routing at all three level boundaries.
 
 ## 13. Discovery and Traversal
 
-Top-down routing:
+Top-down per-boundary routing sequence (each step requires the caller to possess the selector for that boundary):
 
 1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint`
 2. `workstream_id` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
@@ -512,7 +522,7 @@ Bottom-up discovery:
 1. Domain agent reads `DOMAIN.md` upstream link to `ENTERPRISE.md` when the enterprise level exists.
 2. If the enterprise level is absent, `DOMAIN.md` MAY have `Parent: Not applicable`; solution associations are still recovered from `domain-workstreams.yml` or equivalent handoff artifacts rather than Markdown parent links.
 3. Solution agent reads `SOLUTION.md` parent link to `ENTERPRISE.md` when the enterprise level exists.
-4. Agents use shared IDs (`initiative_id`, `workstream_id`, `domain_id`) for lineage reconstruction.
+4. Agents MAY use shared IDs (`initiative_id`, `workstream_id`, `domain_id`) for partial lineage reconstruction when those IDs are present in catalog entries. End-to-end lineage from implementation artifact to business initiative is not guaranteed by the core catalog minimum fields (see Section 5.3).
 
 ## 14. Companion Guidance: Agent Context Engineering (Non-Normative)
 
