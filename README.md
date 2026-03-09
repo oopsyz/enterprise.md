@@ -4,7 +4,7 @@ A proposed standard for multi-level repository navigation and deterministic rout
 
 ## Status
 
-**Draft v0.3** - open for feedback.
+**Draft** - open for feedback.
 
 Classification: **Proposed Standard**.
 
@@ -66,7 +66,7 @@ Short form:
 ## Key Rules
 
 1. `AGENTS.md` remains the repo-local behavior contract. See the [`AGENTS.md` convention](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) for background.
-2. Agents start with `AGENTS.md`, and `AGENTS.md` should direct them to always read the repository's level entrypoint.
+2. Agents MUST start with `AGENTS.md`, and `AGENTS.md` MUST instruct agents to always read the repository's level entrypoint.
 3. `ENTERPRISE.md`, `SOLUTION.md`, and `DOMAIN.md` are navigation entrypoints, not duplicated data stores.
 4. Upstream links are explicit by level: `SOLUTION.md` and `DOMAIN.md` link to `ENTERPRISE.md` when the enterprise level exists.
 5. `DOMAIN.md` does not use `SOLUTION.md` as a required parent link because solution-to-domain relationships are many-to-many and belong in routing catalogs or handoff artifacts. For example, a shared "identity" domain may serve both a "customer portal" solution and an "internal tools" solution simultaneously.
@@ -118,7 +118,7 @@ Profile B and C implementations must provide at least one deterministic bootstra
 ```text
 README.md                                          -- this file
 LICENSE                                            -- Apache 2.0 license
-AGENTS.md                                          -- agent navigation for this repo (TODO: create)
+AGENTS.md                                          -- agent navigation for this repo
 enterprise_repo_convention.md                      -- the full proposal
 templates/
   README.md                                        -- template usage guide
@@ -157,7 +157,7 @@ Recommended default owners:
 | `domain-workstreams.yml` | SA |
 | `implementation-catalog.yml` | DA |
 
-If roles are collapsed in one team or repository, ownership should be declared in the relevant entrypoint.
+If roles are collapsed in one team or repository, ownership MUST be explicitly declared in the relevant entrypoint.
 
 ## Contributing
 

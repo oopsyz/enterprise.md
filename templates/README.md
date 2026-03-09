@@ -25,7 +25,7 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 |---|---|---|---|
 | [initiatives.yml.template](initiatives.yml.template) | Enterprise | `initiative_id` | B+ |
 | [domain-workstreams.yml.template](domain-workstreams.yml.template) | Solution | `workstream_id` | B+ |
-| [implementation-catalog.yml.template](implementation-catalog.yml.template) | Domain | `work_item_id` or `api_id` | B+ (when domain->implementation selector boundary exists) |
+| [implementation-catalog.yml.template](implementation-catalog.yml.template) | Domain | `work_item_id` or `api_id` | B+ (when selector-driven domain->implementation boundary exists) |
 
 Format note: YAML is canonical for routing catalogs. JSON is an optional schema-equivalent compatibility projection.
 
@@ -36,6 +36,8 @@ Format note: YAML is canonical for routing catalogs. JSON is an optional schema-
 | [domain-registry.yml.template](domain-registry.yml.template) | Enterprise | C |
 | [solution-index.yml.template](solution-index.yml.template) | Solution | C |
 | [initiative-pipeline.yml.template](initiative-pipeline.yml.template) | Enterprise | C |
+
+Note: `governance-state.yml` (required for Profile C) does not have a starter template. See [examples/profile-c/domain-repo/governance-state.yml](../examples/profile-c/domain-repo/governance-state.yml) for a working sample.
 
 ## Industry-Specific Templates
 
@@ -48,5 +50,6 @@ Format note: YAML is canonical for routing catalogs. JSON is an optional schema-
 1. Pick a conformance profile (A, B, or C) from the [proposal](../enterprise_repo_convention.md).
 2. Copy the relevant templates into your repository.
 3. Remove the `.template` extension.
-4. Replace placeholder values (`<...>`) with your organization's data.
-5. See [examples/](../examples/) for complete working samples at each profile level.
+4. Ensure your repository has an `AGENTS.md` that directs agents to read the level entrypoint (see Key Rule 2 in the proposal).
+5. Replace placeholder values (`<...>`) with your organization's data.
+6. See [examples/](../examples/) for complete working samples at each profile level.
