@@ -43,7 +43,7 @@ The proposal is built around progressive disclosure:
 
 ## Positioning
 
-`enterprise.md` is not a competing AI assistant, IDE, or coding agent.
+`ENTERPRISE.md` is not a competing AI assistant, IDE, or coding agent.
 
 It is a proposed convention layer that existing tools can implement or follow in order to operate more effectively in enterprise multi-repository environments.
 
@@ -57,11 +57,11 @@ In practical terms, the proposal defines:
 This means the relationship is:
 
 1. tools such as Codex, Claude Code, Cursor, and Copilot provide AI execution surfaces
-2. `enterprise.md` provides the repository and routing convention those tools can use across multi-repo delivery
+2. `ENTERPRISE.md` provides the repository and routing convention those tools can use across multi-repo delivery
 
 Short form:
 
-`enterprise.md` is the multi-repo coordination standard, not the coding assistant.
+`ENTERPRISE.md` is the multi-repo coordination standard, not the coding assistant.
 
 ## Key Rules
 

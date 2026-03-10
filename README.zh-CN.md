@@ -43,7 +43,7 @@
 
 ## 定位
 
-`enterprise.md` 不是一个新的 AI 助手、IDE 或编码代理。
+`ENTERPRISE.md` 不是一个新的 AI 助手、IDE 或编码代理。
 
 它是一个拟议中的约定层，现有工具可以实现或遵循它，以便在企业级多仓库环境中更高效地工作。
 
@@ -57,11 +57,11 @@
 这意味着二者关系如下：
 
 1. Codex、Claude Code、Cursor、Copilot 等工具提供 AI 执行界面
-2. `enterprise.md` 为这些工具提供跨多仓库交付可遵循的仓库与路由约定
+2. `ENTERPRISE.md` 为这些工具提供跨多仓库交付可遵循的仓库与路由约定
 
 简而言之：
 
-`enterprise.md` 是多仓库协同标准，而不是编码助手本身。
+`ENTERPRISE.md` 是多仓库协同标准，而不是编码助手本身。
 
 ## 关键规则
 
