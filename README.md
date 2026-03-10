@@ -117,35 +117,36 @@ Core and Governed implementations must provide at least one deterministic bootst
 ## Repository Contents
 
 ```text
-README.md                                          -- this file
-LICENSE                                            -- Apache 2.0 license
-AGENTS.md                                          -- agent navigation for this repo
-enterprise_repo_convention.md                      -- the full proposal
-CONTRIBUTING.md                                    -- contribution workflow
-CODE_OF_CONDUCT.md                                 -- community behavior expectations
-SECURITY.md                                        -- private security reporting guidance
-GOVERNANCE.md                                      -- maintainer decision model and versioning
-.github/                                           -- issue templates, PR template, CI, CODEOWNERS
-templates/
-  README.md                                        -- template usage guide
-  ENTERPRISE.md.template                           -- enterprise entrypoint
-  SOLUTION.md.template                             -- solution entrypoint
-  DOMAIN.md.template                               -- domain entrypoint
-  AGENTS.{ea,sa,da,dev}.md.template                -- role-specific AGENTS.md
-  initiatives.yml.template                         -- enterprise routing catalog
-  domain-workstreams.yml.template                  -- solution routing catalog
-  implementation-catalog.yml.template              -- domain-to-implementation routing catalog
-  domain-registry.yml.template                     -- domain governance registry
-  solution-index.yml.template                      -- solution scope manifest
-  initiative-pipeline.yml.template                 -- portfolio pipeline source
-  industry/
-    domain-registry.telco.yml.template             -- telco ODA component baseline
-examples/
-  core/                                            -- core routed example
-  governed/                                        -- governed enterprise example
-reference/
-  harness-engineering.md                           -- reference note
-  machine-access-contract.md                       -- optional contract for querying canonical routing catalogs
+.
+|-- README.md                                      # this file
+|-- LICENSE                                        # Apache 2.0 license
+|-- AGENTS.md                                      # agent navigation for this repo
+|-- enterprise_repo_convention.md                  # the full proposal
+|-- CONTRIBUTING.md                                # contribution workflow
+|-- CODE_OF_CONDUCT.md                             # community behavior expectations
+|-- SECURITY.md                                    # private security reporting guidance
+|-- GOVERNANCE.md                                  # maintainer decision model and versioning
+|-- .github/                                       # issue templates, PR template, CI, CODEOWNERS
+|-- templates/
+|   |-- README.md                                  # template usage guide
+|   |-- ENTERPRISE.md.template                     # enterprise entrypoint
+|   |-- SOLUTION.md.template                       # solution entrypoint
+|   |-- DOMAIN.md.template                         # domain entrypoint
+|   |-- AGENTS.{ea,sa,da,dev}.md.template          # role-specific AGENTS.md
+|   |-- initiatives.yml.template                   # enterprise routing catalog
+|   |-- domain-workstreams.yml.template            # solution routing catalog
+|   |-- implementation-catalog.yml.template        # domain-to-implementation routing catalog
+|   |-- domain-registry.yml.template               # domain governance registry
+|   |-- solution-index.yml.template                # solution scope manifest
+|   |-- initiative-pipeline.yml.template           # portfolio pipeline source
+|   `-- industry/
+|       `-- domain-registry.telco.yml.template     # telco ODA component baseline
+|-- examples/
+|   |-- core/                                      # core routed example
+|   `-- governed/                                  # governed enterprise example
+`-- reference/
+    |-- harness-engineering.md                     # reference note
+    `-- machine-access-contract.md                 # optional contract for querying canonical routing catalogs
 ```
 
 ## Ownership Model
