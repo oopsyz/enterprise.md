@@ -36,7 +36,7 @@ To implement this principle, the proposal defines two independent layers (adopta
    2. Tooling dependency: none.
 2. **Layer B: Routing Catalog Specification (optional)**
    1. Purpose: deterministic machine routing between levels (for example Enterprise repo to Solution repo to Domain repo).
-   2. Tooling dependency: orchestration/runtime only.
+   2. Tooling dependency: a tool-capable consumer is required, such as an agent, script, IDE integration, or orchestration runtime.
 
 An organization can adopt Layer A without Layer B, but conformance profiles start at routed adoption.
 

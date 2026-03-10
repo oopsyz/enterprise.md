@@ -35,7 +35,7 @@ Two independent, separable layers:
 | Layer | Purpose | Requires tooling? |
 |---|---|---|
 | **Layer A: Entrypoint Convention** | Human/agent navigation via `ENTERPRISE.md`, `SOLUTION.md`, `DOMAIN.md` | No |
-| **Layer B: Routing Catalog Specification** | Deterministic machine routing between levels via YAML catalogs and workstream context | Orchestration/runtime only |
+| **Layer B: Routing Catalog Specification** | Deterministic machine routing between levels via YAML catalogs and workstream context | Yes - any tool-capable consumer such as an agent, script, IDE integration, or orchestration runtime |
 
 Organizations can adopt Layer A without Layer B, but conformance profiles start at routed adoption.
 
