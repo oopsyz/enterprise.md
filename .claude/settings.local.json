@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(/c/Python313/python -c \":*)",
-      "Bash(/c/Python313/python /c/Projects/adk/docs/design/_fix_entrypoint.py)"
-    ]
-  }
-}
