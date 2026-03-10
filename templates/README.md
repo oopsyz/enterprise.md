@@ -19,6 +19,15 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 | [AGENTS.da.md.template](AGENTS.da.md.template) | DA | Domain architect agent instructions |
 | [AGENTS.dev.md.template](AGENTS.dev.md.template) | Dev | Developer agent instructions |
 
+## CLAUDE.md Bridge Templates
+
+| Template | Role | Description |
+|---|---|---|
+| [CLAUDE.ea.md.template](CLAUDE.ea.md.template) | EA | Claude Code bridge into `AGENTS.md` and `ENTERPRISE.md` |
+| [CLAUDE.sa.md.template](CLAUDE.sa.md.template) | SA | Claude Code bridge into `AGENTS.md` and `SOLUTION.md` |
+| [CLAUDE.da.md.template](CLAUDE.da.md.template) | DA | Claude Code bridge into `AGENTS.md` and `DOMAIN.md` |
+| [CLAUDE.dev.md.template](CLAUDE.dev.md.template) | Dev | Claude Code bridge into `AGENTS.md` and `DOMAIN.md` |
+
 ## Routing Catalog Templates
 
 | Template | Level | Selector | Profile |
@@ -51,5 +60,12 @@ Note: `governance-state.yml` (required for the Governed profile) does not have a
 2. Copy the relevant templates into your repository.
 3. Remove the `.template` extension.
 4. Ensure your repository has an `AGENTS.md` that directs agents to read the level entrypoint (see Key Rule 2 in the proposal).
-5. Replace placeholder values (`<...>`) with your organization's data.
-6. See [examples/](../examples/) for complete working samples at each profile level.
+5. If you use Claude Code, also add the matching `CLAUDE.*.md.template` file as `CLAUDE.md` and keep it as a bridge into `AGENTS.md`.
+6. Replace placeholder values (`<...>`) with your organization's data.
+7. See [examples/](../examples/) for complete working samples at each profile level.
+
+## Claude Code Compatibility
+
+If your team uses Claude Code, treat `CLAUDE.md` as the Claude-specific bootstrap file and route from there into the same repository navigation structure described by this proposal.
+
+The templates in this folder keep `AGENTS.md`, `ENTERPRISE.md`, `SOLUTION.md`, and `DOMAIN.md` as the canonical cross-tool artifacts, with `CLAUDE.md` acting only as the Claude Code bridge.

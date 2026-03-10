@@ -4,6 +4,8 @@ A proposed standard for multi-level repository navigation and deterministic rout
 
 This repository intentionally uses `README.md` as the primary visitor-facing entrypoint. It does not define a root `DOMAIN.md`.
 
+If you use Claude Code, note that Claude Code natively uses `CLAUDE.md` as its project instruction file. Compatibility with this proposal is therefore achieved by bridging from `CLAUDE.md` into the `AGENTS.md` and level-entrypoint flow defined here.
+
 ## Status
 
 **Draft** - open for feedback.
@@ -133,6 +135,7 @@ Core and Governed implementations must provide at least one deterministic bootst
 |   |-- SOLUTION.md.template                       # solution entrypoint
 |   |-- DOMAIN.md.template                         # domain entrypoint
 |   |-- AGENTS.{ea,sa,da,dev}.md.template          # role-specific AGENTS.md
+|   |-- CLAUDE.{ea,sa,da,dev}.md.template          # role-specific CLAUDE.md bridge templates
 |   |-- initiatives.yml.template                   # enterprise routing catalog
 |   |-- domain-workstreams.yml.template            # solution routing catalog
 |   |-- implementation-catalog.yml.template        # domain-to-implementation routing catalog
@@ -180,3 +183,5 @@ This repository is licensed under Apache 2.0. See [LICENSE](LICENSE).
 ## Compatibility
 
 This proposal is additive to `AGENTS.md`. It does not replace or modify the existing standard.
+
+For Claude Code environments, repositories should bridge from `CLAUDE.md` into the same repository navigation flow defined by this proposal, with `AGENTS.md` and the applicable level entrypoint remaining the canonical cross-tool convention.

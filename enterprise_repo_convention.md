@@ -537,6 +537,7 @@ This proposal is additive:
 1. `AGENTS.md` remains the base standard and is not replaced.
 2. `ENTERPRISE.md`/`SOLUTION.md`/`DOMAIN.md` extend navigation for multi-scale repositories.
 3. Routing catalogs are optional outside routed profiles.
+4. Claude Code compatibility is achieved through `CLAUDE.md` bridging into this convention's repository flow; this proposal does not assume native Claude Code support for `AGENTS.md`.
 
 ## 16. Reference Layout (Illustrative)
 
