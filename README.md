@@ -1,4 +1,4 @@
-# enterprise.md
+# ENTERPRISE.md
 
 A proposed standard for multi-level repository navigation and deterministic routing conventions that extend `AGENTS.md` to enterprise-scale, multi-repository delivery.
 

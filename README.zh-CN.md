@@ -1,4 +1,4 @@
-# enterprise.md
+# ENTERPRISE.md
 
 一个拟议中的标准，用于定义多层级仓库导航与确定性路由约定，在 `AGENTS.md` 的基础上扩展到企业级、多仓库交付场景。
 
