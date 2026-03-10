@@ -7,7 +7,7 @@ This repository hosts the **Multi-Level Repository Navigation and Routing Conven
 ## Navigation
 
 - [README.md](README.md) - overview, quick start, contributing
-- [multi_level_repository_navigation_and_routing_convention.md](multi_level_repository_navigation_and_routing_convention.md) - full proposal specification
+- [enterprise_repo_convention.md](enterprise_repo_convention.md) - full proposal specification
 - [templates/](templates/) - starter templates for adoption (entrypoints, catalogs, AGENTS roles, industry baselines)
 - [examples/](examples/) - working examples for each conformance profile
 
@@ -20,7 +20,8 @@ This proposal defines:
 3. **Conformance profiles**: A (entrypoint-only), B (routed automation), C (governed enterprise).
 
 ## Mandatory Entrypoints
-- Instruction: Always read `DOMAIN.md` (mandatory entrypoint for this level).
+- Instruction: Always read `README.md` (mandatory entrypoint for this repository).
+- Exception note: This repository intentionally has no root `DOMAIN.md`; `README.md` is the visitor-friendly entrypoint here.
 
 ## Behavior
 

@@ -1,0 +1,40 @@
+name: Implementation report
+description: Report adopter feedback, ambiguity, or tooling friction found during implementation.
+title: "[Implementation]: "
+labels:
+  - implementation
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: Context
+      description: Organization, toolchain, or repository shape if you can share it.
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Adoption stage
+      options:
+        - Evaluating
+        - Piloting
+        - Active use
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: What happened during implementation or evaluation?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What guidance or behavior did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Describe why this matters for adoption, tooling, or governance.

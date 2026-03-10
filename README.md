@@ -1,6 +1,8 @@
-# ENTERPRISE.md
+# Multi-Level Repository Navigation and Routing Convention
 
 A proposed standard for multi-level repository navigation and deterministic routing conventions that extend `AGENTS.md` to enterprise-scale, multi-repository delivery.
+
+This repository intentionally uses `README.md` as the primary visitor-facing entrypoint. It does not define a root `DOMAIN.md`.
 
 ## Status
 
@@ -119,6 +121,11 @@ README.md                                          -- this file
 LICENSE                                            -- Apache 2.0 license
 AGENTS.md                                          -- agent navigation for this repo
 enterprise_repo_convention.md                      -- the full proposal
+CONTRIBUTING.md                                    -- contribution workflow
+CODE_OF_CONDUCT.md                                 -- community behavior expectations
+SECURITY.md                                        -- private security reporting guidance
+GOVERNANCE.md                                      -- maintainer decision model and versioning
+.github/                                           -- issue templates, PR template, CI, CODEOWNERS
 templates/
   README.md                                        -- template usage guide
   ENTERPRISE.md.template                           -- enterprise entrypoint
@@ -162,6 +169,8 @@ If roles are collapsed in one team or repository, ownership MUST be explicitly d
 This proposal is in draft. Feedback is welcome via issues or pull requests.
 
 When opening an issue, please indicate which layer (A or B) or conformance profile (`Core`/`Governed`) your feedback relates to. For pull requests, keep changes focused on one section of the proposal at a time.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution workflow and review expectations, [GOVERNANCE.md](GOVERNANCE.md) for decision-making and versioning, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
 
 ## License
 

@@ -1,0 +1,57 @@
+name: Spec feedback
+description: Propose a clarification, correction, or change to the convention.
+title: "[Spec]: "
+labels:
+  - feedback
+body:
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      options:
+        - Layer A
+        - Layer B
+        - Both
+    validations:
+      required: true
+  - type: dropdown
+    id: profile
+    attributes:
+      label: Conformance profile
+      options:
+        - Core
+        - Governed
+        - Both
+        - Not applicable
+    validations:
+      required: true
+  - type: dropdown
+    id: change_type
+    attributes:
+      label: Change type
+      options:
+        - Editorial clarification
+        - Normative change
+        - Template issue
+        - Example issue
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the ambiguity, inconsistency, or missing behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the exact change you want to see.
+    validations:
+      required: true
+  - type: input
+    id: sections
+    attributes:
+      label: Affected sections or files
+      description: List spec sections, templates, or examples if known.
