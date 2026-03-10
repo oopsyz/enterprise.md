@@ -1,6 +1,6 @@
-# Profile C: Governed Enterprise
+# Governed Profile
 
-This example adds governance registries and state artifacts on top of Profile B. It enables stage-gated delivery with explicit approval tracking across architecture layers.
+This example adds governance registries and state artifacts on top of the Core profile. It enables stage-gated delivery with explicit approval tracking across architecture layers.
 
 ## Layout
 
@@ -24,7 +24,7 @@ domain-repo/
   governance-state.yml
 ```
 
-## What's New Over Profile B
+## What's New Over Core
 
 - `domain-registry.yml` — enterprise-level domain governance registry
 - `solution-index.yml` — solution scope and index manifest

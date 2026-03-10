@@ -33,7 +33,7 @@ Two independent, separable layers:
 | **Layer A: Entrypoint Convention** | Human/agent navigation via `ENTERPRISE.md`, `SOLUTION.md`, `DOMAIN.md` | No |
 | **Layer B: Routing Catalog Specification** | Deterministic machine routing between levels via YAML catalogs and workstream context | Orchestration/runtime only |
 
-Organizations can adopt Layer A without Layer B.
+Organizations can adopt Layer A without Layer B, but conformance profiles start at routed adoption.
 
 The proposal is built around progressive disclosure:
 
@@ -78,9 +78,8 @@ Short form:
 
 | Profile | What you need |
 |---|---|
-| **A: Entrypoint-Only** | `AGENTS.md` + at least one level entrypoint |
-| **B: Routed Automation** | Profile A + deterministic bootstrap discovery for the topmost level present + routing catalogs for boundaries that exist |
-| **C: Governed Enterprise** | Profile B + governance registry, solution scope manifest, and governance state artifact |
+| **Core** | Layer A + deterministic bootstrap discovery for the topmost level present + routing catalogs for boundaries that exist |
+| **Governed** | Core + governance registry, solution scope manifest, and governance state artifact |
 
 See [examples/](examples/) for working samples of each profile.
 
@@ -98,7 +97,7 @@ Canonical catalogs and selectors:
 
 Default routable statuses are `active` and `in_progress`.
 
-Profile B and C implementations must provide at least one deterministic bootstrap mechanism for the topmost level present:
+Core and Governed implementations must provide at least one deterministic bootstrap mechanism for the topmost level present:
 
 1. Explicit startup parameter.
 2. Environment variable.
@@ -107,9 +106,9 @@ Profile B and C implementations must provide at least one deterministic bootstra
 ## Quick Start
 
 1. Read the [full proposal](enterprise_repo_convention.md).
-2. Pick a conformance profile that fits your organization.
+2. Decide whether you need Layer A only or a routed conformance profile.
 3. Copy the relevant starter files from [templates/](templates/) into your repositories.
-4. Define the bootstrap discovery mechanism if you are adopting Profile B or C (e.g., an `ENTERPRISE_REPO_URL` environment variable, a startup parameter, or a well-known endpoint like `https://config.example.com/enterprise-catalog`).
+4. Define the bootstrap discovery mechanism if you are adopting the Core or Governed profile (e.g., an `ENTERPRISE_REPO_URL` environment variable, a startup parameter, or a well-known endpoint like `https://config.example.com/enterprise-catalog`).
 5. Replace placeholder values with your organization's data and keep routing data in the canonical YAML catalogs.
 6. See [examples/](examples/) for complete working samples at each profile level.
 
@@ -135,9 +134,8 @@ templates/
   industry/
     domain-registry.telco.yml.template             -- telco ODA component baseline
 examples/
-  profile-a/                                       -- entrypoint-only example
-  profile-b/                                       -- routed automation example
-  profile-c/                                       -- governed enterprise example
+  core/                                            -- core routed example
+  governed/                                        -- governed enterprise example
 reference/
   harness-engineering.md                           -- reference note
   machine-access-contract.md                       -- optional contract for querying canonical routing catalogs
@@ -163,7 +161,7 @@ If roles are collapsed in one team or repository, ownership MUST be explicitly d
 
 This proposal is in draft. Feedback is welcome via issues or pull requests.
 
-When opening an issue, please indicate which layer (A or B) or conformance profile (A/B/C) your feedback relates to. For pull requests, keep changes focused on one section of the proposal at a time.
+When opening an issue, please indicate which layer (A or B) or conformance profile (`Core`/`Governed`) your feedback relates to. For pull requests, keep changes focused on one section of the proposal at a time.
 
 ## License
 

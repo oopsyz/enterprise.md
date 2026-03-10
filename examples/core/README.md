@@ -1,6 +1,6 @@
-# Profile B: Routed Automation
+# Core Profile
 
-This example adds deterministic routing catalogs on top of Profile A. Agents and orchestration tools can resolve cross-repository targets by selector ID.
+This example is the baseline conformance profile. It combines Layer A entrypoints with deterministic routing catalogs so agents and orchestration tools can resolve cross-repository targets by selector ID.
 
 ## Layout
 
@@ -21,7 +21,7 @@ domain-repo/
   implementation-catalog.yml
 ```
 
-## What's New Over Profile A
+## What This Adds Beyond Layer A
 
 - `initiatives.yml` -- routes `initiative_id` to solution repositories
 - `domain-workstreams.yml` -- routes `workstream_id` to domain workstream context (`domain_id` + workstream entrypoint/ref)

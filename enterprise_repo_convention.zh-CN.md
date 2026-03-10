@@ -103,7 +103,7 @@ flowchart LR
 
 1. AGENTS 交接模板：`templates/AGENTS.ea.md.template`、`templates/AGENTS.sa.md.template`、`templates/AGENTS.da.md.template`。
 2. 层级入口模板：`templates/ENTERPRISE.md.template`、`templates/SOLUTION.md.template`、`templates/DOMAIN.md.template`。
-3. 端到端示例：`examples/profile-a/`、`examples/profile-b/`、`examples/profile-c/`。
+3. 端到端示例：`examples/core/`、`examples/governed/`。
 
 ### 3.3 Parent 链接格式
 
@@ -176,7 +176,7 @@ Purpose: Domain architecture entrypoint.
 
 ## 4. 引导发现（路由配置档位的核心）
 
-对于路由配置档位（Profile B/C），实现 MUST 至少提供一种确定性的引导发现机制，用于解析组织中存在的最高层级：
+对于路由配置档位（Core / Governed），实现 MUST 至少提供一种确定性的引导发现机制，用于解析组织中存在的最高层级：
 
 1. 显式启动参数。
 2. 环境变量。
@@ -401,37 +401,30 @@ work_items:
 
 ## 9. 一致性配置档位
 
-### Profile A：仅入口文件
+### Core 档位
 
 必需项：
 
-1. `AGENTS.md`
-2. 至少一个适用的层级入口文件（`ENTERPRISE.md`、`SOLUTION.md` 或 `DOMAIN.md`）
-
-### Profile B：路由自动化
-
-必需项：
-
-1. Profile A
+1. Layer A（`AGENTS.md` 加上适用的层级入口文件）
 2. 针对组织中存在的最高层级的确定性引导发现机制
 3. 为组织中实际存在的每个层级边界提供路由目录：
    1. 企业 -> 解决方案（当企业层和解决方案层都存在时）：`initiatives.yml`
    2. 解决方案 -> 领域（当解决方案层和领域层都存在时）：`domain-workstreams.yml`
    3. 领域 -> 实现（当存在选择器驱动的领域到实现路由边界时）：`implementation-catalog.yml`
 
-对于两层组织（例如只有 Solution + Domain），只要使用 `domain-workstreams.yml` 支持解决方案到领域的工作流路由，就满足 Profile B。只有当范围中存在选择器驱动的领域到实现路由时，才需要 `implementation-catalog.yml`。不存在的边界不要求对应目录。
+对于两层组织（例如只有 Solution + Domain），只要使用 `domain-workstreams.yml` 支持解决方案到领域的工作流路由，就满足 Core 档位。只有当范围中存在选择器驱动的领域到实现路由时，才需要 `implementation-catalog.yml`。不存在的边界不要求对应目录。
 
-Profile B 解析规则：
+Core 档位解析规则：
 
 1. 当运行时没有权威的 `domain-registry.yml` 可用时，`domain-workstreams.yml` MUST 对运行时解析自给自足。
 2. 在这种情况下，每个工作流条目 MUST 包含 `workstream_repo_url`。
 3. 当运行时可访问权威 `domain-registry.yml` 时，`workstream_repo_url` MAY 省略，此时通过 `domain_id` 经由该注册表解析。
 
-### Profile C：受治理的企业级配置
+### Governed 档位
 
 必需项：
 
-1. Profile B
+1. Core 档位
 2. 领域治理注册表（例如 `domain-registry.yml`）
    1. 当某个领域条目包含 `domain_repo_url` 时，MUST 包含 `domain_entrypoint`
 3. 解决方案范围/索引清单（例如 `solution-index.yml`）

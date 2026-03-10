@@ -38,7 +38,7 @@ To implement this principle, the proposal defines two independent layers (adopta
    1. Purpose: deterministic machine routing between levels (for example Enterprise repo to Solution repo to Domain repo).
    2. Tooling dependency: orchestration/runtime only.
 
-An organization can adopt Layer A without Layer B.
+An organization can adopt Layer A without Layer B, but conformance profiles start at routed adoption.
 
 ```mermaid
 flowchart LR
@@ -103,7 +103,7 @@ Implementation references:
 
 1. AGENTS handoff templates: `templates/AGENTS.ea.md.template`, `templates/AGENTS.sa.md.template`, `templates/AGENTS.da.md.template`.
 2. Level entrypoint templates: `templates/ENTERPRISE.md.template`, `templates/SOLUTION.md.template`, `templates/DOMAIN.md.template`.
-3. End-to-end examples: `examples/profile-a/`, `examples/profile-b/`, `examples/profile-c/`.
+3. End-to-end examples: `examples/core/`, `examples/governed/`.
 
 ### 3.3 Parent Link Format
 
@@ -176,7 +176,7 @@ Purpose: Domain architecture entrypoint.
 
 ## 4. Bootstrap Discovery (Core for Routed Profiles)
 
-For routed profiles (Profile B/C), implementations MUST provide at least one deterministic bootstrap mechanism that resolves the topmost level present in the organization:
+For routed profiles (Core/Governed), implementations MUST provide at least one deterministic bootstrap mechanism that resolves the topmost level present in the organization:
 
 1. Explicit startup parameter.
 2. Environment variable.
@@ -401,37 +401,30 @@ Override rule:
 
 ## 9. Conformance Profiles
 
-### Profile A: Entrypoint-Only
+### Core Profile
 
 Required:
 
-1. `AGENTS.md`
-2. At least one applicable level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`)
-
-### Profile B: Routed Automation
-
-Required:
-
-1. Profile A
+1. Layer A (`AGENTS.md` plus the applicable level entrypoints)
 2. deterministic bootstrap discovery mechanism for the topmost level present in the organization
 3. routing catalogs for each level boundary that exists in the organization:
    1. enterprise->solution (when both enterprise and solution levels exist): `initiatives.yml`
    2. solution->domain (when both solution and domain levels exist): `domain-workstreams.yml`
    3. domain->implementation (when selector-driven domain->implementation routing boundary exists): `implementation-catalog.yml`
 
-A two-level organization (for example Solution + Domain only) satisfies Profile B with `domain-workstreams.yml` for solution->domain workstream routing. It requires `implementation-catalog.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
+A two-level organization (for example Solution + Domain only) satisfies the Core profile with `domain-workstreams.yml` for solution->domain workstream routing. It requires `implementation-catalog.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
 
-Profile B resolution rule:
+Core profile resolution rule:
 
 1. `domain-workstreams.yml` MUST be self-sufficient for runtime resolution when no authoritative `domain-registry.yml` is available.
 2. In that case, each workstream entry MUST include `workstream_repo_url`.
 3. When an authoritative `domain-registry.yml` is available at runtime, `workstream_repo_url` MAY be omitted and `domain_id` is resolved through the registry.
 
-### Profile C: Governed Enterprise
+### Governed Profile
 
 Required:
 
-1. Profile B
+1. Core profile
 2. domain governance registry (for example `domain-registry.yml`)
    1. when a domain entry includes `domain_repo_url`, it MUST include `domain_entrypoint`
 3. solution scope/index manifest (for example `solution-index.yml`)
