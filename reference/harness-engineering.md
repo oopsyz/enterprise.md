@@ -6,7 +6,7 @@ The repository's knowledge base lives in a structured `docs/` directory treated 
 
 ## In-Repository Knowledge Store Layout
 
-```
+```text
 AGENTS.md
 ARCHITECTURE.md
 docs/

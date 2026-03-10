@@ -39,6 +39,7 @@ domain-workstreams.yml                             <- workstream selector catalo
 ## SA Container Context
 
 When running in an SA container (`OPENARCHITECT_CONTAINER_ROLE=sa`), startup routing can write:
+
 - `.openarchitect/active-initiative.json`
 
 ## Scope

@@ -9,6 +9,7 @@ Domain architecture repo entrypoint. Owns domain design baselines and produces a
 ## Parent
 
 - [ENTERPRISE](<enterprise-repo-url>/blob/main/ENTERPRISE.md)
+
 If enterprise level is absent in your organization, replace with `Not applicable`.
 
 ## Critical File Contract

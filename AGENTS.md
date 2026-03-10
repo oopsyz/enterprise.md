@@ -20,6 +20,7 @@ This proposal defines:
 3. **Conformance profiles**: A (entrypoint-only), B (routed automation), C (governed enterprise).
 
 ## Mandatory Entrypoints
+
 - Instruction: Always read `README.md` (mandatory entrypoint for this repository).
 - Exception note: This repository intentionally has no root `DOMAIN.md`; `README.md` is the visitor-friendly entrypoint here.
 

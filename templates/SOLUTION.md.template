@@ -9,6 +9,7 @@ Solution architecture repo entrypoint. Owns the SA baseline and routes domain wo
 ## Parent
 
 - [ENTERPRISE](<enterprise-repo-url>/blob/main/ENTERPRISE.md)
+
 If enterprise level is absent in your organization, replace with `Not applicable`.
 
 ## Critical File Contract
@@ -54,11 +55,13 @@ architecture/
 ## SA Container Context
 
 When running in an SA container (`OPENARCHITECT_CONTAINER_ROLE=sa`), startup routing can write:
+
 - `.openarchitect/active-initiative.json`
 
 This file is a required initiative context reference for `SOLUTION.md` and should be treated as the machine-readable source for active initiative routing context.
 
 At minimum, `SOLUTION.md` should reference values from `.openarchitect/active-initiative.json` for:
+
 - `initiative_id`
 - `solution_repo_url` (SA repo URL)
 - initiative name/description/objectives (when present)
