@@ -65,7 +65,7 @@
 
 ## 关键规则
 
-1. `AGENTS.md` 仍然是仓库本地行为约束的契约。背景可参考 [`AGENTS.md` convention](https://github.com/anthropics/claude-code/blob/main/AGENTS.md)。
+1. `AGENTS.md` 仍然是仓库本地行为约束的契约。背景可参考 [`AGENTS.md` convention](https://github.com/agentsmd/agents.md)。
 2. Agent 必须从 `AGENTS.md` 开始，且 `AGENTS.md` 必须指示 agent 始终读取当前仓库对应层级的入口文件。
 3. `ENTERPRISE.md`、`SOLUTION.md` 和 `DOMAIN.md` 是导航入口，而不是重复存放数据的文件。
 4. 上游链接必须按层级显式给出：当企业层存在时，`SOLUTION.md` 和 `DOMAIN.md` 都应链接到 `ENTERPRISE.md`。

@@ -4,7 +4,7 @@ This example adds governance registries and state artifacts on top of the Core p
 
 ## Layout
 
-```
+```yaml
 enterprise-repo/
   AGENTS.md
   ENTERPRISE.md

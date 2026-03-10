@@ -69,7 +69,7 @@ Short form:
 
 ## Key Rules
 
-1. `AGENTS.md` remains the repo-local behavior contract. See the [`AGENTS.md` convention](https://github.com/anthropics/claude-code/blob/main/AGENTS.md) for background.
+1. `AGENTS.md` remains the repo-local behavior contract. See the [`AGENTS.md` convention](https://github.com/agentsmd/agents.md) for background.
 2. Agents MUST start with `AGENTS.md`, and `AGENTS.md` MUST instruct agents to always read the repository's level entrypoint.
 3. `ENTERPRISE.md`, `SOLUTION.md`, and `DOMAIN.md` are navigation entrypoints, not duplicated data stores.
 4. Upstream links are explicit by level: `SOLUTION.md` and `DOMAIN.md` link to `ENTERPRISE.md` when the enterprise level exists.
