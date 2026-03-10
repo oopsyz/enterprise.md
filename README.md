@@ -9,6 +9,7 @@ If you use Claude Code, note that Claude Code natively uses `CLAUDE.md` as its p
 ## Status
 
 **Draft** - open for feedback.
+Version: `0.1.0`
 
 Classification: **Proposed Standard**.
 
@@ -18,7 +19,7 @@ Use this repository as the canonical reference when citing the convention from o
 
 Recommended reference text:
 
-`Multi-Level Repository Navigation and Routing Convention (Proposed Standard, Draft)`
+`Multi-Level Repository Navigation and Routing Convention (Proposed Standard, Draft, v0.1.0)`
 
 Canonical specification:
 

@@ -1,6 +1,7 @@
 # Proposal: Multi-Level Repository Navigation and Routing Convention
 
 Status: Draft
+Version: 0.1.0
 Audience: standards/community contributors, platform/tool builders, enterprise architecture teams
 Scope: Multi-repository human and agent collaboration across enterprise, solution, and domain levels
 
