@@ -8,7 +8,7 @@ Purpose: Domain architecture entrypoint for Order management (governed).
 
 ## Parent
 
-- [ENTERPRISE](https://github.com/acme/ea-repo/blob/main/ENTERPRISE.md)
+- [ENTERPRISE](https://github.com/tincanlab/ea-repo/blob/main/ENTERPRISE.md)
 
 ## Critical File Contract
 
