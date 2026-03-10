@@ -23,8 +23,6 @@ Repository maintainers are the owners listed in GitHub repository settings and `
 
 ## Versioning
 
-Current published draft version: `0.1.0`.
-
 Until the proposal is declared stable, the specification is treated as draft work.
 
 During draft status:

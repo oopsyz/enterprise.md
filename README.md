@@ -9,7 +9,6 @@ If you use Claude Code, note that Claude Code natively uses `CLAUDE.md` as its p
 ## Status
 
 **Draft** - open for feedback.
-Version: `0.1.0`
 
 Classification: **Proposed Standard**.
 
@@ -19,7 +18,7 @@ Use this repository as the canonical reference when citing the convention from o
 
 Recommended reference text:
 
-`Multi-Level Repository Navigation and Routing Convention (Proposed Standard, Draft, v0.1.0)`
+`Multi-Level Repository Navigation and Routing Convention (Proposed Standard, Draft)`
 
 Canonical specification:
 
@@ -125,10 +124,12 @@ Core and Governed implementations must provide at least one deterministic bootst
 |-- LICENSE                                        # Apache 2.0 license
 |-- AGENTS.md                                      # agent navigation for this repo
 |-- enterprise_repo_convention.md                  # the full proposal
+|-- CHANGELOG.md                                   # project-level release history
 |-- CONTRIBUTING.md                                # contribution workflow
 |-- CODE_OF_CONDUCT.md                             # community behavior expectations
 |-- SECURITY.md                                    # private security reporting guidance
 |-- GOVERNANCE.md                                  # maintainer decision model and versioning
+|-- releases/                                      # release notes drafts
 |-- .github/                                       # issue templates, PR template, CI, CODEOWNERS
 |-- templates/
 |   |-- README.md                                  # template usage guide
