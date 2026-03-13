@@ -6,5 +6,5 @@ Guardrail: `DOMAIN.md` is a critical contract file. Preserve template section st
 References:
 
 - `DOMAIN.md` - domain-level entrypoint
-- `implementation-catalog.yml` - domain-to-implementation routing catalog
+- `domain-implementations.yml` - domain-to-implementation routing catalog
 - `governance-state.yml` - governance state across cascade layers

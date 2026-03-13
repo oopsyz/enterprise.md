@@ -23,7 +23,7 @@
 
 本提案在每个尺度上都采用渐进式披露，而不是把所有内容堆到一个仓库和一个文件里：
 
-1. **仓库层级**（存在 Layer B 时）：路由目录（`initiatives.yml`、`domain-workstreams.yml`、`implementation-catalog.yml`）披露下一个稳定目标，并在需要时给出要打开的精确工作流上下文。解析是确定性的，要么解析成功，要么失败即关闭（见第 5.5 节）。
+1. **仓库层级**（存在 Layer B 时）：路由目录（`initiatives.yml`、`domain-workstreams.yml`、`domain-implementations.yml`）披露下一个稳定目标，并在需要时给出要打开的精确工作流上下文。解析是确定性的，要么解析成功，要么失败即关闭（见第 5.5 节）。
 2. **文件层级**（Layer A）：入口文件披露该仓库中*真正重要*的信息。它们是地图，不是百科全书。
 3. **工件层级**：被链接的目录和设计文件披露*细节*，而且只有在你跟随链接时才展开。
 
@@ -95,7 +95,7 @@ flowchart LR
 2. 当某一层级在仓库中存在时，对应层级的入口文件 SHOULD 存在。
 3. 入口文件 SHOULD 保持简洁，并链接到规范化的机器工件，而不是复制易变数据。这一点在目录由生成流程产生时尤其重要：入口文件应该链接该工件，而不是复制其内容。
 4. 上游入口链接 MUST 是确定性的、显式标明层级的：当企业层存在时，`SOLUTION.md` MUST 包含到 `ENTERPRISE.md` 的链接；当企业层存在时，`DOMAIN.md` MUST 包含到 `ENTERPRISE.md` 的链接。`DOMAIN.md` MUST NOT 要求通过 `SOLUTION.md` 进行上游导航，因为解决方案到领域的关联是多对多关系，并且会随时间变化；这些关联应属于路由目录和交接工件，而不是 Markdown 的父子结构。
-5. 当路由目录存在时，下游目标信息 MUST 维护在规范 YAML 目录（`initiatives.yml`、`domain-workstreams.yml`、`implementation-catalog.yml`）中。入口文件 MAY 包含轻量级导航链接，但 SHOULD 避免复制详尽的下游映射，以防漂移。
+5. 当路由目录存在时，下游目标信息 MUST 维护在规范 YAML 目录（`initiatives.yml`、`domain-workstreams.yml`、`domain-implementations.yml`）中。入口文件 MAY 包含轻量级导航链接，但 SHOULD 避免复制详尽的下游映射，以防漂移。
 6. 如果不存在上游层级，Parent 部分 MUST 写明 `Not applicable`。
 7. Agent MUST 从 `AGENTS.md` 开始。`AGENTS.md` MUST 指示 agent 始终读取当前仓库的层级入口文件（`ENTERPRISE.md`、`SOLUTION.md` 或 `DOMAIN.md`），以获取架构上下文和导航信息。规范的指令形式为：`Always read <LEVEL>.md`。
 
@@ -171,7 +171,7 @@ Purpose: Domain architecture entrypoint.
 - [ENTERPRISE](https://github.com/example/ea-repo/blob/main/ENTERPRISE.md)
 
 ## Canonical Artifacts
-- implementation-catalog.yml
+- domain-implementations.yml
 ```
 
 ## 4. 引导发现（路由配置档位的核心）
@@ -195,16 +195,13 @@ Purpose: Domain architecture entrypoint.
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | 工作流上下文（见第 5.3 节） |
-| `implementation-catalog.yml` | Domain | `work_item_id` 或 `api_id` | 实现目标/路径 |
+| `domain-implementations.yml` | Domain | `implementation_id` | 仓库位置 |
 
 目录解析是按边界定义的。本规范不保证选择器会跨边界自动传递；调用方必须独立拥有或获取下一个边界所需的选择器。实现 MAY 定义跨边界传递选择器的交接机制，但这些机制属于实现自定义。
 
 格式规则：
 
 1. YAML 是本提案中所有目录的规范格式。
-2. JSON 仅允许作为与 schema 等价的兼容性投影（字段相同、语义相同）。
-3. 当同一目录同时存在 YAML 和 JSON 形式时，YAML 具有权威性。
-4. 支持 JSON 的消费者在 YAML 与 JSON 内容不一致时 MUST 失败即关闭。
 
 作者说明：路由目录通常是生成工件，由摄取流水线从更丰富的源（例如 `initiative-pipeline.yml`）中过滤并生成选择器清单。正因为它们是生成的，所以必须与人工编写的入口文件（`ENTERPRISE.md`）分离。若将它们内联进入口文件，要么会使入口文件也变成生成文件（违背其作为稳定导航指南的角色），要么会产生一个人工维护的副本，并最终与流水线源发生漂移。
 
@@ -214,7 +211,7 @@ Purpose: Domain architecture entrypoint.
 
 1. `initiatives.yml` MUST 包含 `version`。
 2. `domain-workstreams.yml` MUST 包含 `version`。
-3. `implementation-catalog.yml` MUST 包含 `spec_name` 和 `spec_version`。
+3. `domain-implementations.yml` MUST 包含 `spec_name` 和 `spec_version`。
 
 版本规则：
 
@@ -240,7 +237,22 @@ Purpose: Domain architecture entrypoint.
 4. `domain-workstreams.yml` 条目 MUST 包含 `workstream_repo_url`，除非运行时能够访问一个权威的 `domain-registry.yml`，可将 `domain_id` 解析为稳定的领域仓库。
 5. 在工作流上下文尚未实体化时，`workstream_entrypoint` MAY 为 `null`。对于任何可路由的工作流状态，`workstream_entrypoint` MUST 为非空。
 6. `domain-workstreams.yml` 条目 MAY 包含 `workstream_path`，用于标识承载该工作流工件的仓库相对目录。
-7. `implementation-catalog.yml` 条目 MAY 包含 `workstream_id` 和 `initiative_id`，以支持从实现工件向上追溯到工作流和 initiative。这些字段已标准化，但不是必需字段；若实现包含它们，MUST 与对应的 `domain-workstreams.yml` 和 `initiatives.yml` 条目保持一致。
+7. `domain-implementations.yml` 条目 MUST 包含：
+   1. `implementation_id`：稳定主键。MUST 在目录内唯一。即使底层仓库重命名、迁移或拆分，也 MUST NOT 变更。
+   2. `status`：第 5.4 节定义的生命周期状态。
+8. `domain-implementations.yml` 条目 MUST 包含一个 `repo` 对象，含以下字段：
+   1. `repo.url`：规范化 VCS 仓库 URL。可选；省略时默认为目录文件所在仓库（单仓模式）。若存在，MUST 为非空规范化 URL；null 或空字符串视为 schema 验证错误（`ERR_INVALID_SCHEMA`）。
+   2. `repo.paths`：glob 模式列表，用于界定实现在仓库中的范围。可选；省略时默认为 `["*"]`（整个仓库）。若存在，MUST 为非空列表，每项为非空 glob 字符串。
+   3. `repo.aliases`：在重命名过渡期保留的旧规范 URL 列表。可选。别名参与唯一性不变量和仓库优先解析。实现 SHOULD 强制执行别名退休策略。
+9. `domain-implementations.yml` 唯一性不变量：对于每个条目，每对 `(canonical(repo.url), matched repo.path)` MUST 映射到恰好一个 `implementation_id`。`paths: ["*"]` 对于同一 `repo.url` 最多出现一次，且 MUST NOT 与该 `repo.url` 的其他条目共存。集合 `{repo.url} ∪ repo.aliases` 参与不变量；其他条目不得在该集合的任何成员上产生重叠。
+10. `domain-implementations.yml` 生命周期字段（可选）：
+    1. `valid_from`、`valid_to`：ISO 8601 日期，界定活跃窗口。
+    2. `replaced_by`：`implementation_id` 列表，标识后继条目（用于拆分、合并或替换）。引用的条目 MUST 存在于目录中。
+11. `domain-implementations.yml` 可追溯性字段（可选，不用于路由）：
+    1. `workstream_id`：当前处理该实现变更的工作流。瞬态；MAY 为 null。
+    2. `initiative_id`：来源 initiative。若存在，MUST 与对应的 `domain-workstreams.yml` 和 `initiatives.yml` 条目保持一致。
+    3. `owners`：团队或个人所有者列表。
+    4. `oda_component_name`、`tmfc_component_id`：TM Forum ODA 组件引用。
 
 #### initiatives.yml
 
@@ -268,19 +280,40 @@ workstreams:
     status: active
 ```
 
-#### implementation-catalog.yml
+#### domain-implementations.yml
 
 ```yaml
 spec_name: multi-scale-routing
 spec_version: "1.0.0"
-work_items:
-  - work_item_id: job-order-api-001
-    api_id: ORDER_API
-    repo_path: src/order
+implementations:
+  # 单仓模式 — repo.url 省略（默认为目录所在仓库），限定路径
+  - implementation_id: order-api
     status: active
-    # 可选的上游谱系字段（见第 5.3 节规则 7）：
-    # workstream_id: ws-init-example-order
-    # initiative_id: init-example
+    repo:
+      paths: ["src/order-api/*"]
+
+  # 多仓模式 — 显式 url，多路径
+  - implementation_id: payments-risk-service
+    status: active
+    repo:
+      url: https://github.com/example/payments-risk
+      paths:
+        - services/risk/*
+        - batch/risk-jobs/*
+    # 可追溯性（可选）
+    workstream_id: ws-init-example-payments
+    owners: [payments-team]
+
+  # 已弃用 — 由后继者替代
+  - implementation_id: payments-legacy
+    status: deprecated
+    valid_to: "2026-12-31"
+    replaced_by: [payments-risk-service]
+    repo:
+      url: https://github.com/example/payments-legacy
+      aliases:
+        - https://github.com/example/old-payments
+      paths: ["*"]
 ```
 
 ### 5.4 状态词汇表（规范性）
@@ -295,6 +328,7 @@ work_items:
 6. `completed`
 7. `archived`
 8. `deprecated`
+9. `inactive`
 
 语义：
 
@@ -305,9 +339,12 @@ work_items:
 5. `paused`：默认不可路由；可由策略决定是否恢复。
 6. `completed`：只读历史状态。
 7. `archived`：历史状态，通常不出现在活动选择器视图中。
-8. `deprecated`：只读墓碑状态；绝不能用于写操作路由。
+8. `deprecated`：只读墓碑状态；绝不能用于写操作路由。解析器 MAY 解析并发出 `deprecated_target` 警告。条目在存在后继者时 SHOULD 包含 `replaced_by`。
+9. `inactive`：已从路由中显式移除。不可路由；解析器 MUST 以 `ERR_SELECTOR_NOT_ROUTABLE` 失败即关闭。与 `archived` 不同，`inactive` 条目 MAY 恢复为 `active`。
 
 默认可路由状态：`active`、`in_progress`。
+
+并非所有状态都同等适用于每个目录。例如，`in_progress` 通常用于工作流和 initiative；`domain-implementations.yml` 条目通常使用 `active`、`deprecated` 和 `inactive`。
 
 实现 MAY 通过显式配置将 `approved` 和/或 `ready` 也纳入可路由集合。若实现扩展了可路由集合，MUST 在配置或运行时元数据中声明生效的可路由状态集合，以便消费者无需依赖实现私有知识即可判断当前路由掩码。
 
@@ -323,7 +360,7 @@ work_items:
 ### 5.6 选择器唯一性
 
 1. 每个选择器字段 MUST 在其目录内部独立唯一。
-2. 当一个目录支持多个选择器字段（例如 `implementation-catalog.yml` 中的 `work_item_id` 和 `api_id`）时，一个选择器命名空间中的值 MUST NOT 与另一个命名空间中的值冲突。
+2. 当目录在 `domain-implementations.yml` 中定义 `implementation_id` 时，每个值 MUST 在该目录内唯一。
 3. 实现 MUST 在存在重复选择器值时失败即关闭。
 
 ### 5.7 可选的机器访问契约
@@ -363,7 +400,7 @@ work_items:
 规范键名：
 
 1. `workstreams[]` + `workstream_id`
-2. `work_items[]` + `work_item_id`
+2. `implementations[]` + `implementation_id`
 
 迁移策略：
 
@@ -392,7 +429,7 @@ work_items:
 | `DOMAIN.md` | DA | 领域上下文入口 |
 | `initiatives.yml` | EA/PMO | 企业 -> 解决方案路由 |
 | `domain-workstreams.yml` | SA | 解决方案 -> 领域路由 |
-| `implementation-catalog.yml` | DA | 领域 -> 实现路由 |
+| `domain-implementations.yml` | DA | 领域 -> 实现路由 |
 | 治理状态工件 | 治理团队 + 各层所有者 | 阶段闸门与进度 |
 
 覆盖规则：
@@ -410,9 +447,9 @@ work_items:
 3. 为组织中实际存在的每个层级边界提供路由目录：
    1. 企业 -> 解决方案（当企业层和解决方案层都存在时）：`initiatives.yml`
    2. 解决方案 -> 领域（当解决方案层和领域层都存在时）：`domain-workstreams.yml`
-   3. 领域 -> 实现（当存在选择器驱动的领域到实现路由边界时）：`implementation-catalog.yml`
+   3. 领域 -> 实现（当存在选择器驱动的领域到实现路由边界时）：`domain-implementations.yml`
 
-对于两层组织（例如只有 Solution + Domain），只要使用 `domain-workstreams.yml` 支持解决方案到领域的工作流路由，就满足 Core 档位。只有当范围中存在选择器驱动的领域到实现路由时，才需要 `implementation-catalog.yml`。不存在的边界不要求对应目录。
+对于两层组织（例如只有 Solution + Domain），只要使用 `domain-workstreams.yml` 支持解决方案到领域的工作流路由，就满足 Core 档位。只有当范围中存在选择器驱动的领域到实现路由时，才需要 `domain-implementations.yml`。不存在的边界不要求对应目录。
 
 Core 档位解析规则：
 
@@ -485,6 +522,9 @@ layers:
 5. `ERR_ACCESS_DENIED`
 6. `ERR_PARENT_LINK_MISSING`
 7. `ERR_CONFLICT`
+8. `ERR_INVALID_SCHEMA`：目录条目存在结构错误（例如 `repo.url` 键存在但值为 null 或空字符串，`repo.paths` 为空列表）。
+9. `ERR_OVERLAPPING_PATHS`：两个或多个 `domain-implementations.yml` 条目产生重叠的 `(repo.url, repo.path)` 绑定，违反唯一性不变量。
+10. `ERR_NO_CONTEXT`：解析器的活动上下文中没有已加载的目录（在没有打开 Domain 仓库的情况下进行仓库优先冷启动）。
 
 ## 12. 部分采用模式
 
@@ -513,7 +553,7 @@ layers:
 3. 工作流目标的仓库解析：
    1. 若 `domain-workstreams.yml` 中存在 `workstream_repo_url`，则使用它
    2. 否则解析 `domain_id` -> 权威 `domain-registry.yml` -> `domain_repo_url`
-4. `work_item_id` / `api_id` -> `implementation-catalog.yml` -> 实现目标（当存在选择器驱动的领域到实现路由边界时）
+4. `implementation_id` -> `domain-implementations.yml` -> 仓库位置（当存在选择器驱动的领域到实现路由边界时）
 
 自底向上的发现：
 
@@ -556,7 +596,7 @@ layers:
 <domain-repo>/
   AGENTS.md
   DOMAIN.md
-  implementation-catalog.yml
+  domain-implementations.yml
   governance-state.yml
 ```
 
@@ -566,7 +606,7 @@ layers:
 
 1. `architecture/portfolio/initiatives.yml`
 2. `architecture/solution/domain-workstreams.yml`
-3. `implementation-catalog.yml`（可选附带 `implementation-catalog.json` 兼容投影）
+3. `domain-implementations.yml`
 
 实现 MAY 使用环境变量引导机制（例如 `OPENARCHITECT_ROOT_REPO_URL`）作为解析最高层级的具体引导机制。
 

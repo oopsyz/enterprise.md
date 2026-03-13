@@ -34,9 +34,9 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 |---|---|---|---|
 | [initiatives.yml.template](initiatives.yml.template) | Enterprise | `initiative_id` | B+ |
 | [domain-workstreams.yml.template](domain-workstreams.yml.template) | Solution | `workstream_id` | B+ |
-| [implementation-catalog.yml.template](implementation-catalog.yml.template) | Domain | `work_item_id` or `api_id` | B+ (when selector-driven domain->implementation boundary exists) |
+| [domain-implementations.yml.template](domain-implementations.yml.template) | Domain | `implementation_id` | B+ (when selector-driven domain->implementation boundary exists) |
 
-Format note: YAML is canonical for routing catalogs. JSON is an optional schema-equivalent compatibility projection.
+Format note: YAML is canonical for routing catalogs.
 
 ## Governance Templates
 

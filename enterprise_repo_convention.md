@@ -23,7 +23,7 @@ This proposal is the solution to the problem in Section 1: it keeps repo-local g
 
 This proposal applies progressive disclosure at every scale instead of piling everything into one repository and one file:
 
-1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`) disclose the next stable target and, when needed, the exact workstream context to open. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
+1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `domain-implementations.yml`) disclose the next stable target and, when needed, the exact workstream context to open. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
 2. **File level** (Layer A): entrypoints disclose *what matters* in that repo. They are maps, not encyclopedias.
 3. **Artifact level**: linked catalogs and design files disclose *the detail* -- only when you follow the link.
 
@@ -95,7 +95,7 @@ flowchart LR
 2. The level entrypoint for a repository SHOULD exist when that level is present.
 3. Entrypoints SHOULD stay concise and link to canonical machine artifacts instead of duplicating mutable data. This is especially important when catalogs are generated -- the entrypoint links to the artifact; it does not replicate it.
 4. Upstream entrypoint links MUST be deterministic and level-explicit: `SOLUTION.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists; `DOMAIN.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists. `DOMAIN.md` MUST NOT require `SOLUTION.md` links for upstream navigation because solution-to-domain associations are many-to-many and can change over time; those associations belong in routing catalogs and handoff artifacts, not in Markdown ancestry.
-5. When routing catalogs exist, downstream target information MUST be maintained in the canonical YAML catalogs (`initiatives.yml`, `domain-workstreams.yml`, `implementation-catalog.yml`). Entrypoints MAY include lightweight navigation links, but SHOULD avoid duplicating exhaustive downstream mappings to prevent drift.
+5. When routing catalogs exist, downstream target information MUST be maintained in the canonical YAML catalogs (`initiatives.yml`, `domain-workstreams.yml`, `domain-implementations.yml`). Entrypoints MAY include lightweight navigation links, but SHOULD avoid duplicating exhaustive downstream mappings to prevent drift.
 6. If no upstream level exists, the Parent section MUST state `Not applicable`.
 7. Agents MUST start with `AGENTS.md`. `AGENTS.md` MUST instruct agents to always read the repository's level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`) for architectural context and navigation. The canonical instruction form is: `Always read <LEVEL>.md`.
 
@@ -171,7 +171,7 @@ Purpose: Domain architecture entrypoint.
 - [ENTERPRISE](https://github.com/example/ea-repo/blob/main/ENTERPRISE.md)
 
 ## Canonical Artifacts
-- implementation-catalog.yml
+- domain-implementations.yml
 ```
 
 ## 4. Bootstrap Discovery (Core for Routed Profiles)
@@ -195,16 +195,13 @@ This standard defines file names and semantics, not fixed directories.
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
-| `implementation-catalog.yml` | Domain | `work_item_id` or `api_id` | implementation target/path |
+| `domain-implementations.yml` | Domain | `implementation_id` | repo location |
 
 Catalog resolution is defined per boundary. This specification does not guarantee automatic selector propagation across boundaries; the caller must possess or obtain the selector for the next boundary independently. Implementations MAY define handoff mechanisms that carry selectors across boundaries, but such mechanisms are implementation-specific.
 
 Format rules:
 
 1. YAML is the canonical format for all catalogs in this proposal.
-2. JSON is allowed only as a schema-equivalent compatibility projection (same fields, same semantics).
-3. When both YAML and JSON forms of a catalog exist, YAML is authoritative.
-4. Consumers that support JSON MUST fail closed if YAML and JSON content disagrees.
 
 Authorship note: Routing catalogs are typically generated artifacts -- produced by an intake pipeline that filters a richer source (for example `initiative-pipeline.yml`) and writes the selector manifest. Because they are generated, they must remain separate from the human-authored entrypoint (`ENTERPRISE.md`). Inlining them into the entrypoint would either make the entrypoint a generated file (conflicting with its role as a stable navigation guide) or introduce a hand-maintained duplicate that drifts from the pipeline source.
 
@@ -214,7 +211,7 @@ Catalog headers MUST follow the canonical schema for that catalog type:
 
 1. `initiatives.yml` MUST include `version`.
 2. `domain-workstreams.yml` MUST include `version`.
-3. `implementation-catalog.yml` MUST include `spec_name` and `spec_version`.
+3. `domain-implementations.yml` MUST include `spec_name` and `spec_version`.
 
 Version rules:
 
@@ -240,7 +237,22 @@ Cross-repo target fields:
 4. `domain-workstreams.yml` entries MUST include `workstream_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository.
 5. `workstream_entrypoint` MAY be `null` while the workstream context has not yet been materialized. For any routable workstream status, `workstream_entrypoint` MUST be non-null.
 6. `domain-workstreams.yml` entries MAY include `workstream_path` to identify the repo-relative folder that contains the workstream artifacts.
-7. `implementation-catalog.yml` entries MAY include `workstream_id` and `initiative_id` to enable bottom-up lineage from implementation artifacts to upstream workstreams and initiatives. These fields are standardized but not required; implementations that include them MUST use values consistent with the corresponding `domain-workstreams.yml` and `initiatives.yml` entries.
+7. `domain-implementations.yml` entries MUST include:
+   1. `implementation_id`: stable primary key. MUST be unique within the catalog. MUST NOT change even if the underlying repository is renamed, moved, or split.
+   2. `status`: lifecycle state from the vocabulary defined in Section 5.4.
+8. `domain-implementations.yml` entries MUST include a `repo` object with the following fields:
+   1. `repo.url`: canonical VCS repository URL. Optional; when omitted, defaults to the repository that contains the catalog file (monorepo case). When present, MUST be a non-empty, canonicalized URL; null or empty string is a schema validation error (`ERR_INVALID_SCHEMA`).
+   2. `repo.paths`: list of glob patterns scoping the implementation within the repository. Optional; when omitted, defaults to `["*"]` (whole repository). When present, MUST be a non-empty list of non-empty glob strings.
+   3. `repo.aliases`: list of previous canonical URLs retained during a rename grace window. Optional. Aliases participate in the uniqueness invariant and in repo-first resolution. Implementations SHOULD enforce an alias sunset policy.
+9. `domain-implementations.yml` uniqueness invariant: for each entry, every pair `(canonical(repo.url), matched repo.path)` MUST map to exactly one `implementation_id`. `paths: ["*"]` may appear at most once per `repo.url` and MUST NOT coexist with other entries for the same `repo.url`. The set `{repo.url} ∪ repo.aliases` participates in the invariant; no other entry may overlap on any member of that set.
+10. `domain-implementations.yml` lifecycle fields (optional):
+    1. `valid_from`, `valid_to`: ISO 8601 dates bounding the active window.
+    2. `replaced_by`: list of `implementation_id` values identifying successor entries (for split, merge, or replacement). Referenced entries MUST exist in the catalog.
+11. `domain-implementations.yml` traceability fields (optional, not used for routing):
+    1. `workstream_id`: the workstream currently handling changes to this implementation. Transient; MAY be null.
+    2. `initiative_id`: originating initiative. When present, MUST be consistent with the corresponding `domain-workstreams.yml` and `initiatives.yml` entries.
+    3. `owners`: list of team or individual owners.
+    4. `oda_component_name`, `tmfc_component_id`: TM Forum ODA component references.
 
 #### initiatives.yml
 
@@ -268,19 +280,40 @@ workstreams:
     status: active
 ```
 
-#### implementation-catalog.yml
+#### domain-implementations.yml
 
 ```yaml
 spec_name: multi-scale-routing
 spec_version: "1.0.0"
-work_items:
-  - work_item_id: job-order-api-001
-    api_id: ORDER_API
-    repo_path: src/order
+implementations:
+  # Monorepo — repo.url omitted (defaults to catalog repo), scoped paths
+  - implementation_id: order-api
     status: active
-    # Optional upstream lineage fields (see Section 5.3 rule 7):
-    # workstream_id: ws-init-example-order
-    # initiative_id: init-example
+    repo:
+      paths: ["src/order-api/*"]
+
+  # Multi-repo — explicit url, multiple paths
+  - implementation_id: payments-risk-service
+    status: active
+    repo:
+      url: https://github.com/example/payments-risk
+      paths:
+        - services/risk/*
+        - batch/risk-jobs/*
+    # traceability (optional)
+    workstream_id: ws-init-example-payments
+    owners: [payments-team]
+
+  # Deprecated — replaced by successors
+  - implementation_id: payments-legacy
+    status: deprecated
+    valid_to: "2026-12-31"
+    replaced_by: [payments-risk-service]
+    repo:
+      url: https://github.com/example/payments-legacy
+      aliases:
+        - https://github.com/example/old-payments
+      paths: ["*"]
 ```
 
 ### 5.4 Status Vocabulary (Normative)
@@ -295,6 +328,7 @@ Allowed values:
 6. `completed`
 7. `archived`
 8. `deprecated`
+9. `inactive`
 
 Semantics:
 
@@ -305,9 +339,12 @@ Semantics:
 5. `paused`: non-routable by default; resumable by policy.
 6. `completed`: read-only historical.
 7. `archived`: historical, usually not in active selector views.
-8. `deprecated`: read-only tombstone; never routable for write operations.
+8. `deprecated`: read-only tombstone; never routable for write operations. Resolvers MAY resolve and emit a `deprecated_target` warning. Entries SHOULD include `replaced_by` when successors exist.
+9. `inactive`: explicitly removed from routing. Non-routable; resolvers MUST fail closed with `ERR_SELECTOR_NOT_ROUTABLE`. Unlike `archived`, `inactive` entries MAY return to `active`.
 
 Routable by default: `active`, `in_progress`.
+
+Not all statuses apply equally to every catalog. For example, `in_progress` is typical for workstreams and initiatives; `domain-implementations.yml` entries typically use `active`, `deprecated`, and `inactive`.
 
 Implementations MAY extend the routable set to include `approved` and/or `ready` by explicit configuration. Implementations that extend the routable set MUST declare the effective routable statuses in configuration or runtime metadata so that consumers can determine the active routing mask without implementation-specific knowledge.
 
@@ -323,7 +360,7 @@ These error semantics are normative for all routing behavior, regardless of whet
 ### 5.6 Selector Uniqueness
 
 1. Each selector field MUST be independently unique within a catalog.
-2. When a catalog supports multiple selector fields (for example `work_item_id` and `api_id` in `implementation-catalog.yml`), a value in one selector namespace MUST NOT collide with values in another.
+2. When a catalog defines `implementation_id` in `domain-implementations.yml`, each value MUST be unique within that catalog.
 3. Implementations MUST fail closed on duplicate selector values.
 
 ### 5.7 Optional Machine Access Contract
@@ -363,7 +400,7 @@ Companion guidance and example realization patterns belong in `reference/machine
 Canonical keys:
 
 1. `workstreams[]` + `workstream_id`
-2. `work_items[]` + `work_item_id`
+2. `implementations[]` + `implementation_id`
 
 Migration policy:
 
@@ -392,7 +429,7 @@ Recommended CI checks:
 | `DOMAIN.md` | DA | domain context entrypoint |
 | `initiatives.yml` | EA/PMO | enterprise->solution routing |
 | `domain-workstreams.yml` | SA | solution->domain routing |
-| `implementation-catalog.yml` | DA | domain->implementation routing |
+| `domain-implementations.yml` | DA | domain->implementation routing |
 | governance state artifact | governance + level owners | stage gates and progress |
 
 Override rule:
@@ -410,9 +447,9 @@ Required:
 3. routing catalogs for each level boundary that exists in the organization:
    1. enterprise->solution (when both enterprise and solution levels exist): `initiatives.yml`
    2. solution->domain (when both solution and domain levels exist): `domain-workstreams.yml`
-   3. domain->implementation (when selector-driven domain->implementation routing boundary exists): `implementation-catalog.yml`
+   3. domain->implementation (when selector-driven domain->implementation routing boundary exists): `domain-implementations.yml`
 
-A two-level organization (for example Solution + Domain only) satisfies the Core profile with `domain-workstreams.yml` for solution->domain workstream routing. It requires `implementation-catalog.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
+A two-level organization (for example Solution + Domain only) satisfies the Core profile with `domain-workstreams.yml` for solution->domain workstream routing. It requires `domain-implementations.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
 
 Core profile resolution rule:
 
@@ -485,6 +522,9 @@ Recommended error codes:
 5. `ERR_ACCESS_DENIED`
 6. `ERR_PARENT_LINK_MISSING`
 7. `ERR_CONFLICT`
+8. `ERR_INVALID_SCHEMA`: catalog entry has structural errors (for example null or empty `repo.url` when the key is present, empty `repo.paths` list).
+9. `ERR_OVERLAPPING_PATHS`: two or more `domain-implementations.yml` entries produce overlapping `(repo.url, repo.path)` bindings, violating the uniqueness invariant.
+10. `ERR_NO_CONTEXT`: no catalogs are loaded in the resolver's active context (repo-first cold-start with no Domain repo open).
 
 ## 12. Partial Adoption Patterns
 
@@ -513,7 +553,7 @@ Top-down per-boundary routing sequence (each step requires the caller to possess
 3. Repository resolution for a workstream target:
    1. use `workstream_repo_url` when present in `domain-workstreams.yml`
    2. otherwise resolve `domain_id` -> authoritative `domain-registry.yml` -> `domain_repo_url`
-4. `work_item_id`/`api_id` -> `implementation-catalog.yml` -> implementation target (when selector-driven domain->implementation routing boundary exists)
+4. `implementation_id` -> `domain-implementations.yml` -> repo location (when selector-driven domain->implementation routing boundary exists)
 
 Bottom-up discovery:
 
@@ -557,7 +597,7 @@ This proposal is additive:
 <domain-repo>/
   AGENTS.md
   DOMAIN.md
-  implementation-catalog.yml
+  domain-implementations.yml
   governance-state.yml
 ```
 
@@ -567,7 +607,7 @@ An implementation MAY map catalogs into architecture folders, for example:
 
 1. `architecture/portfolio/initiatives.yml`
 2. `architecture/solution/domain-workstreams.yml`
-3. `implementation-catalog.yml` (with optional `implementation-catalog.json` compatibility projection)
+3. `domain-implementations.yml`
 
 An implementation MAY use environment bootstrap variables (for example `OPENARCHITECT_ROOT_REPO_URL`) as its concrete bootstrap mechanism for the topmost level present.
 

@@ -37,7 +37,7 @@ Examples of canonical resolution:
 
 - `initiative_id=init-example`
 - `workstream_id=ws-init-example-order`
-- `work_item_id=job-order-api-001`
+- `implementation_id=order-api`
 
 ### `list`
 
@@ -47,7 +47,7 @@ Examples:
 
 - list all `initiatives.yml` entries
 - list `domain-workstreams.yml` entries with `status=active`
-- list `implementation-catalog.yml` entries with `status=in_progress`
+- list `domain-implementations.yml` entries with `status=active`
 
 ### `validate`
 

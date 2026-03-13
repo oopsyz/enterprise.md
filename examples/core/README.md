@@ -18,14 +18,14 @@ solution-repo/
 domain-repo/
   AGENTS.md
   DOMAIN.md
-  implementation-catalog.yml
+  domain-implementations.yml
 ```
 
 ## What This Adds Beyond Layer A
 
 - `initiatives.yml` -- routes `initiative_id` to solution repositories
 - `domain-workstreams.yml` -- routes `workstream_id` to domain workstream context (`domain_id` + workstream entrypoint/ref)
-- `implementation-catalog.yml` -- routes `work_item_id`/`api_id` to implementation targets when selector-driven domain->implementation routing is used
+- `domain-implementations.yml` -- routes `implementation_id` to repo location when selector-driven domain->implementation routing is used
 - Bootstrap discovery mechanism (for example environment variable `EA_REPO_URL`)
 
 ## When to Use

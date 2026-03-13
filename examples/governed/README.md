@@ -20,7 +20,7 @@ solution-repo/
 domain-repo/
   AGENTS.md
   DOMAIN.md
-  implementation-catalog.yml
+  domain-implementations.yml
   governance-state.yml
 ```
 

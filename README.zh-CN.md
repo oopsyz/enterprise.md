@@ -70,7 +70,7 @@
 3. `ENTERPRISE.md`、`SOLUTION.md` 和 `DOMAIN.md` 是导航入口，而不是重复存放数据的文件。
 4. 上游链接必须按层级显式给出：当企业层存在时，`SOLUTION.md` 和 `DOMAIN.md` 都应链接到 `ENTERPRISE.md`。
 5. `DOMAIN.md` 不将 `SOLUTION.md` 作为必需的父级链接，因为解决方案与领域之间通常是多对多关系，应由路由目录或交接工件表达。例如，共享的 “identity” 领域可以同时服务于 “customer portal” 解决方案和 “internal tools” 解决方案。
-6. YAML 是路由目录的规范格式；JSON 仅作为可选的、与 schema 等价的兼容性投影。
+6. YAML 是路由目录的规范格式。
 7. 对于缺失选择器、歧义选择器以及默认不可路由状态，路由必须失败即关闭。
 8. 实现不得依赖仓库名启发式、关键字推断或其他推测方式完成核心路由。
 
@@ -83,7 +83,7 @@
 
 可参考 [examples/](examples/) 中各档位的完整示例。
 
-格式说明：YAML 是路由目录的规范格式。JSON 仅为可选的、与 schema 等价的兼容格式。
+格式说明：YAML 是路由目录的规范格式。
 
 ## 路由模型
 
@@ -93,7 +93,7 @@
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | 解决方案仓库 + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + 工作流上下文 + 仓库目标 |
-| `implementation-catalog.yml` | Domain | `work_item_id` 或 `api_id` | 实现目标/路径 |
+| `domain-implementations.yml` | Domain | `implementation_id` | 仓库位置 |
 
 默认可路由状态为 `active` 和 `in_progress`。
 
@@ -129,7 +129,7 @@ templates/
   AGENTS.{ea,sa,da,dev}.md.template                -- 不同角色的 AGENTS.md 模板
   initiatives.yml.template                         -- 企业层路由目录模板
   domain-workstreams.yml.template                  -- 解决方案层路由目录模板
-  implementation-catalog.yml.template              -- 领域到实现层路由目录模板
+  domain-implementations.yml.template              -- 领域到实现层路由目录模板
   domain-registry.yml.template                     -- 领域治理注册表模板
   solution-index.yml.template                      -- 解决方案范围清单模板
   initiative-pipeline.yml.template                 -- 组合级流水线源模板
@@ -155,7 +155,7 @@ reference/
 | `DOMAIN.md` | DA |
 | `initiatives.yml` | EA/PMO |
 | `domain-workstreams.yml` | SA |
-| `implementation-catalog.yml` | DA |
+| `domain-implementations.yml` | DA |
 
 如果多个角色在同一团队或同一仓库中合并承担，则必须在相应入口文件中显式声明归属。
 

@@ -1,0 +1,12 @@
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: order-api
+    status: active
+    repo:
+      paths: ["src/order-api/*"]
+
+  - implementation_id: order-events
+    status: active
+    repo:
+      paths: ["src/order-events/*"]

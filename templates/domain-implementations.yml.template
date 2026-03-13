@@ -1,0 +1,83 @@
+# Domain implementations catalog (YAML canonical)
+# Keep this file in the domain repo as: domain-implementations.yml
+# Authoritative routing source for this domain. Runtime resolvers use this file only.
+# Implementation repos must not replicate or override this catalog.
+
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+
+# Schema rules:
+#   implementation_id - Required. Stable primary key. Never changes even if repo moves.
+#   status            - Required. Lifecycle state per spec Section 5.4.
+#                       Typical values: active, deprecated, inactive.
+#   repo.url          - Optional. When omitted, defaults to the catalog's own repo (monorepo case).
+#                       When present, must be a non-empty canonical URL; null/empty is invalid_schema.
+#   repo.paths        - Optional. List of glob patterns scoping the implementation within the repo.
+#                       Default: ["*"] (whole repo). Must be a non-empty list of non-empty globs.
+#   repo.aliases      - Optional. Previous canonical URLs retained during a rename grace window.
+#                       Linter must enforce alias sunset and uniqueness across url + aliases.
+#
+# Lifecycle fields (optional):
+#   valid_from, valid_to - ISO 8601 dates for active window.
+#   replaced_by          - List of implementation_ids (for split/merge/replacement).
+#
+# Traceability fields (optional, not used for routing):
+#   workstream_id        - Transient. The workstream currently handling changes to this implementation.
+#   oda_component_name   - TM Forum ODA component name.
+#   tmfc_component_id    - TM Forum component ID (e.g. TMFC023).
+#   owners               - List of team or individual owners.
+#
+# Uniqueness invariant:
+#   No two rows may produce overlapping (canonical(repo.url), matched repo.path) bindings.
+#   paths: ["*"] may appear at most once per repo.url and cannot coexist with other rows for that url.
+#   repo.aliases participate in the invariant: no other row may overlap on any aliased URL.
+#
+# Failure codes (see spec Section 11):
+#   ERR_SELECTOR_MISSING | ERR_SELECTOR_AMBIGUOUS | ERR_SELECTOR_NOT_ROUTABLE |
+#   ERR_INVALID_SCHEMA | ERR_OVERLAPPING_PATHS | ERR_NO_CONTEXT
+
+implementations:
+
+  # Monorepo example — repo.url omitted, paths scope a subtree
+  - implementation_id: order-api
+    status: active
+    repo:
+      paths: ["src/order-api/*"]
+    # traceability (optional)
+    workstream_id: <workstream-id>
+    oda_component_name: Order Management
+    tmfc_component_id: TMFC005
+    owners: [<team>]
+
+  # Monorepo example — whole repo (repo.url omitted, default paths)
+  - implementation_id: order-events
+    status: active
+    repo:
+      paths: ["*"]
+    # traceability (optional)
+    workstream_id: <workstream-id>
+    owners: [<team>]
+
+  # Multi-repo example — explicit url, multiple scoped paths
+  - implementation_id: payments-risk-service
+    status: active
+    repo:
+      url: https://github.com/<org>/<repo>
+      paths:
+        - services/risk/*
+        - batch/risk-jobs/*
+        - deploy/risk/*
+    # traceability (optional)
+    workstream_id: <workstream-id>
+    owners: [<team>]
+
+  # Lifecycle example — deprecated, replaced by two new implementations
+  - implementation_id: payments-legacy-processor
+    status: deprecated
+    valid_to: "2026-12-31"
+    replaced_by: [payments-risk-service]
+    repo:
+      url: https://github.com/<org>/<legacy-repo>
+      aliases:
+        - https://github.com/<org>/<old-repo-name>
+      paths: ["*"]

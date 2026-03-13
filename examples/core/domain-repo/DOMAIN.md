@@ -23,16 +23,16 @@ Purpose: Domain architecture entrypoint for Order management.
 ```text
 DOMAIN.md                                          <- you are here
 AGENTS.md                                          <- repo-specific agent instructions
-implementation-catalog.yml                         <- canonical job catalog (WORK_ITEM_ID / API_ID routing)
+domain-implementations.yml                         <- canonical implementation catalog (implementation_id routing)
 ```
 
 ## Canonical Artifacts
 
-- [implementation-catalog.yml](implementation-catalog.yml)
+- [domain-implementations.yml](domain-implementations.yml)
 
 ## Routing
 
-`WORK_ITEM_ID` (or `API_ID`) -> `implementation-catalog.yml` -> implementation target
+`implementation_id` -> `domain-implementations.yml` -> repo location
 
 ## Upstream Inputs
 
@@ -40,5 +40,5 @@ Not applicable
 
 ## Policy
 
-- Treat selector inputs as authoritative (`WORKSTREAM_ID`, `WORK_ITEM_ID`).
+- Treat selector inputs as authoritative (`WORKSTREAM_ID`, `implementation_id`).
 - Fail-closed on inactive status by default.

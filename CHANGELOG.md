@@ -12,7 +12,7 @@ Initial public draft release.
 
 - initial specification for the Multi-Level Repository Navigation and Routing Convention
 - Layer A entrypoint convention covering `ENTERPRISE.md`, `SOLUTION.md`, and `DOMAIN.md`
-- Layer B routing catalog specification for `initiatives.yml`, `domain-workstreams.yml`, and `implementation-catalog.yml`
+- Layer B routing catalog specification for `initiatives.yml`, `domain-workstreams.yml`, and `domain-implementations.yml`
 - conformance profile definitions for `Core` and `Governed`
 - starter templates for entrypoints, role-specific `AGENTS.md`, Claude Code bridge `CLAUDE.md`, and routing/governance catalogs
 - working examples for `Core` and `Governed` profiles

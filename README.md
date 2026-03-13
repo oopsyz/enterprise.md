@@ -74,7 +74,7 @@ Short form:
 3. `ENTERPRISE.md`, `SOLUTION.md`, and `DOMAIN.md` are navigation entrypoints, not duplicated data stores.
 4. Upstream links are explicit by level: `SOLUTION.md` and `DOMAIN.md` link to `ENTERPRISE.md` when the enterprise level exists.
 5. `DOMAIN.md` does not use `SOLUTION.md` as a required parent link because solution-to-domain relationships are many-to-many and belong in routing catalogs or handoff artifacts. For example, a shared "identity" domain may serve both a "customer portal" solution and an "internal tools" solution simultaneously.
-6. YAML is canonical for routing catalogs; JSON is only an optional schema-equivalent projection.
+6. YAML is canonical for routing catalogs.
 7. Routing fails closed on missing selectors, ambiguous selectors, and non-routable statuses by default.
 8. Implementations must not fall back to repo-name heuristics or keyword inference for core routing.
 
@@ -87,7 +87,7 @@ Short form:
 
 See [examples/](examples/) for working samples of each profile.
 
-Format note: YAML is canonical for routing catalogs. JSON is an optional schema-equivalent compatibility projection.
+Format note: YAML is canonical for routing catalogs.
 
 ## Routing Model
 
@@ -97,7 +97,7 @@ Canonical catalogs and selectors:
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | solution repository + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + workstream context + repo target |
-| `implementation-catalog.yml` | Domain | `work_item_id` or `api_id` | implementation target/path |
+| `domain-implementations.yml` | Domain | `implementation_id` | repo location |
 
 Default routable statuses are `active` and `in_progress`.
 
@@ -140,7 +140,7 @@ Core and Governed implementations must provide at least one deterministic bootst
 |   |-- CLAUDE.{ea,sa,da,dev}.md.template          # role-specific CLAUDE.md bridge templates
 |   |-- initiatives.yml.template                   # enterprise routing catalog
 |   |-- domain-workstreams.yml.template            # solution routing catalog
-|   |-- implementation-catalog.yml.template        # domain-to-implementation routing catalog
+|   |-- domain-implementations.yml.template        # domain-to-implementation routing catalog
 |   |-- domain-registry.yml.template               # domain governance registry
 |   |-- solution-index.yml.template                # solution scope manifest
 |   |-- initiative-pipeline.yml.template           # portfolio pipeline source
@@ -166,7 +166,7 @@ Recommended default owners:
 | `DOMAIN.md` | DA |
 | `initiatives.yml` | EA/PMO |
 | `domain-workstreams.yml` | SA |
-| `implementation-catalog.yml` | DA |
+| `domain-implementations.yml` | DA |
 
 If roles are collapsed in one team or repository, ownership MUST be explicitly declared in the relevant entrypoint.
 
