@@ -455,18 +455,22 @@ Migration policy:
 2. Readers SHOULD enforce canonical keys for deterministic behavior.
 3. Legacy aliases are out of scope for this draft baseline.
 
-## 7. Catalog Health Validation (Recommended CI)
+## 7. Validation Requirements
 
-Recommended CI checks:
+Validators for this convention MUST check:
 
-1. Validate schema and required fields.
-2. Verify selector uniqueness (see Section 5.6).
-3. Verify cross-file reference integrity for all normative references in Section 5.5.
-4. Verify status-policy compliance.
-5. Verify catalog version compatibility against Section 5.2.
-6. Verify referenced repository URLs are reachable with CI identity (or provider API equivalent).
-7. Verify referenced entrypoint paths exist in the target repository/revision when the repository is accessible to CI.
-8. Flag stale or inaccessible routing targets before runtime.
+1. schema and required-field conformance
+2. selector uniqueness (see Section 5.6)
+3. cross-file reference integrity for all normative references in Section 5.5
+4. status-policy compliance
+5. catalog version compatibility against Section 5.2
+
+When the referenced repository or revision is accessible to the validator, it SHOULD also check:
+
+1. referenced repository URLs are reachable with validator identity (or provider API equivalent)
+2. referenced entrypoint paths exist in the target repository/revision
+
+Companion operational guidance, including CI realization patterns and observability practices, is maintained in `reference/operational-guidance.md`.
 
 ## 8. Ownership Model
 
@@ -551,19 +555,9 @@ If two artifacts conflict within the same concern domain:
 1. Runtime MUST fail closed.
 2. Runtime MUST emit a structured conflict error event.
 
-## 11. Observability and Error Model (Companion Guidance, Non-Normative)
+## 11. Error Codes
 
-Minimum structured failure record SHOULD include:
-
-1. `timestamp`
-2. `level` (enterprise/solution/domain)
-3. `selector_type`
-4. `selector_id`
-5. `artifact_path`
-6. `error_code`
-7. `message`
-
-Recommended error codes:
+Implementations that surface structured routing or validation failures MUST support the following error codes when applicable:
 
 1. `ERR_SELECTOR_MISSING`
 2. `ERR_SELECTOR_AMBIGUOUS`
@@ -576,6 +570,8 @@ Recommended error codes:
 9. `ERR_OVERLAPPING_PATHS`: two or more `domain-implementations.yml` entries produce overlapping `(repo.url, repo.path)` bindings, violating the uniqueness invariant.
 10. `ERR_NO_CONTEXT`: no catalogs are loaded in the resolver's active context (repo-first cold-start with no Domain repo open).
 11. `ERR_REFERENCE_UNRESOLVED`: a normative intra-repository or cross-repository reference does not resolve to an existing selector target or file.
+
+Companion observability guidance, including suggested failure record fields and logging patterns, is maintained in `reference/operational-guidance.md`.
 
 ## 12. Partial Adoption Patterns
 
@@ -621,15 +617,7 @@ Bottom-up discovery:
 3. Solution agent reads `SOLUTION.md` parent link to `ENTERPRISE.md` when the enterprise level exists.
 4. Agents MAY use shared IDs (`initiative_id`, `workstream_id`, `domain_id`) for partial lineage reconstruction when those IDs are present in catalog entries. End-to-end lineage from implementation artifact to business initiative is not guaranteed by the core catalog minimum fields (see Section 5.3).
 
-## 14. Companion Guidance: Agent Context Engineering (Non-Normative)
-
-Recommended harness/context practices:
-
-1. Treat entrypoint files as maps, not encyclopedias (see Section 2 guiding principle).
-2. Keep detailed knowledge in linked artifacts/docs.
-3. Add mechanical doc freshness checks in CI.
-
-## 15. Compatibility with agents.md
+## 14. Compatibility with agents.md
 
 This proposal is additive:
 
@@ -638,43 +626,4 @@ This proposal is additive:
 3. Routing catalogs are optional outside routed profiles.
 4. Claude Code compatibility is achieved through `CLAUDE.md` bridging into this convention's repository flow; this proposal does not assume native Claude Code support for `AGENTS.md`.
 
-## 16. Reference Layout (Illustrative)
-
-```text
-<enterprise-repo>/
-  AGENTS.md
-  ENTERPRISE.md
-  initiatives.yml
-  domain-registry.yml
-
-<solution-repo>/
-  AGENTS.md
-  SOLUTION.md
-  domain-workstreams.yml
-  solution-index.yml
-
-<domain-repo>/
-  AGENTS.md
-  DOMAIN.md
-  domain-implementations.yml
-  governance-state.yml
-```
-
-## 17. Reference Implementation Mapping (Non-Normative)
-
-An implementation MAY map catalogs into architecture folders, for example:
-
-1. `architecture/portfolio/initiatives.yml`
-2. `architecture/solution/domain-workstreams.yml`
-3. `domain-implementations.yml`
-
-An implementation MAY use environment bootstrap variables (for example `OPENARCHITECT_ROOT_REPO_URL`) as its concrete bootstrap mechanism for the topmost level present.
-
-## 18. Next Step
-
-Submit as an extension proposal:
-
-1. Core extension: multi-scale entrypoint convention.
-2. Optional extension: routing catalog specification.
-3. Companion extension: schema conformance profile and migration guidance.
-4. Companion guidance: harness/context engineering practices.
+Reference implementation layout, operational mapping patterns, agent context guidance, and adoption notes are maintained in companion documents under `reference/`.

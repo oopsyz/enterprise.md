@@ -153,6 +153,7 @@ Core and Governed implementations must provide at least one deterministic bootst
 |   `-- governed/                                  # governed enterprise example
 `-- reference/
     |-- harness-engineering.md                     # reference note
+    |-- operational-guidance.md                    # non-normative CI, observability, and layout guidance
     `-- machine-access-contract.md                 # optional contract for querying canonical routing catalogs
 ```
 
