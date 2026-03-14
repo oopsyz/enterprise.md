@@ -1,0 +1,15 @@
+# EA selector catalog
+# Keep this file in EA repo at: architecture/portfolio/initiatives.yml
+
+version: "1.0"
+
+initiatives:
+  - initiative_id: <initiative-id>
+    name: <Initiative Name>
+    solution_repo_url: https://github.com/<org>/<solution-repo>
+    solution_entrypoint: SOLUTION.md
+    status: active
+    owner: <sa-team>
+    metadata:
+      priority: <high|medium|low>
+      target_release: <yyyy-Qn>

@@ -1,0 +1,5 @@
+# AGENTS
+
+Role: sa
+Instruction: Always read `SOLUTION.md` (mandatory entrypoint for this level).
+Guardrail: `SOLUTION.md` is a critical contract file. Preserve template section structure and keep mutable operational detail in linked canonical artifacts.

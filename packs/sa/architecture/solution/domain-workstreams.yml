@@ -1,0 +1,21 @@
+# SA workstream selector catalog
+# Keep this file in SA repo at: architecture/solution/domain-workstreams.yml
+
+version: "1.0"
+initiative_id: <initiative-id>
+
+workstreams:
+  - workstream_id: <ws-initiative-domain>
+    initiative_id: <initiative-id>
+    domain_id: <domain-id>
+    domain_name: <Domain Name>
+    name: <Initiative x Domain Name>
+    workstream_entrypoint: inputs/workstreams/<workstream-id>/WORKSTREAM.md
+    workstream_git_ref: <branch-or-tag>
+    workstream_repo_url: https://github.com/<org>/<domain-repo>
+    workstream_path: inputs/workstreams/<workstream-id>/
+    status: active
+    owner: <domain-arch-owner>
+    metadata:
+      priority: <high|medium|low>
+      milestone: <yyyy-Qn>

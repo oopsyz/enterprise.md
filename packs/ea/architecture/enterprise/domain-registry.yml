@@ -1,0 +1,19 @@
+# EA authoritative domain governance map.
+# Keep this file in EA repo at: architecture/enterprise/domain-registry.yml
+
+version: "1.0"
+enterprise_id: <enterprise-id>
+
+domains:
+  - domain_id: <domain-id>
+    name: <Domain Name>
+    owner: <domain-arch-owner>
+    domain_repo_url: https://github.com/<org>/<domain-repo>
+    domain_entrypoint: DOMAIN.md
+    status: active
+    capabilities:
+      - capability_id: <cap-id>
+        name: <capability description>
+    metadata:
+      oda_component_name: <TMF ODA component name>
+      tmfc_component_id: <TMFC###>

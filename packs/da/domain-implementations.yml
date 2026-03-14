@@ -1,0 +1,16 @@
+# Domain implementations catalog
+# Keep this file in the domain repo as: domain-implementations.yml
+# Authoritative routing source for this domain. Runtime resolvers use this file only.
+# Implementation repos must not replicate or override this catalog.
+
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+
+implementations:
+  - implementation_id: <implementation-id>
+    status: active
+    repo:
+      url: https://github.com/<org>/<repo>
+      paths:
+        - <service-path>/*
+    owners: [<team>]

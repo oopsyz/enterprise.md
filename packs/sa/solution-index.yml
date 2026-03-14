@@ -1,0 +1,17 @@
+version: "0.2"
+solution_key: <solution-key>
+display_name: <solution-display-name>
+description: <solution-description>
+owners:
+  solution_architect: <sa-team>
+  enterprise_id: <enterprise-id>
+entrypoints:
+  solution_md: SOLUTION.md
+  agents_md: AGENTS.md
+domains:
+  - domain_key: <domain-id>
+    domain_repo:
+      repo_url: https://github.com/<org>/<domain-repo>
+      entrypoints:
+        domain_md: DOMAIN.md
+        agents_md: AGENTS.md
