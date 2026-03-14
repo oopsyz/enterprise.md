@@ -16,6 +16,10 @@ spec_version: "1.0.0"
 #                       Default: ["*"] (whole repo). Must be a non-empty list of non-empty globs.
 #   repo.aliases      - Optional. Previous canonical URLs retained during a rename grace window.
 #                       Linter must enforce alias sunset and uniqueness across url + aliases.
+#   repo.entrypoint   - Optional. Repo-relative file path to open after reaching the repo.
+#                       Use when deterministic file-level navigation is needed, especially for external repos.
+#   repo.git_ref      - Optional. Branch, tag, or commit ref pinning the expected repo revision.
+#                       Prefer a tag or commit SHA for adopted upstream/open-source repos.
 #
 # Lifecycle fields (optional):
 #   valid_from, valid_to - ISO 8601 dates for active window.
@@ -67,9 +71,22 @@ implementations:
         - services/risk/*
         - batch/risk-jobs/*
         - deploy/risk/*
+      entrypoint: services/risk/README.md
+      git_ref: main
     # traceability (optional)
     workstream_id: <workstream-id>
     owners: [<team>]
+
+  # Adopted upstream example — third-party repo with explicit entrypoint + pinned ref
+  - implementation_id: identity-keycloak-upstream
+    status: active
+    repo:
+      url: https://github.com/keycloak/keycloak
+      paths: ["*"]
+      entrypoint: README.md
+      git_ref: 26.1.0
+    # traceability (optional)
+    owners: [identity-architecture]
 
   # Lifecycle example — deprecated, replaced by a successor
   - implementation_id: payments-legacy-processor

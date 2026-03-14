@@ -25,7 +25,7 @@ domain-repo/
 
 - `initiatives.yml` -- routes `initiative_id` to solution repositories
 - `domain-workstreams.yml` -- routes `workstream_id` to domain workstream context (`domain_id` + workstream entrypoint/ref)
-- `domain-implementations.yml` -- routes `implementation_id` to repo location when selector-driven domain->implementation routing is used
+- `domain-implementations.yml` -- routes `implementation_id` to repo location and optional implementation entrypoint/ref when selector-driven domain->implementation routing is used
 - Bootstrap discovery mechanism (for example environment variable `EA_REPO_URL`)
 
 ## When to Use

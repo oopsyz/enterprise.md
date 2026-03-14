@@ -195,7 +195,7 @@ Purpose: Domain architecture entrypoint.
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | 工作流上下文（见第 5.3 节） |
-| `domain-implementations.yml` | Domain | `implementation_id` | 仓库位置 |
+| `domain-implementations.yml` | Domain | `implementation_id` | 仓库位置 + 可选入口点/ref |
 
 目录解析是按边界定义的。本规范不保证选择器会跨边界自动传递；调用方必须独立拥有或获取下一个边界所需的选择器。实现 MAY 定义跨边界传递选择器的交接机制，但这些机制属于实现自定义。
 
@@ -228,6 +228,10 @@ Purpose: Domain architecture entrypoint.
 
 跨仓库目标字段：
 
+实现目标元数据的设计目的：
+
+有些组织会保留一个第一方 Domain 仓库作为规范性的架构覆盖层，同时将第三方或开源仓库作为实现目标。在这种模型下，仅有仓库级解析不足以支持确定性的 agent 导航，因为外部仓库可能并未实现本约定，而且可能暴露多个看似合理的入口文件。因此，可选的实现目标元数据允许 Domain 仓库声明 agent 应打开的精确文件，以及在需要时声明架构验证所依据的版本，而无需对外部仓库本身做任何修改。
+
 1. `initiatives.yml` 的条目 MUST 同时包含 `solution_repo_url` 和 `solution_entrypoint`（例如 `SOLUTION.md`）。
 2. 当 `domain-registry.yml` 条目包含 `domain_repo_url` 时，MUST 同时包含 `domain_entrypoint`（例如 `DOMAIN.md`）。
 3. `domain-workstreams.yml` 条目 MUST 包含 `domain_id`、`workstream_entrypoint` 和 `workstream_git_ref`。
@@ -244,6 +248,8 @@ Purpose: Domain architecture entrypoint.
    1. `repo.url`：规范化 VCS 仓库 URL。可选；省略时默认为目录文件所在仓库（单仓模式）。若存在，MUST 为非空规范化 URL；null 或空字符串视为 schema 验证错误（`ERR_INVALID_SCHEMA`）。
    2. `repo.paths`：glob 模式列表，用于界定实现在仓库中的范围。可选；省略时默认为 `["*"]`（整个仓库）。若存在，MUST 为非空列表，每项为非空 glob 字符串。
    3. `repo.aliases`：在重命名过渡期保留的旧规范 URL 列表。可选。别名参与唯一性不变量和仓库优先解析。实现 SHOULD 强制执行别名退休策略。
+   4. `repo.entrypoint`：在解析到目标仓库后应打开的仓库相对文件路径。可选。若存在，MUST 为非空路径字符串。尤其当需要在目标仓库内进行确定性的文件级导航时，实现 SHOULD 提供该字段，特别是对于未采用本约定的外部或第三方仓库。
+   5. `repo.git_ref`：标识预期目标版本的分支、标签或提交 ref。可选。若存在，MUST 为非空字符串。对于默认分支经常变化的外部或第三方仓库，实现 SHOULD 优先使用发布标签或提交 SHA。
 9. `domain-implementations.yml` 唯一性不变量：对于每个条目，每对 `(canonical(repo.url), matched repo.path)` MUST 映射到恰好一个 `implementation_id`。`paths: ["*"]` 对于同一 `repo.url` 最多出现一次，且 MUST NOT 与该 `repo.url` 的其他条目共存。集合 `{repo.url} ∪ repo.aliases` 参与不变量；其他条目不得在该集合的任何成员上产生重叠。
 10. `domain-implementations.yml` 生命周期字段（可选）：
     1. `valid_from`、`valid_to`：ISO 8601 日期，界定活跃窗口。
@@ -300,9 +306,22 @@ implementations:
       paths:
         - services/risk/*
         - batch/risk-jobs/*
+      entrypoint: services/risk/README.md
+      git_ref: main
     # 可追溯性（可选）
     workstream_id: ws-init-example-payments
     owners: [payments-team]
+
+  # 引入的上游实现 — 带确定性文件目标的外部仓库
+  - implementation_id: identity-keycloak-upstream
+    status: active
+    repo:
+      url: https://github.com/keycloak/keycloak
+      paths: ["*"]
+      entrypoint: README.md
+      git_ref: 26.1.0
+    # 可追溯性（可选）
+    owners: [identity-architecture]
 
   # 已弃用 — 由后继者替代
   - implementation_id: payments-legacy
@@ -553,7 +572,7 @@ layers:
 3. 工作流目标的仓库解析：
    1. 若 `domain-workstreams.yml` 中存在 `workstream_repo_url`，则使用它
    2. 否则解析 `domain_id` -> 权威 `domain-registry.yml` -> `domain_repo_url`
-4. `implementation_id` -> `domain-implementations.yml` -> 仓库位置（当存在选择器驱动的领域到实现路由边界时）
+4. `implementation_id` -> `domain-implementations.yml` -> 仓库位置 + 可选 `repo.entrypoint` + 可选 `repo.git_ref`（当存在选择器驱动的领域到实现路由边界时）
 
 自底向上的发现：
 

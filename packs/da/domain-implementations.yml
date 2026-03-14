@@ -13,4 +13,6 @@ implementations:
       url: https://github.com/<org>/<repo>
       paths:
         - <service-path>/*
+      entrypoint: <repo-relative-entrypoint-or-null>
+      git_ref: <branch-tag-or-commit-ref-or-null>
     owners: [<team>]

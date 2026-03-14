@@ -4,6 +4,19 @@ All notable changes to this project should be documented in this file.
 
 The format is loosely based on Keep a Changelog, with project-level draft/spec releases recorded here.
 
+## [Unreleased]
+
+### Added
+
+- optional `repo.entrypoint` and `repo.git_ref` fields for `domain-implementations.yml`
+
+### Notes
+
+- purpose: let a first-party Domain repo route deterministically into adopted external or open-source implementation repositories without requiring those upstream repos to add `DOMAIN.md`, `AGENTS.md`, or other convention files
+- `repo.entrypoint` identifies the file agents should open in the target repo
+- `repo.git_ref` lets the Domain repo pin the revision that the architecture was validated against
+- this is a backward-compatible additive change to the domain->implementation routing contract
+
 ## [0.1.0] - 2026-03-10
 
 Initial public draft release.

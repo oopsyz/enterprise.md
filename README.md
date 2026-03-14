@@ -97,7 +97,7 @@ Canonical catalogs and selectors:
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | solution repository + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + workstream context + repo target |
-| `domain-implementations.yml` | Domain | `implementation_id` | repo location |
+| `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 
 Default routable statuses are `active` and `in_progress`.
 

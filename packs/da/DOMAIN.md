@@ -45,7 +45,7 @@ inputs/
 
 ## Routing
 
-`implementation_id` -> `domain-implementations.yml` -> `repo.url` + `repo.paths`
+`implementation_id` -> `domain-implementations.yml` -> `repo.url` + `repo.paths` + optional `repo.entrypoint` + optional `repo.git_ref`
 
 ## Policy
 

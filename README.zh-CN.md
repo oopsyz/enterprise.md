@@ -93,7 +93,7 @@
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | 解决方案仓库 + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + 工作流上下文 + 仓库目标 |
-| `domain-implementations.yml` | Domain | `implementation_id` | 仓库位置 |
+| `domain-implementations.yml` | Domain | `implementation_id` | 仓库位置 + 可选入口点/ref |
 
 默认可路由状态为 `active` 和 `in_progress`。
 

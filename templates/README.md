@@ -38,6 +38,8 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 
 Format note: YAML is canonical for routing catalogs.
 
+Note: `domain-implementations.yml.template` supports optional `repo.entrypoint` and `repo.git_ref` fields for deterministic navigation into external implementation repositories such as adopted open-source projects.
+
 ## Governance Templates
 
 | Template | Level | Profile |

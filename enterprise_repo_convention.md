@@ -195,7 +195,7 @@ This standard defines file names and semantics, not fixed directories.
 |---|---|---|---|
 | `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
-| `domain-implementations.yml` | Domain | `implementation_id` | repo location |
+| `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 
 Catalog resolution is defined per boundary. This specification does not guarantee automatic selector propagation across boundaries; the caller must possess or obtain the selector for the next boundary independently. Implementations MAY define handoff mechanisms that carry selectors across boundaries, but such mechanisms are implementation-specific.
 
@@ -228,6 +228,10 @@ Runtime behavior:
 
 Cross-repo target fields:
 
+Rationale for implementation target metadata:
+
+Some organizations keep a first-party Domain repo as the canonical architecture overlay while adopting third-party or open-source repositories as implementation targets. In that model, repo-only resolution is not sufficient for deterministic agent navigation because the external repository may not implement this convention and may expose multiple plausible entry files. Optional implementation target metadata therefore allows the Domain repo to declare both the exact file an agent should open and, when needed, the revision the architecture was validated against, without requiring any change to the external repository itself.
+
 1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) alongside `solution_repo_url`.
 2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`).
 3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
@@ -244,6 +248,8 @@ Cross-repo target fields:
    1. `repo.url`: canonical VCS repository URL. Optional; when omitted, defaults to the repository that contains the catalog file (monorepo case). When present, MUST be a non-empty, canonicalized URL; null or empty string is a schema validation error (`ERR_INVALID_SCHEMA`).
    2. `repo.paths`: list of glob patterns scoping the implementation within the repository. Optional; when omitted, defaults to `["*"]` (whole repository). When present, MUST be a non-empty list of non-empty glob strings.
    3. `repo.aliases`: list of previous canonical URLs retained during a rename grace window. Optional. Aliases participate in the uniqueness invariant and in repo-first resolution. Implementations SHOULD enforce an alias sunset policy.
+   4. `repo.entrypoint`: repo-relative file path to open after resolving the target repository. Optional. When present, MUST be a non-empty path string. Implementations SHOULD provide this field whenever deterministic file-level navigation into the target repository is required, especially for external or third-party repositories that do not follow this convention.
+   5. `repo.git_ref`: branch, tag, or commit ref identifying the expected target revision. Optional. When present, MUST be a non-empty string. For external or third-party repositories with mutable default branches, implementations SHOULD prefer a release tag or commit SHA.
 9. `domain-implementations.yml` uniqueness invariant: for each entry, every pair `(canonical(repo.url), matched repo.path)` MUST map to exactly one `implementation_id`. `paths: ["*"]` may appear at most once per `repo.url` and MUST NOT coexist with other entries for the same `repo.url`. The set `{repo.url} ∪ repo.aliases` participates in the invariant; no other entry may overlap on any member of that set.
 10. `domain-implementations.yml` lifecycle fields (optional):
     1. `valid_from`, `valid_to`: ISO 8601 dates bounding the active window.
@@ -300,9 +306,22 @@ implementations:
       paths:
         - services/risk/*
         - batch/risk-jobs/*
+      entrypoint: services/risk/README.md
+      git_ref: main
     # traceability (optional)
     workstream_id: ws-init-example-payments
     owners: [payments-team]
+
+  # Adopted upstream — external repo with deterministic file target
+  - implementation_id: identity-keycloak-upstream
+    status: active
+    repo:
+      url: https://github.com/keycloak/keycloak
+      paths: ["*"]
+      entrypoint: README.md
+      git_ref: 26.1.0
+    # traceability (optional)
+    owners: [identity-architecture]
 
   # Deprecated — replaced by successors
   - implementation_id: payments-legacy
@@ -553,7 +572,7 @@ Top-down per-boundary routing sequence (each step requires the caller to possess
 3. Repository resolution for a workstream target:
    1. use `workstream_repo_url` when present in `domain-workstreams.yml`
    2. otherwise resolve `domain_id` -> authoritative `domain-registry.yml` -> `domain_repo_url`
-4. `implementation_id` -> `domain-implementations.yml` -> repo location (when selector-driven domain->implementation routing boundary exists)
+4. `implementation_id` -> `domain-implementations.yml` -> repo location + optional `repo.entrypoint` + optional `repo.git_ref` (when selector-driven domain->implementation routing boundary exists)
 
 Bottom-up discovery:
 

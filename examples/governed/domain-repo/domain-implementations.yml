@@ -5,8 +5,12 @@ implementations:
     status: active
     repo:
       paths: ["src/order-api/*"]
+      entrypoint: src/order-api/README.md
+      git_ref: main
 
   - implementation_id: order-events
     status: active
     repo:
       paths: ["src/order-events/*"]
+      entrypoint: src/order-events/README.md
+      git_ref: main

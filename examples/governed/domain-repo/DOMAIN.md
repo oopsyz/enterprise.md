@@ -34,7 +34,7 @@ governance-state.yml                               <- governance gates + pinned 
 
 ## Routing
 
-`implementation_id` -> `domain-implementations.yml` -> repo location
+`implementation_id` -> `domain-implementations.yml` -> `repo.url` + `repo.paths` + optional `repo.entrypoint` + optional `repo.git_ref`
 
 ## Upstream Inputs
 
