@@ -71,7 +71,7 @@ implementations:
     workstream_id: <workstream-id>
     owners: [<team>]
 
-  # Lifecycle example — deprecated, replaced by two new implementations
+  # Lifecycle example — deprecated, replaced by a successor
   - implementation_id: payments-legacy-processor
     status: deprecated
     valid_to: "2026-12-31"
