@@ -1,4 +1,4 @@
-# DOMAIN
+﻿# DOMAIN
 
 Domain architecture repo entrypoint. Owns domain design baselines and routes to implementation repos via the domain implementations catalog.
 
@@ -8,7 +8,7 @@ Domain architecture repo entrypoint. Owns domain design baselines and routes to 
 
 ## Parent
 
-- [ENTERPRISE](<enterprise-repo-url>/blob/main/ENTERPRISE.md)
+- [ENTERPRISE](https://github.com/example-org/ea-repo/blob/main/ENTERPRISE.md)
 
 ## Critical File Contract
 
@@ -51,3 +51,4 @@ inputs/
 
 - Treat selector inputs as authoritative (`implementation_id`).
 - Fail-closed on inactive status by default.
+

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/initiatives.schema.json",
+  "title": "initiatives.yml",
+  "type": "object",
+  "required": ["version", "initiatives"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "initiatives": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/initiative"
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "approved",
+        "ready",
+        "in_progress",
+        "paused",
+        "completed",
+        "archived",
+        "deprecated",
+        "inactive"
+      ]
+    },
+    "initiative": {
+      "type": "object",
+      "required": [
+        "initiative_id",
+        "solution_repo_url",
+        "solution_entrypoint",
+        "status"
+      ],
+      "properties": {
+        "initiative_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "solution_repo_url": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "solution_entrypoint": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "owner": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

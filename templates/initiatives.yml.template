@@ -1,5 +1,6 @@
 # EA selector catalog (Git-first, no DB required)
 # Keep this file in EA repo at: architecture/portfolio/initiatives.yml
+# Validate with: ../schemas/initiatives.schema.json
 # Reference this file from ENTERPRISE.md so SA container routing is deterministic.
 # Recommended: generate this file from architecture/portfolio/initiative-pipeline.yml
 # using <skills_root>/enterprise-architecture/scripts/generate_initiatives_selector.py.

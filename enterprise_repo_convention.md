@@ -247,6 +247,8 @@ Runtime behavior:
 1. Consumers MUST fail closed on unknown `MAJOR` versions.
 2. Producers MUST provide migration notes when incrementing `MAJOR`.
 
+Authoritative machine-readable schemas for canonical catalog validation are maintained under `schemas/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog version contract in this section.
+
 ### 5.3 Minimum Fields
 
 Cross-repo target fields:
@@ -459,7 +461,7 @@ Migration policy:
 
 Validators for this convention MUST check:
 
-1. schema and required-field conformance
+1. schema and required-field conformance using the authoritative schemas under `schemas/`
 2. selector uniqueness (see Section 5.6)
 3. cross-file reference integrity for all normative references in Section 5.5
 4. status-policy compliance

@@ -1,6 +1,6 @@
 # EA authoritative domain governance map for Telco.
 # Keep this file in EA repo at: architecture/enterprise/domain-registry.yml
-# Validate with: docs/design/schemas/domain-registry.schema.json
+# Validate with: ../../schemas/domain-registry.schema.json
 # Source baseline: tmf-mcp ODA components (count: 35)
 # Telco rule: one TMF ODA component maps to one domain entry.
 

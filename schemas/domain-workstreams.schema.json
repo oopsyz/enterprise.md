@@ -1,0 +1,174 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/domain-workstreams.schema.json",
+  "title": "domain-workstreams.yml",
+  "type": "object",
+  "required": ["version", "workstreams"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workspace_id": {
+      "type": ["string", "null"]
+    },
+    "initiative_id": {
+      "type": ["string", "null"]
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workstreams": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workstream"
+      }
+    },
+    "execution": {
+      "$ref": "#/$defs/execution"
+    },
+    "notes": {
+      "type": ["string", "null"]
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "approved",
+        "ready",
+        "in_progress",
+        "paused",
+        "completed",
+        "archived",
+        "deprecated",
+        "inactive"
+      ]
+    },
+    "workstream": {
+      "type": "object",
+      "required": [
+        "workstream_id",
+        "domain_id",
+        "workstream_git_ref",
+        "status"
+      ],
+      "properties": {
+        "workstream_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "workstream_uuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "initiative_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "domain_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "domain_name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "oda_component_name": {
+          "type": ["string", "null"]
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "workstream_entrypoint": {
+          "type": ["string", "null"]
+        },
+        "workstream_git_ref": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "workstream_repo_url": {
+          "type": ["string", "null"],
+          "format": "uri",
+          "minLength": 1
+        },
+        "workstream_path": {
+          "type": ["string", "null"]
+        },
+        "tmfc_component_id": {
+          "type": ["string", "null"]
+        },
+        "handoff_ref": {
+          "type": ["string", "null"]
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "owner": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "metadata": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": ["active", "in_progress"]
+              }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["workstream_entrypoint"],
+            "properties": {
+              "workstream_entrypoint": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "not_started",
+            "in_progress",
+            "proposed",
+            "approved",
+            "blocked",
+            "rejected"
+          ]
+        },
+        "processed_workstreams": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "skipped_workstreams": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

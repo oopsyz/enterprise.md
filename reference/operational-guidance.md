@@ -15,6 +15,11 @@ Typical CI or lint implementations check:
 7. referenced entrypoint path existence when the target repository/revision is available to CI
 8. stale or inaccessible routing targets before runtime rollout
 
+A thin validator/linter commonly layers these checks in two passes:
+
+1. validate each catalog against the authoritative machine-readable schema under `schemas/`
+2. apply cross-file, selector-uniqueness, and topology-aware checks that cannot be fully expressed in schema alone
+
 How these checks are implemented is toolchain-specific. Some teams will use repository-native CI, others will validate through provider APIs or orchestration runtimes.
 
 ## Observability

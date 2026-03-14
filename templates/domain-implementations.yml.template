@@ -1,5 +1,6 @@
 # Domain implementations catalog (YAML canonical)
 # Keep this file in the domain repo as: domain-implementations.yml
+# Validate with: ../schemas/domain-implementations.schema.json
 # Authoritative routing source for this domain. Runtime resolvers use this file only.
 # Implementation repos must not replicate or override this catalog.
 
