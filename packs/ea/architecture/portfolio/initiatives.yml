@@ -5,7 +5,7 @@ version: "1.0"
 
 initiatives:
   - initiative_id: <initiative-id>
-    name: <Initiative Name>
+    name: <initiative-name>
     solution_repo_url: https://github.com/<org>/<solution-repo>
     solution_entrypoint: SOLUTION.md
     status: active

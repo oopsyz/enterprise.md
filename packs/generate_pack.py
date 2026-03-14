@@ -22,30 +22,40 @@ PACKS = {
     "ea": {
         "label": "Enterprise Architect (EA)",
         "questions": [
-            ("org",                 "GitHub org name"),
-            ("enterprise-id",       "Enterprise ID (stable, kebab-case)"),
-            ("enterprise-repo-url", "Enterprise repo URL (full git URL)"),
+            ("org",             "GitHub org name"),
+            ("enterprise-id",   "Enterprise ID (stable, kebab-case)"),
+            ("initiative-name", "Initiative display name"),
+            ("initiative-id",   "Initiative ID (stable, kebab-case)"),
+            ("sa-team",         "SA team/owner name"),
+            ("solution-repo",   "Solution repo name"),
+            ("domain-id",       "Initial domain ID (kebab-case)"),
+            ("domain-name",     "Domain display name"),
+            ("domain-repo",     "Domain repo name"),
+            ("domain-owner",    "Domain architect/owner name"),
         ],
         "derived": lambda a: {},
     },
     "sa": {
         "label": "Solution Architect (SA)",
         "questions": [
-            ("org",                  "GitHub org name"),
-            ("solution-key",         "Solution key (stable, kebab-case)"),
-            ("solution-display-name","Solution display name"),
-            ("solution-description", "Solution short description"),
-            ("sa-team",              "SA team/owner name"),
-            ("enterprise-id",        "Enterprise ID"),
-            ("enterprise-repo-url",  "Enterprise repo URL (full git URL)"),
-            ("domain-id",            "Initial domain ID (kebab-case)"),
-            ("domain-repo",          "Initial domain repo name"),
-            ("initiative-id",        "Initiative ID (kebab-case)"),
+            ("org",                   "GitHub org name"),
+            ("solution-key",          "Solution key (stable, kebab-case)"),
+            ("solution-display-name", "Solution display name"),
+            ("solution-description",  "Solution short description"),
+            ("sa-team",               "SA team/owner name"),
+            ("enterprise-id",         "Enterprise ID"),
+            ("enterprise-repo-url",   "Enterprise repo URL (full git URL)"),
+            ("domain-id",             "Initial domain ID (kebab-case)"),
+            ("domain-name",           "Domain display name"),
+            ("domain-repo",           "Domain repo name"),
+            ("domain-owner",          "Domain architect/owner name"),
+            ("initiative-id",         "Initiative ID (kebab-case)"),
         ],
         "derived": lambda a: {
-            "workstream-id":        f"ws-{a.get('initiative-id','init')}-{a.get('domain-id','domain')}",
-            "ws-initiative-domain": f"ws-{a.get('initiative-id','init')}-{a.get('domain-id','domain')}",
-            "domain-list":          a.get("domain-id", "<domain-id>"),
+            "workstream-id":          f"ws-{a.get('initiative-id','init')}-{a.get('domain-id','domain')}",
+            "ws-initiative-domain":   f"ws-{a.get('initiative-id','init')}-{a.get('domain-id','domain')}",
+            "initiative-domain-name": f"{a.get('initiative-id','init')} x {a.get('domain-name', a.get('domain-id','domain'))}",
+            "domain-list":            a.get("domain-id", "<domain-id>"),
         },
     },
     "da": {
@@ -53,7 +63,6 @@ PACKS = {
         "questions": [
             ("org",                 "GitHub org name"),
             ("domain-id",           "Domain ID (stable, kebab-case)"),
-            ("domain-display-name", "Domain display name"),
             ("enterprise-repo-url", "Enterprise repo URL (full git URL)"),
             ("implementation-id",   "Initial implementation ID (kebab-case)"),
             ("repo",                "Implementation repo name"),
@@ -61,35 +70,35 @@ PACKS = {
             ("team",                "Owning team name"),
         ],
         "derived": lambda a: {
-            "workstream-id": "<workstream-id>",  # left for user — transient
+            "workstream-id": "<workstream-id>",  # transient — user fills in per workstream
         },
     },
     "dev": {
         "label": "Developer (Dev)",
         "questions": [
-            ("implementation-id",   "Implementation ID for this repo (from domain-implementations.yml)"),
-            ("enterprise-repo-url", "Enterprise repo URL (full git URL)"),
+            ("implementation-id", "Implementation ID for this repo (from domain-implementations.yml)"),
         ],
         "derived": lambda a: {},
     },
 }
 
-# Aliases: normalize variant placeholder names to a canonical key.
-# All pack files should use kebab-case placeholders; this map handles
-# any residual variants that appear in source files.
+# Aliases: normalize legacy or variant placeholder names to a canonical key.
+# Pack files should use kebab-case; this map handles any residual variants.
 ALIASES = {
-    "domain_id":          "domain-id",
-    "domain":             "domain-id",
-    "WORKSTREAM_ID":      "workstream-id",
-    "Human Readable Name": "solution-display-name",
-    "short description":  "solution-description",
-    "name-or-team":       "sa-team",
-    "kebab-case-stable-key": "solution-key",
-    "Domain Name":        "domain-display-name",
-    "domain-arch-owner":  "team",
+    "domain_id":                "domain-id",
+    "domain":                   "domain-id",
+    "WORKSTREAM_ID":            "workstream-id",
+    "Human Readable Name":      "solution-display-name",
+    "short description":        "solution-description",
+    "name-or-team":             "sa-team",
+    "kebab-case-stable-key":    "solution-key",
+    "Domain Name":              "domain-name",
+    "Initiative Name":          "initiative-name",
+    "Initiative x Domain Name": "initiative-domain-name",
+    "domain-arch-owner":        "domain-owner",
 }
 
-# Placeholders left intentionally as-is (example/optional values for the user to fill in)
+# Placeholders left intentionally as-is — optional/example values for the user to fill in manually.
 LEAVE_AS_IS = {
     "branch-or-tag",
     "cap-id",
@@ -98,8 +107,6 @@ LEAVE_AS_IS = {
     "TMFC###",
     "high|medium|low",
     "yyyy-Qn",
-    "Initiative Name",
-    "Initiative x Domain Name",
     "Domain x Domain Name",
     "kebab-case-description",
     "placeholder",
@@ -129,16 +136,11 @@ def collect_answers(pack_key):
 def substitute(text, answers):
     def replacer(m):
         raw = m.group(1)
-
         if raw in LEAVE_AS_IS:
             return m.group(0)
-
-        # Resolve alias to canonical key
         key = ALIASES.get(raw, raw)
-
         if key in answers:
             return answers[key]
-
         return m.group(0)  # unknown — leave for manual fill-in
 
     return re.sub(r"<([^>]+)>", replacer, text)
@@ -168,7 +170,6 @@ def copy_pack(pack_key, target_dir, answers):
 
             content = substitute(content, answers)
 
-            # Collect any placeholders still remaining
             for m in re.finditer(r"<([^>]+)>", content):
                 if m.group(1) not in LEAVE_AS_IS:
                     remaining.add(m.group(1))
@@ -176,8 +177,7 @@ def copy_pack(pack_key, target_dir, answers):
             with open(dest_path, "w", encoding="utf-8") as f:
                 f.write(content)
 
-            rel = os.path.relpath(dest_path, target_dir)
-            written.append(rel)
+            written.append(os.path.relpath(dest_path, target_dir))
 
     return written, remaining
 
@@ -202,7 +202,7 @@ def main():
         print(f"  {f}")
 
     if remaining:
-        print(f"\nPlaceholders still requiring manual fill-in:")
+        print("\nPlaceholders still requiring manual fill-in:")
         for p in sorted(remaining):
             print(f"  <{p}>")
     else:

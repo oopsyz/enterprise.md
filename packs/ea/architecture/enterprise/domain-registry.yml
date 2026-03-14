@@ -6,8 +6,8 @@ enterprise_id: <enterprise-id>
 
 domains:
   - domain_id: <domain-id>
-    name: <Domain Name>
-    owner: <domain-arch-owner>
+    name: <domain-name>
+    owner: <domain-owner>
     domain_repo_url: https://github.com/<org>/<domain-repo>
     domain_entrypoint: DOMAIN.md
     status: active
