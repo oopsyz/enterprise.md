@@ -2,7 +2,7 @@
 
 Status: Draft
 Audience: standards/community contributors, platform/tool builders, enterprise architecture teams
-Scope: Multi-repository human and agent collaboration across enterprise, solution, and domain levels
+Scope: Multi-repository human and agent collaboration across enterprise, solution, domain, and implementation execution contexts
 
 ## 1. Problem
 
@@ -89,6 +89,8 @@ flowchart LR
 3. `SOLUTION.md` (solution-level entrypoint).
 4. `DOMAIN.md` (domain-level entrypoint).
 
+This convention defines three architecture levels (`ENTERPRISE.md`, `SOLUTION.md`, `DOMAIN.md`) plus an implementation execution role (`dev`). `dev` is not a fourth architecture level and does not introduce a `DEV.md` entrypoint or a separate top-level routing catalog.
+
 ### 3.2 Entrypoint Rules
 
 1. `AGENTS.md` remains the repo-local behavior contract.
@@ -119,7 +121,28 @@ Identifier note:
 1. A stable repository identifier SHOULD be provider-qualified and durable (for example `github:example-org/ea-repo`).
 2. Example parent reference: `github:example-org/ea-repo#/ENTERPRISE.md`.
 
-### 3.4 Minimal Entrypoint Examples
+### 3.4 Role Semantics
+
+The repository model implies four common working roles:
+
+1. `ea`: enterprise architecture. Owns cross-solution portfolio navigation, enterprise-level routing semantics, and enterprise governance artifacts.
+2. `sa`: solution architecture. Owns solution-level decomposition, workstream routing, and solution-scoped coordination across domains.
+3. `da`: domain architecture. Owns domain boundaries, domain design baselines, and the authoritative mapping from `implementation_id` to implementation targets.
+4. `dev`: implementation execution role operating within the scope defined by `da`. `dev` consumes domain context and implementation targets but does not define a new architecture layer.
+
+Normative `dev` semantics:
+
+1. `dev` is subordinate to `da` for architectural context. The canonical upstream architecture contract for `dev` is `DOMAIN.md`, the authoritative `domain-implementations.yml`, and any domain-owned artifacts explicitly linked from that domain context.
+2. The ownership boundary is defined by artifacts, not by the specific human, agent, or tool performing the work. `da` owns the design contract artifacts, including domain interfaces, schemas, and implementation specifications. `dev` owns implementation-local artifacts such as working code, tests, build files, service-local documentation, and repo-local `AGENTS.md` behavior in the implementation repository.
+3. `da` ownership remains authoritative for domain-level artifacts such as `DOMAIN.md`, `domain-implementations.yml`, and domain design baselines. `dev` MUST NOT treat implementation-local documentation as an override of those domain artifacts.
+4. `dev` traversal is read-down, execute-locally. A `dev` actor MAY consume upstream architectural artifacts for implementation context, but MUST NOT write back into `da`-owned artifacts as part of normal implementation flow. If coding work reveals a gap, ambiguity, or defect in a `da` artifact, that condition MUST be escalated to the owning architectural layer rather than patched in place by `dev`.
+5. `dev` does not add a new mandatory catalog. Domain-to-implementation traversal remains the boundary between architecture and execution.
+6. `dev` does not consume `sa` artifacts directly by default. Direct consumption of `sa`-owned artifacts is allowed only when the relevant `da` artifact explicitly links or delegates to those upstream artifacts as part of the domain contract.
+7. The explicit `da` link or delegation mechanism is implementation-defined, but MUST be represented by an authoritative reference in a `da`-owned artifact. Acceptable mechanisms include a stable Markdown link from `DOMAIN.md` or a canonical field in a domain-owned YAML artifact. Implicit knowledge, chat history, or tool-specific workspace state is not sufficient.
+8. These `dev` rules are tool-agnostic. Any coding agent or implementation actor operating at this layer, including tools such as Codex, Cursor, Copilot, or equivalent systems, is subject to the same traversal and ownership constraints.
+9. If one team performs both `da` and `dev`, the repository MAY collapse the roles operationally, but the ownership boundary between domain-level artifacts and implementation-local artifacts SHOULD still be made explicit. Common mechanisms include separate directories, CODEOWNERS/file ownership rules, or an ownership table in the relevant entrypoint.
+
+### 3.5 Minimal Entrypoint Examples
 
 #### ENTERPRISE.md (minimal)
 
@@ -372,7 +395,12 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 1. Fail closed on missing selector ID (`ERR_SELECTOR_MISSING`).
 2. Fail closed on ambiguous selector ID (`ERR_SELECTOR_AMBIGUOUS`).
 3. Fail closed on non-routable status by default (`ERR_SELECTOR_NOT_ROUTABLE`).
-4. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
+4. Cross-file references that participate in routing or entrypoint navigation MUST resolve against the authoritative artifact set for the current topology when that artifact set is available to the resolver or validator. An unresolved or dangling reference is an invalid convention state and MUST fail closed.
+5. At minimum, the following references MUST resolve when the corresponding artifacts are present and available to the resolver or validator:
+   1. `domain-workstreams.yml[].initiative_id` -> `initiatives.yml[].initiative_id`
+   2. `domain-workstreams.yml[].domain_id` -> `domain-registry.yml[].domain_id`
+   3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision
+6. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
 
 These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.7) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
 
@@ -433,10 +461,12 @@ Recommended CI checks:
 
 1. Validate schema and required fields.
 2. Verify selector uniqueness (see Section 5.6).
-3. Verify status-policy compliance.
-4. Verify catalog version compatibility against Section 5.2.
-5. Verify referenced repository URLs are reachable with CI identity (or provider API equivalent).
-6. Flag stale or inaccessible routing targets before runtime.
+3. Verify cross-file reference integrity for all normative references in Section 5.5.
+4. Verify status-policy compliance.
+5. Verify catalog version compatibility against Section 5.2.
+6. Verify referenced repository URLs are reachable with CI identity (or provider API equivalent).
+7. Verify referenced entrypoint paths exist in the target repository/revision when the repository is accessible to CI.
+8. Flag stale or inaccessible routing targets before runtime.
 
 ## 8. Ownership Model
 
@@ -449,6 +479,7 @@ Recommended CI checks:
 | `initiatives.yml` | EA/PMO | enterprise->solution routing |
 | `domain-workstreams.yml` | SA | solution->domain routing |
 | `domain-implementations.yml` | DA | domain->implementation routing |
+| implementation repo local artifacts | Dev | implementation execution within DA-defined target scope |
 | governance state artifact | governance + level owners | stage gates and progress |
 
 Override rule:
@@ -544,6 +575,7 @@ Recommended error codes:
 8. `ERR_INVALID_SCHEMA`: catalog entry has structural errors (for example null or empty `repo.url` when the key is present, empty `repo.paths` list).
 9. `ERR_OVERLAPPING_PATHS`: two or more `domain-implementations.yml` entries produce overlapping `(repo.url, repo.path)` bindings, violating the uniqueness invariant.
 10. `ERR_NO_CONTEXT`: no catalogs are loaded in the resolver's active context (repo-first cold-start with no Domain repo open).
+11. `ERR_REFERENCE_UNRESOLVED`: a normative intra-repository or cross-repository reference does not resolve to an existing selector target or file.
 
 ## 12. Partial Adoption Patterns
 
@@ -573,6 +605,14 @@ Top-down per-boundary routing sequence (each step requires the caller to possess
    1. use `workstream_repo_url` when present in `domain-workstreams.yml`
    2. otherwise resolve `domain_id` -> authoritative `domain-registry.yml` -> `domain_repo_url`
 4. `implementation_id` -> `domain-implementations.yml` -> repo location + optional `repo.entrypoint` + optional `repo.git_ref` (when selector-driven domain->implementation routing boundary exists)
+
+Developer traversal semantics:
+
+1. `dev` startup is anchored at the domain layer: `AGENTS.md` -> `DOMAIN.md` -> `domain-implementations.yml` -> target implementation repository and optional `repo.entrypoint`/`repo.git_ref`.
+2. After the target implementation repository is opened, that repository's local `AGENTS.md` becomes the active repo-local behavior contract.
+3. `dev` MAY read additional `da`-linked design contract artifacts such as interfaces, schemas, and implementation specifications before or during implementation. `sa` artifacts are in scope only when explicitly linked or delegated through the authoritative domain context.
+4. `dev` traversal does not bypass `da` semantics. If an implementation repository lacks sufficient architecture context, the resolver SHOULD return to `DOMAIN.md` and the associated domain artifacts rather than infer intent from repository names or code structure alone.
+5. `dev` MUST NOT treat reverse traversal as implicit write authority into upstream artifacts. Reverse traversal from implementation back to architecture is for traceability, context recovery, and escalation: `implementation_id` -> `domain-implementations.yml` -> `DOMAIN.md` -> upstream layers when needed.
 
 Bottom-up discovery:
 

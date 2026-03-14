@@ -56,7 +56,8 @@ In practical terms, the proposal defines:
 1. a navigation standard for repository-level and architecture-level entrypoints
 2. a deterministic routing standard for moving between enterprise, solution, domain, and implementation contexts
 3. a shared artifact-based context model for isolated sessions or threads
-4. a fail-closed governance model for enterprise-safe automation
+4. explicit role semantics for `ea`, `sa`, `da`, and `dev`
+5. a fail-closed governance model for enterprise-safe automation
 
 This means the relationship is:
 
@@ -75,8 +76,9 @@ Short form:
 4. Upstream links are explicit by level: `SOLUTION.md` and `DOMAIN.md` link to `ENTERPRISE.md` when the enterprise level exists.
 5. `DOMAIN.md` does not use `SOLUTION.md` as a required parent link because solution-to-domain relationships are many-to-many and belong in routing catalogs or handoff artifacts. For example, a shared "identity" domain may serve both a "customer portal" solution and an "internal tools" solution simultaneously.
 6. YAML is canonical for routing catalogs.
-7. Routing fails closed on missing selectors, ambiguous selectors, and non-routable statuses by default.
+7. Routing fails closed on missing selectors, ambiguous selectors, non-routable statuses, and unresolved normative references by default.
 8. Implementations must not fall back to repo-name heuristics or keyword inference for core routing.
+9. `dev` is an implementation execution role anchored at the domain layer, not a separate architecture level; see the spec for detailed `da`/`dev` ownership and traversal rules.
 
 ## Conformance Profiles
 
