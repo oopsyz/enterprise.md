@@ -112,6 +112,13 @@ INITIATIVE_ID
 
 ## Operations
 
+> **Layout note:** All operations below are implemented for the reference layout
+> paths listed in the Layout Assumption table above. This skill does not
+> auto-detect alternate layouts. If the user's repo uses different paths, they
+> must state the actual path for each artifact when invoking the operation, and
+> the agent should substitute that path wherever a reference path appears in
+> the steps below.
+
 ### ONBOARD
 
 Set up an existing external repo to participate in the convention. Use this when

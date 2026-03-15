@@ -10,9 +10,21 @@ Usage:
                                   [--solution-index PATH] [--workstreams PATH]
                                   [--da-root PATH]
 
-Path arguments are relative to --root. They default to the layout used in the
-reference implementation (test1 monorepo). Repos that place canonical files
-elsewhere must supply the correct paths explicitly.
+Path arguments are relative to --root. They default to the reference layout
+(ea/architecture/portfolio/initiatives.yml etc.). Repos using a different layout
+must supply the correct paths explicitly.
+
+Partial-adoption topology support:
+  The spec allows EA-only, SA+DA, DA-only, and full EA+SA+DA topologies.
+  Missing layer catalogs are treated as absent (skipped with a note) unless the
+  user explicitly supplied that path — in which case the file is expected to exist.
+  This means a DA-only repo will not fail on missing EA or SA catalogs.
+
+DA layout assumption:
+  The validator assumes one subdirectory per domain under --da-root, each
+  containing domain-implementations.yml. This structure is implied by the spec
+  examples. Flat or otherwise custom DA layouts are not supported by this
+  validator and must be validated manually.
 
 Exit codes:
     0  clean
@@ -47,11 +59,11 @@ except ImportError:
 # --- Default paths (reference implementation layout) ---
 
 DEFAULTS = {
-    "initiatives":       "ea/architecture/portfolio/initiatives.yml",
-    "domain_registry":   "ea/architecture/enterprise/domain-registry.yml",
-    "solution_index":    "sa/solution-index.yml",
-    "workstreams":       "sa/architecture/solution/domain-workstreams.yml",
-    "da_root":           "da",
+    "initiatives":     "ea/architecture/portfolio/initiatives.yml",
+    "domain_registry": "ea/architecture/enterprise/domain-registry.yml",
+    "solution_index":  "sa/solution-index.yml",
+    "workstreams":     "sa/architecture/solution/domain-workstreams.yml",
+    "da_root":         "da",
 }
 
 # --- Error collection ---
@@ -66,6 +78,9 @@ def err(code, message, path=None):
 def warn(message, path=None):
     location = f" [{path}]" if path else ""
     warnings.append(f"  WARN{location}: {message}")
+
+def note(message):
+    print(f"  (skipped: {message})")
 
 # --- Schema validation ---
 
@@ -85,14 +100,13 @@ def validate_schema(data, schema_path, artifact_path):
 # --- File helpers ---
 
 def file_exists_local(root, rel_path):
-    """Check if a path exists locally (same-repo references only)."""
     return (root / rel_path).exists()
 
 def is_local_path(repo_url, this_repo_url):
     """
     True if repo_url refers to this repo.
     - No url means monorepo (local by definition).
-    - If this_repo_url is not provided, we cannot confirm locality — treat as remote.
+    - If this_repo_url is not provided, we cannot confirm locality — skip check.
     """
     if not repo_url:
         return True
@@ -102,15 +116,15 @@ def is_local_path(repo_url, this_repo_url):
 
 # --- Main validation ---
 
-def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
+def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set, this_repo_url: str):
+    """
+    explicit_paths: set of path keys the user passed explicitly on the CLI.
+    If a catalog is absent AND its key is not in explicit_paths, it is treated
+    as 'layer not present here' (skipped). If its key IS in explicit_paths,
+    the file is expected to exist and its absence is an error.
+    """
     print(f"Validating convention at: {root}")
-    if this_repo_url:
-        print(f"This repo URL: {this_repo_url}")
-    else:
-        print(f"This repo URL: (not provided — remote entrypoint checks skipped)")
-    print(f"Layout:")
-    for k, v in paths.items():
-        print(f"  {k}: {v}")
+    print(f"Repo URL: {this_repo_url or '(not provided — remote entrypoint checks skipped)'}")
     print()
 
     # -------------------------
@@ -123,7 +137,10 @@ def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
 
     initiative_ids = set()
     if not initiatives_path.exists():
-        err("ERR_ENTRYPOINT_MISSING", f"{paths['initiatives']} not found")
+        if "initiatives" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['initiatives']} not found")
+        else:
+            note("initiatives.yml absent — EA layer not present in this repo")
     else:
         initiatives_data = load_yaml(initiatives_path)
         validate_schema(initiatives_data, schema_dir / "initiatives.schema.json", initiatives_path)
@@ -145,7 +162,10 @@ def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
 
     domain_ids = set()
     if not domain_registry_path.exists():
-        err("ERR_ENTRYPOINT_MISSING", f"{paths['domain_registry']} not found")
+        if "domain_registry" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['domain_registry']} not found")
+        else:
+            note("domain-registry.yml absent — EA domain registry not present in this repo")
     else:
         registry_data = load_yaml(domain_registry_path)
         validate_schema(registry_data, schema_dir / "domain-registry.schema.json", domain_registry_path)
@@ -173,22 +193,28 @@ def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
     solution_index_path = root / paths["solution_index"]
     workstreams_path = root / paths["workstreams"]
 
-    if solution_index_path.exists():
+    if not solution_index_path.exists():
+        if "solution_index" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['solution_index']} not found")
+        else:
+            note("solution-index.yml absent — SA layer not present in this repo")
+    else:
         si_data = load_yaml(solution_index_path)
         validate_schema(si_data, schema_dir / "solution-index.schema.json", solution_index_path)
         print(f"  solution-index: ok")
-    else:
-        warn(f"{paths['solution_index']} not found")
 
     workstream_ids = set()
     if not workstreams_path.exists():
-        warn(f"{paths['workstreams']} not found")
+        if "workstreams" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['workstreams']} not found")
+        else:
+            note("domain-workstreams.yml absent — SA workstream catalog not present in this repo")
     else:
         ws_data = load_yaml(workstreams_path)
         validate_schema(ws_data, schema_dir / "domain-workstreams.schema.json", workstreams_path)
 
         ws_file_init_id = (ws_data or {}).get("initiative_id", "")
-        if ws_file_init_id and ws_file_init_id not in initiative_ids:
+        if ws_file_init_id and initiative_ids and ws_file_init_id not in initiative_ids:
             err("ERR_INITIATIVE_NOT_FOUND",
                 f"workstreams file initiative_id '{ws_file_init_id}' not in initiatives",
                 path=workstreams_path)
@@ -203,13 +229,13 @@ def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
             workstream_ids.add(wsid)
 
             ws_init_id = ws.get("initiative_id", "")
-            if ws_init_id and ws_init_id not in initiative_ids:
+            if ws_init_id and initiative_ids and ws_init_id not in initiative_ids:
                 err("ERR_INITIATIVE_NOT_FOUND",
                     f"workstream '{wsid}' initiative_id '{ws_init_id}' not in initiatives",
                     path=workstreams_path)
 
             ws_dom_id = ws.get("domain_id", "")
-            if ws_dom_id and ws_dom_id not in domain_ids:
+            if ws_dom_id and domain_ids and ws_dom_id not in domain_ids:
                 err("ERR_DOMAIN_NOT_FOUND",
                     f"workstream '{wsid}' domain_id '{ws_dom_id}' not in domain-registry",
                     path=workstreams_path)
@@ -236,9 +262,21 @@ def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
 
     da_root = root / paths["da_root"]
     if not da_root.exists():
-        warn(f"{paths['da_root']}/ directory not found")
+        if "da_root" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['da_root']}/ not found")
+        else:
+            note("da/ directory absent — DA layer not present in this repo")
     else:
         domain_dirs = [d for d in da_root.iterdir() if d.is_dir()]
+        if not domain_dirs:
+            if "da_root" in explicit_paths:
+                warn(
+                    f"'{paths['da_root']}' has no domain subdirectories — "
+                    "DA validation was skipped. If this is a flat or custom layout, "
+                    "the validator does not support it and results may be incomplete."
+                )
+            else:
+                note("da/ exists but contains no domain subdirectories")
         for domain_dir in sorted(domain_dirs):
             domain_id = domain_dir.name
             impl_path = domain_dir / "domain-implementations.yml"
@@ -269,8 +307,8 @@ def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
 
                 roadmap_count = 0
                 if roadmap_path.exists():
-                    # domain-roadmap.yml is a proposed convention extension (not yet in spec).
-                    # Validate it if present but do not require it.
+                    # domain-roadmap.yml is a proposed convention extension — not in current spec.
+                    # Validated if present, never required.
                     roadmap_data = load_yaml(roadmap_path)
                     validate_schema(roadmap_data, schema_dir / "domain-roadmap.schema.json", roadmap_path)
                     for item in (roadmap_data or {}).get("items", []):
@@ -288,7 +326,7 @@ def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
                                     path=roadmap_path)
 
                 print(f"  {domain_id}: {len(impl_ids)} impl(s), {active_impl} active"
-                      + (f", {roadmap_count} roadmap item(s) [proposed ext]" if roadmap_count else ", no roadmap"))
+                      + (f", {roadmap_count} roadmap item(s) [proposed ext]" if roadmap_count else ""))
 
     # -------------------------
     # 4. RESULTS
@@ -316,35 +354,38 @@ def main():
         description="Enterprise Convention Validator",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Path arguments are relative to --root and default to the reference layout:
+Partial-adoption topology:
+  Missing layer catalogs are treated as 'layer not present' (skipped) unless
+  you pass the path explicitly on the CLI, in which case the file is expected.
+
+DA layout:
+  The validator assumes one subdirectory per domain under --da-root, each
+  containing domain-implementations.yml. Custom DA layouts are not supported.
+
+Default paths (reference layout):
   --initiatives     ea/architecture/portfolio/initiatives.yml
   --domain-registry ea/architecture/enterprise/domain-registry.yml
   --solution-index  sa/solution-index.yml
   --workstreams     sa/architecture/solution/domain-workstreams.yml
   --da-root         da
-
-Repos using a different layout must supply the correct paths explicitly.
         """
     )
     parser.add_argument("--root", default=".",
                         help="Repo root directory (default: current directory)")
     parser.add_argument("--schema-dir",
-                        help="Directory containing schema files (default: auto-detect from script location)")
+                        help="Directory containing schema files (default: auto-detect)")
     parser.add_argument("--repo-url",
-                        help="Canonical URL of this repo, used to distinguish local vs remote entrypoints. "
+                        help="Canonical URL of this repo (used to distinguish local vs remote entrypoints). "
                              "If omitted, remote entrypoint checks are skipped.")
-    parser.add_argument("--initiatives", default=DEFAULTS["initiatives"],
+    parser.add_argument("--initiatives", default=None,
                         help=f"Path to initiatives.yml (default: {DEFAULTS['initiatives']})")
-    parser.add_argument("--domain-registry", default=DEFAULTS["domain_registry"],
-                        dest="domain_registry",
+    parser.add_argument("--domain-registry", default=None, dest="domain_registry",
                         help=f"Path to domain-registry.yml (default: {DEFAULTS['domain_registry']})")
-    parser.add_argument("--solution-index", default=DEFAULTS["solution_index"],
-                        dest="solution_index",
+    parser.add_argument("--solution-index", default=None, dest="solution_index",
                         help=f"Path to solution-index.yml (default: {DEFAULTS['solution_index']})")
-    parser.add_argument("--workstreams", default=DEFAULTS["workstreams"],
+    parser.add_argument("--workstreams", default=None,
                         help=f"Path to domain-workstreams.yml (default: {DEFAULTS['workstreams']})")
-    parser.add_argument("--da-root", default=DEFAULTS["da_root"],
-                        dest="da_root",
+    parser.add_argument("--da-root", default=None, dest="da_root",
                         help=f"Path to DA domain root directory (default: {DEFAULTS['da_root']})")
     args = parser.parse_args()
 
@@ -355,15 +396,19 @@ Repos using a different layout must supply the correct paths explicitly.
         print(f"ERROR: root directory '{root}' does not exist", file=sys.stderr)
         sys.exit(2)
 
-    paths = {
-        "initiatives":     args.initiatives,
-        "domain_registry": args.domain_registry,
-        "solution_index":  args.solution_index,
-        "workstreams":     args.workstreams,
-        "da_root":         args.da_root,
-    }
+    # Track which paths were explicitly provided vs defaulted.
+    # Only explicitly-provided paths trigger errors on absence.
+    explicit_paths = set()
+    paths = {}
+    for key, default in DEFAULTS.items():
+        cli_val = getattr(args, key, None)
+        if cli_val is not None:
+            paths[key] = cli_val
+            explicit_paths.add(key)
+        else:
+            paths[key] = default
 
-    sys.exit(run(root, schema_dir, paths, args.repo_url))
+    sys.exit(run(root, schema_dir, paths, explicit_paths, args.repo_url))
 
 
 if __name__ == "__main__":
