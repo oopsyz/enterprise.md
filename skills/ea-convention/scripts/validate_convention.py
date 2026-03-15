@@ -5,6 +5,14 @@ Validates referential integrity and schema conformance for ea/sa/da convention a
 
 Usage:
     python validate_convention.py [--root REPO_ROOT] [--schema-dir SCHEMA_DIR]
+                                  [--repo-url REPO_URL]
+                                  [--initiatives PATH] [--domain-registry PATH]
+                                  [--solution-index PATH] [--workstreams PATH]
+                                  [--da-root PATH]
+
+Path arguments are relative to --root. They default to the layout used in the
+reference implementation (test1 monorepo). Repos that place canonical files
+elsewhere must supply the correct paths explicitly.
 
 Exit codes:
     0  clean
@@ -14,7 +22,6 @@ Exit codes:
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -36,6 +43,16 @@ try:
     HAS_JSONSCHEMA = True
 except ImportError:
     HAS_JSONSCHEMA = False
+
+# --- Default paths (reference implementation layout) ---
+
+DEFAULTS = {
+    "initiatives":       "ea/architecture/portfolio/initiatives.yml",
+    "domain_registry":   "ea/architecture/enterprise/domain-registry.yml",
+    "solution_index":    "sa/solution-index.yml",
+    "workstreams":       "sa/architecture/solution/domain-workstreams.yml",
+    "da_root":           "da",
+}
 
 # --- Error collection ---
 
@@ -71,36 +88,45 @@ def file_exists_local(root, rel_path):
     """Check if a path exists locally (same-repo references only)."""
     return (root / rel_path).exists()
 
-def is_local_path(repo_url, current_repo_url):
-    """True if the repo_url matches the current repo (same-repo reference)."""
+def is_local_path(repo_url, this_repo_url):
+    """
+    True if repo_url refers to this repo.
+    - No url means monorepo (local by definition).
+    - If this_repo_url is not provided, we cannot confirm locality — treat as remote.
+    """
     if not repo_url:
-        return True  # no url = local
-    if not current_repo_url:
+        return True
+    if not this_repo_url:
         return False
-    return repo_url.rstrip("/") == current_repo_url.rstrip("/")
+    return repo_url.rstrip("/") == this_repo_url.rstrip("/")
 
 # --- Main validation ---
 
-def run(root: Path, schema_dir: Path):
-    print(f"Validating convention at: {root}\n")
+def run(root: Path, schema_dir: Path, paths: dict, this_repo_url: str):
+    print(f"Validating convention at: {root}")
+    if this_repo_url:
+        print(f"This repo URL: {this_repo_url}")
+    else:
+        print(f"This repo URL: (not provided — remote entrypoint checks skipped)")
+    print(f"Layout:")
+    for k, v in paths.items():
+        print(f"  {k}: {v}")
+    print()
 
     # -------------------------
-    # 1. ENTERPRISE LAYER (ea/)
+    # 1. ENTERPRISE LAYER
     # -------------------------
     print("[ EA Layer ]")
 
-    initiatives_path = root / "ea/architecture/portfolio/initiatives.yml"
-    domain_registry_path = root / "ea/architecture/enterprise/domain-registry.yml"
+    initiatives_path = root / paths["initiatives"]
+    domain_registry_path = root / paths["domain_registry"]
 
+    initiative_ids = set()
     if not initiatives_path.exists():
-        err("ERR_ENTRYPOINT_MISSING", "ea/architecture/portfolio/initiatives.yml not found")
-        initiative_ids = set()
-        repo_url = None
+        err("ERR_ENTRYPOINT_MISSING", f"{paths['initiatives']} not found")
     else:
         initiatives_data = load_yaml(initiatives_path)
         validate_schema(initiatives_data, schema_dir / "initiatives.schema.json", initiatives_path)
-        initiative_ids = set()
-        repo_url = None
         seen_init_ids = set()
         for init in (initiatives_data or {}).get("initiatives", []):
             iid = init.get("initiative_id", "")
@@ -108,25 +134,21 @@ def run(root: Path, schema_dir: Path):
                 err("ERR_SELECTOR_DUPLICATE", f"Duplicate initiative_id '{iid}'", path=initiatives_path)
             seen_init_ids.add(iid)
             initiative_ids.add(iid)
-            # Check local solution_entrypoint
             sol_url = init.get("solution_repo_url", "")
             sol_ep = init.get("solution_entrypoint", "")
-            if not repo_url:
-                repo_url = sol_url
-            if sol_ep and is_local_path(sol_url, repo_url):
+            if sol_ep and is_local_path(sol_url, this_repo_url):
                 if not file_exists_local(root, sol_ep):
                     err("ERR_ENTRYPOINT_MISSING",
                         f"initiative '{iid}' solution_entrypoint '{sol_ep}' not found",
                         path=initiatives_path)
         print(f"  initiatives: {len(initiative_ids)} ({', '.join(sorted(initiative_ids)) or 'none'})")
 
+    domain_ids = set()
     if not domain_registry_path.exists():
-        err("ERR_ENTRYPOINT_MISSING", "ea/architecture/enterprise/domain-registry.yml not found")
-        domain_ids = set()
+        err("ERR_ENTRYPOINT_MISSING", f"{paths['domain_registry']} not found")
     else:
         registry_data = load_yaml(domain_registry_path)
         validate_schema(registry_data, schema_dir / "domain-registry.schema.json", domain_registry_path)
-        domain_ids = set()
         seen_domain_ids = set()
         for domain in (registry_data or {}).get("domains", []):
             did = domain.get("domain_id", "")
@@ -136,7 +158,7 @@ def run(root: Path, schema_dir: Path):
             domain_ids.add(did)
             d_url = domain.get("domain_repo_url", "")
             d_ep = domain.get("domain_entrypoint", "")
-            if d_ep and is_local_path(d_url, repo_url):
+            if d_ep and is_local_path(d_url, this_repo_url):
                 if not file_exists_local(root, d_ep):
                     err("ERR_ENTRYPOINT_MISSING",
                         f"domain '{did}' domain_entrypoint '{d_ep}' not found",
@@ -144,32 +166,31 @@ def run(root: Path, schema_dir: Path):
         print(f"  domains: {len(domain_ids)} ({', '.join(sorted(domain_ids)) or 'none'})")
 
     # -------------------------
-    # 2. SOLUTION LAYER (sa/)
+    # 2. SOLUTION LAYER
     # -------------------------
     print("\n[ SA Layer ]")
 
-    solution_index_path = root / "sa/solution-index.yml"
-    workstreams_path = root / "sa/architecture/solution/domain-workstreams.yml"
+    solution_index_path = root / paths["solution_index"]
+    workstreams_path = root / paths["workstreams"]
 
     if solution_index_path.exists():
         si_data = load_yaml(solution_index_path)
         validate_schema(si_data, schema_dir / "solution-index.schema.json", solution_index_path)
-        print(f"  solution-index.yml: ok")
+        print(f"  solution-index: ok")
     else:
-        warn("sa/solution-index.yml not found")
+        warn(f"{paths['solution_index']} not found")
 
     workstream_ids = set()
     if not workstreams_path.exists():
-        warn("sa/architecture/solution/domain-workstreams.yml not found")
+        warn(f"{paths['workstreams']} not found")
     else:
         ws_data = load_yaml(workstreams_path)
         validate_schema(ws_data, schema_dir / "domain-workstreams.schema.json", workstreams_path)
 
-        # Top-level initiative_id on workstreams file
         ws_file_init_id = (ws_data or {}).get("initiative_id", "")
         if ws_file_init_id and ws_file_init_id not in initiative_ids:
             err("ERR_INITIATIVE_NOT_FOUND",
-                f"domain-workstreams.yml initiative_id '{ws_file_init_id}' not in initiatives.yml",
+                f"workstreams file initiative_id '{ws_file_init_id}' not in initiatives",
                 path=workstreams_path)
 
         seen_ws_ids = set()
@@ -181,30 +202,26 @@ def run(root: Path, schema_dir: Path):
             seen_ws_ids.add(wsid)
             workstream_ids.add(wsid)
 
-            # initiative_id referential integrity
             ws_init_id = ws.get("initiative_id", "")
             if ws_init_id and ws_init_id not in initiative_ids:
                 err("ERR_INITIATIVE_NOT_FOUND",
-                    f"workstream '{wsid}' initiative_id '{ws_init_id}' not in initiatives.yml",
+                    f"workstream '{wsid}' initiative_id '{ws_init_id}' not in initiatives",
                     path=workstreams_path)
 
-            # domain_id referential integrity
             ws_dom_id = ws.get("domain_id", "")
             if ws_dom_id and ws_dom_id not in domain_ids:
                 err("ERR_DOMAIN_NOT_FOUND",
-                    f"workstream '{wsid}' domain_id '{ws_dom_id}' not in domain-registry.yml",
+                    f"workstream '{wsid}' domain_id '{ws_dom_id}' not in domain-registry",
                     path=workstreams_path)
 
-            # workstream_entrypoint existence (local only)
             ws_url = ws.get("workstream_repo_url", "")
             ws_ep = ws.get("workstream_entrypoint", "")
-            if ws_ep and is_local_path(ws_url, repo_url):
+            if ws_ep and is_local_path(ws_url, this_repo_url):
                 if not file_exists_local(root, ws_ep):
                     err("ERR_ENTRYPOINT_MISSING",
                         f"workstream '{wsid}' workstream_entrypoint '{ws_ep}' not found",
                         path=workstreams_path)
 
-            # status policy
             if ws.get("status") == "inactive":
                 warn(f"workstream '{wsid}' is inactive — not routable", path=workstreams_path)
             elif ws.get("status") == "active":
@@ -213,13 +230,13 @@ def run(root: Path, schema_dir: Path):
         print(f"  workstreams: {len(workstream_ids)} total, {active_ws} active")
 
     # -------------------------
-    # 3. DOMAIN LAYER (da/)
+    # 3. DOMAIN LAYER
     # -------------------------
     print("\n[ DA Layer ]")
 
-    da_root = root / "da"
+    da_root = root / paths["da_root"]
     if not da_root.exists():
-        warn("da/ directory not found")
+        warn(f"{paths['da_root']}/ directory not found")
     else:
         domain_dirs = [d for d in da_root.iterdir() if d.is_dir()]
         for domain_dir in sorted(domain_dirs):
@@ -245,8 +262,6 @@ def run(root: Path, schema_dir: Path):
                     impl_ids.add(iid)
                     if impl.get("status") == "active":
                         active_impl += 1
-                    # Warn on missing repo.url for active implementations
-                    if impl.get("status") == "active":
                         repo = impl.get("repo", {})
                         if not repo.get("url"):
                             warn(f"domain '{domain_id}' implementation '{iid}' has no repo.url (local path only)",
@@ -254,18 +269,18 @@ def run(root: Path, schema_dir: Path):
 
                 roadmap_count = 0
                 if roadmap_path.exists():
+                    # domain-roadmap.yml is a proposed convention extension (not yet in spec).
+                    # Validate it if present but do not require it.
                     roadmap_data = load_yaml(roadmap_path)
                     validate_schema(roadmap_data, schema_dir / "domain-roadmap.schema.json", roadmap_path)
                     for item in (roadmap_data or {}).get("items", []):
                         roadmap_count += 1
                         riid = item.get("roadmap_item_id", "")
-                        # workstream_ids referential integrity
                         for wsid in item.get("workstream_ids", []):
                             if wsid not in workstream_ids:
                                 err("ERR_WORKSTREAM_NOT_FOUND",
                                     f"roadmap item '{riid}' references unknown workstream_id '{wsid}'",
                                     path=roadmap_path)
-                        # implementation_ids referential integrity
                         for iid in item.get("implementation_ids", []):
                             if iid not in impl_ids:
                                 err("ERR_IMPLEMENTATION_NOT_FOUND",
@@ -273,7 +288,7 @@ def run(root: Path, schema_dir: Path):
                                     path=roadmap_path)
 
                 print(f"  {domain_id}: {len(impl_ids)} impl(s), {active_impl} active"
-                      + (f", {roadmap_count} roadmap item(s)" if roadmap_count else ", no roadmap"))
+                      + (f", {roadmap_count} roadmap item(s) [proposed ext]" if roadmap_count else ", no roadmap"))
 
     # -------------------------
     # 4. RESULTS
@@ -297,22 +312,58 @@ def run(root: Path, schema_dir: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Enterprise Convention Validator")
-    parser.add_argument("--root", default=".", help="Repo root directory (default: current directory)")
-    parser.add_argument("--schema-dir", help="Directory containing schema files (default: auto-detect from script location)")
+    parser = argparse.ArgumentParser(
+        description="Enterprise Convention Validator",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Path arguments are relative to --root and default to the reference layout:
+  --initiatives     ea/architecture/portfolio/initiatives.yml
+  --domain-registry ea/architecture/enterprise/domain-registry.yml
+  --solution-index  sa/solution-index.yml
+  --workstreams     sa/architecture/solution/domain-workstreams.yml
+  --da-root         da
+
+Repos using a different layout must supply the correct paths explicitly.
+        """
+    )
+    parser.add_argument("--root", default=".",
+                        help="Repo root directory (default: current directory)")
+    parser.add_argument("--schema-dir",
+                        help="Directory containing schema files (default: auto-detect from script location)")
+    parser.add_argument("--repo-url",
+                        help="Canonical URL of this repo, used to distinguish local vs remote entrypoints. "
+                             "If omitted, remote entrypoint checks are skipped.")
+    parser.add_argument("--initiatives", default=DEFAULTS["initiatives"],
+                        help=f"Path to initiatives.yml (default: {DEFAULTS['initiatives']})")
+    parser.add_argument("--domain-registry", default=DEFAULTS["domain_registry"],
+                        dest="domain_registry",
+                        help=f"Path to domain-registry.yml (default: {DEFAULTS['domain_registry']})")
+    parser.add_argument("--solution-index", default=DEFAULTS["solution_index"],
+                        dest="solution_index",
+                        help=f"Path to solution-index.yml (default: {DEFAULTS['solution_index']})")
+    parser.add_argument("--workstreams", default=DEFAULTS["workstreams"],
+                        help=f"Path to domain-workstreams.yml (default: {DEFAULTS['workstreams']})")
+    parser.add_argument("--da-root", default=DEFAULTS["da_root"],
+                        dest="da_root",
+                        help=f"Path to DA domain root directory (default: {DEFAULTS['da_root']})")
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
-    if args.schema_dir:
-        schema_dir = Path(args.schema_dir).resolve()
-    else:
-        schema_dir = Path(__file__).parent.parent / "references"
+    schema_dir = Path(args.schema_dir).resolve() if args.schema_dir else Path(__file__).parent.parent / "references"
 
     if not root.exists():
         print(f"ERROR: root directory '{root}' does not exist", file=sys.stderr)
         sys.exit(2)
 
-    sys.exit(run(root, schema_dir))
+    paths = {
+        "initiatives":     args.initiatives,
+        "domain_registry": args.domain_registry,
+        "solution_index":  args.solution_index,
+        "workstreams":     args.workstreams,
+        "da_root":         args.da_root,
+    }
+
+    sys.exit(run(root, schema_dir, paths, args.repo_url))
 
 
 if __name__ == "__main__":

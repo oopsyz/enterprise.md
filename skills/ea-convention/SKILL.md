@@ -46,24 +46,37 @@ When using a template, read the file and substitute placeholder values (e.g.
 values provided by the user. Strip comment lines (starting with `#`) from YAML
 templates before writing.
 
+## Layout Assumption
+
+> **Important:** The spec defines canonical artifact *types* but not their file
+> paths — path placement is implementation-defined
+> (`enterprise_repo_convention.md` Section 5). This skill assumes the reference
+> layout below. Repos using a different layout must supply explicit paths to the
+> VALIDATE operation and adjust ADD/INIT scaffolding accordingly.
+
+| Artifact | Reference path (this skill's default) |
+|---|---|
+| Initiatives selector | `ea/architecture/portfolio/initiatives.yml` |
+| Domain registry | `ea/architecture/enterprise/domain-registry.yml` |
+| Solution index | `sa/solution-index.yml` |
+| Workstream selector | `sa/architecture/solution/domain-workstreams.yml` |
+| DA domain root | `da/{domain}/` |
+
 ## Convention Overview
 
 | Layer | Entrypoint | Canonical Artifacts |
 |-------|------------|---------------------|
-| EA | `ea/ENTERPRISE.md` | `ea/architecture/portfolio/initiatives.yml`, `ea/architecture/enterprise/domain-registry.yml` |
-| SA | `sa/SOLUTION.md` | `sa/solution-index.yml`, `sa/architecture/solution/domain-workstreams.yml` |
-| DA | `da/{domain}/DOMAIN.md` | `da/{domain}/domain-implementations.yml`, `da/{domain}/domain-roadmap.yml` |
+| EA | `ENTERPRISE.md` | `initiatives.yml`, `domain-registry.yml` |
+| SA | `SOLUTION.md` | `solution-index.yml`, `domain-workstreams.yml` |
+| DA | `DOMAIN.md` | `domain-implementations.yml` |
 
 ### Routing Chain
 
 ```
 INITIATIVE_ID
-  → ea/architecture/portfolio/initiatives.yml
-    → solution_entrypoint (sa/SOLUTION.md)
-      → sa/architecture/solution/domain-workstreams.yml
-        → workstream_entrypoint (da/{domain}/DOMAIN.md)
-          → da/{domain}/domain-implementations.yml
-            → repo.url + repo.paths + repo.entrypoint
+  → initiatives.yml → solution_entrypoint
+    → domain-workstreams.yml → workstream_entrypoint
+      → domain-implementations.yml → repo.url + repo.paths + repo.entrypoint
 ```
 
 **Policy:** fail-closed on `status: inactive`. Only `status: active` entries are routable.
@@ -75,11 +88,15 @@ INITIATIVE_ID
 - `domain-workstreams.yml` is dual-purpose: deterministic routing metadata + inbound demand signals.
 - The **domain architect** reconciles competing workstreams into a coherent domain change plan.
 
-### Three-Artifact Domain Chain
+### Three-Artifact Domain Chain (proposed)
 
-1. `domain-workstreams.yml` — inbound demand + routing (owned by `sa`)
-2. `domain-roadmap.yml` — planning and sequencing (owned by `da`)
-3. `domain-implementations.yml` — implementation target mapping (owned by `da`)
+> `domain-roadmap.yml` is a **proposed convention extension** not yet ratified
+> in the main spec. It is supported by this skill but should not be treated as
+> normative until added to `enterprise_repo_convention.md`.
+
+1. `domain-workstreams.yml` — inbound demand + routing (owned by `sa`, in spec)
+2. `domain-roadmap.yml` — planning and sequencing (owned by `da`, **proposed**)
+3. `domain-implementations.yml` — implementation target mapping (owned by `da`, in spec)
 
 ### Referential Integrity Rules
 
@@ -147,11 +164,12 @@ Package contents — read each from `templates/`:
 - `AGENTS.md` ← `AGENTS.da.md.template`
 - `CLAUDE.md` ← `CLAUDE.da.md.template`
 - `domain-implementations.yml` ← `domain-implementations.yml.template` (set `implementations: []`, strip examples)
-- `domain-roadmap.yml` — create empty: `spec_name: domain-roadmap`, `spec_version: "1.0.0"`, `domain_id: {domain_id}`, `items: []`
 
 After generating:
 1. Update `domain-registry.yml` — set `domain_repo_url` to `repo_url` and `domain_entrypoint` to `DOMAIN.md`.
 2. Tell the user: copy the package into the root of the existing repo, then run VALIDATE.
+
+> `domain-roadmap.yml` is **not** included by default — it is a proposed extension. Use ADD ROADMAP ITEM (under Proposed Extensions) if the domain architect wants to adopt it.
 
 ---
 
@@ -203,10 +221,27 @@ Steps:
 Run the bundled validation script against the current repo:
 
 ```bash
-python "{skill_base_dir}/scripts/validate_convention.py" --root .
+python "{skill_base_dir}/scripts/validate_convention.py" --root . --repo-url <this-repo-url>
 ```
 
 The script auto-detects its schema directory from `{skill_base_dir}/references/`.
+
+**If the repo uses a non-default layout**, supply explicit paths:
+
+```bash
+python "{skill_base_dir}/scripts/validate_convention.py" \
+  --root . \
+  --repo-url <this-repo-url> \
+  --initiatives <path/to/initiatives.yml> \
+  --domain-registry <path/to/domain-registry.yml> \
+  --solution-index <path/to/solution-index.yml> \
+  --workstreams <path/to/domain-workstreams.yml> \
+  --da-root <path/to/da-root>
+```
+
+All paths are relative to `--root`. Defaults match the reference layout (see Layout Assumption above).
+
+`--repo-url` should be the canonical URL of the repo being validated (e.g. `https://github.com/org/repo`). It is used to distinguish local entrypoints from remote ones. If omitted, remote entrypoint existence checks are skipped rather than producing false positives.
 
 **Schema validation** (requires `jsonschema` — skipped gracefully if not installed):
 - Each canonical YAML conforms to its JSON Schema in `references/`
@@ -216,7 +251,7 @@ The script auto-detects its schema directory from `{skill_base_dir}/references/`
 - `domain-workstreams.yml[].initiative_id` → exists in `initiatives.yml`
 - `domain-workstreams.yml[].domain_id` → exists in `domain-registry.yml`
 - All local entrypoint paths exist on disk
-- `domain-roadmap.yml` referential integrity across workstream and implementation IDs
+- `domain-roadmap.yml` referential integrity if present (proposed extension — validated but not required)
 - Warns on inactive workstreams and implementations missing `repo.url`
 
 Exit code 0 = clean. Exit code 1 = errors. Exit code 2 = missing dependencies.
@@ -383,30 +418,6 @@ Steps:
 
 ---
 
-### ADD ROADMAP ITEM
-
-Add or create a domain roadmap entry in `da/{domain_id}/domain-roadmap.yml`.
-
-Required fields:
-- `roadmap_item_id`: unique within domain, convention: `ri-{domain_id}-{slug}`
-- `workstream_ids`: one or more `workstream_id` values (must exist in `domain-workstreams.yml`)
-- `implementation_ids`: one or more `implementation_id` values (must exist in `domain-implementations.yml`)
-- `status`: `planned`, `in-progress`, or `done`
-
-Optional fields: `name`, `priority`, `milestone`, `notes`
-
-Steps:
-1. If `da/{domain_id}/domain-roadmap.yml` does not exist, create it:
-   `spec_name: domain-roadmap`, `spec_version: "1.0.0"`, `domain_id: {domain_id}`, `items: []`
-2. Read the file.
-3. Confirm `roadmap_item_id` is not already present.
-4. Validate each `workstream_id` exists in `domain-workstreams.yml`.
-5. Validate each `implementation_id` exists in `da/{domain_id}/domain-implementations.yml`.
-6. Append the new entry under `items:`.
-7. Write the file.
-
----
-
 ## Error Codes
 
 | Code | Meaning |
@@ -425,3 +436,37 @@ Steps:
 - If it checks or enforces those rules automatically → **Conformance And Tooling**
 - If it is a reusable best practice → **Guidance And Patterns**
 - If it only affects the current business scenario → **Solution-Specific Action**
+
+---
+
+## Proposed Extensions
+
+> **These operations produce artifacts that are not yet ratified in
+> `enterprise_repo_convention.md`.** Adopting them is optional. The validator
+> will check them if they are present but will never require them. Do not
+> present these as normative convention requirements.
+
+### ADD ROADMAP ITEM (proposed)
+
+Adds or creates a domain roadmap artifact `da/{domain_id}/domain-roadmap.yml`.
+This artifact is useful for domain architects who want to explicitly sequence
+inbound workstream demand against implementation targets — but it is not required
+by the current spec.
+
+Required fields:
+- `roadmap_item_id`: unique within domain, convention: `ri-{domain_id}-{slug}`
+- `workstream_ids`: one or more `workstream_id` values (must exist in `domain-workstreams.yml`)
+- `implementation_ids`: one or more `implementation_id` values (must exist in `domain-implementations.yml`)
+- `status`: `planned`, `in-progress`, or `done`
+
+Optional fields: `name`, `priority`, `milestone`, `notes`
+
+Steps:
+1. If `da/{domain_id}/domain-roadmap.yml` does not exist, create it:
+   `spec_name: domain-roadmap`, `spec_version: "1.0.0"`, `domain_id: {domain_id}`, `items: []`
+2. Read the file.
+3. Confirm `roadmap_item_id` is not already present.
+4. Validate each `workstream_id` exists in `domain-workstreams.yml`.
+5. Validate each `implementation_id` exists in `da/{domain_id}/domain-implementations.yml`.
+6. Append the new entry under `items:`.
+7. Write the file.
