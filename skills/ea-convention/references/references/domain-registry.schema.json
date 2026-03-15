@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "domain-registry.schema.json",
+  "title": "Domain Registry",
+  "type": "object",
+  "required": ["version", "domains"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "string" },
+    "domains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["domain_id", "domain_name", "status", "owner", "domain_repo_url", "domain_entrypoint"],
+        "additionalProperties": true,
+        "properties": {
+          "domain_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "domain_name": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "inactive", "deprecated", "archived"] },
+          "owner": { "type": "string" },
+          "domain_repo_url": { "type": "string" },
+          "domain_entrypoint": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "domain-roadmap.schema.json",
+  "title": "Domain Roadmap",
+  "type": "object",
+  "required": ["spec_name", "spec_version", "domain_id", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "spec_name": { "type": "string", "const": "domain-roadmap" },
+    "spec_version": { "type": "string" },
+    "domain_id": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["roadmap_item_id", "workstream_ids", "implementation_ids", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "roadmap_item_id": { "type": "string" },
+          "workstream_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "implementation_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "status": { "type": "string", "enum": ["planned", "in-progress", "done"] },
+          "name": { "type": "string" },
+          "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+          "milestone": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

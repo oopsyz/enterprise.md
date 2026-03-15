@@ -103,8 +103,8 @@ flowchart LR
 
 实现参考：
 
-1. AGENTS 交接模板：`templates/AGENTS.ea.md.template`、`templates/AGENTS.sa.md.template`、`templates/AGENTS.da.md.template`。
-2. 层级入口模板：`templates/ENTERPRISE.md.template`、`templates/SOLUTION.md.template`、`templates/DOMAIN.md.template`。
+1. AGENTS 交接模板：`skills/ea-convention/templates/AGENTS.ea.md.template`、`skills/ea-convention/templates/AGENTS.sa.md.template`、`skills/ea-convention/templates/AGENTS.da.md.template`。
+2. 层级入口模板：`skills/ea-convention/templates/ENTERPRISE.md.template`、`skills/ea-convention/templates/SOLUTION.md.template`、`skills/ea-convention/templates/DOMAIN.md.template`。
 3. 端到端示例：`examples/core/`、`examples/governed/`。
 
 ### 3.3 Parent 链接格式

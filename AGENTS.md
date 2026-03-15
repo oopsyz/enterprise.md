@@ -8,7 +8,7 @@ This repository hosts the **Multi-Level Repository Navigation and Routing Conven
 
 - [README.md](README.md) - overview, quick start, contributing
 - [enterprise_repo_convention.md](enterprise_repo_convention.md) - full proposal specification
-- [templates/](templates/) - starter templates for adoption (entrypoints, catalogs, AGENTS roles, industry baselines)
+- [skills/ea-convention/templates/](skills/ea-convention/templates/) - starter templates for adoption (entrypoints, catalogs, AGENTS roles, industry baselines)
 - [examples/](examples/) - working examples for each conformance profile
 
 ## Key Concepts

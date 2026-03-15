@@ -113,7 +113,7 @@ Core and Governed implementations must provide at least one deterministic bootst
 
 1. Read the [full proposal](enterprise_repo_convention.md).
 2. Decide whether you need Layer A only or a routed conformance profile.
-3. Copy the relevant starter files from [templates/](templates/) into your repositories.
+3. Get starter files from [skills/ea-convention/templates/](skills/ea-convention/templates/) or use the `ea-convention` skill to scaffold them automatically.
 4. Validate your catalog files against the authoritative schemas under `schemas/` and apply linter checks for cross-file integrity and uniqueness (for example: `python scripts/validate_convention.py <catalog-files...>`).
 5. Define the bootstrap discovery mechanism if you are adopting the Core or Governed profile (e.g., an `ENTERPRISE_REPO_URL` environment variable, a startup parameter, or a well-known endpoint like `https://config.example.com/enterprise-catalog`).
 6. Replace placeholder values with your organization's data and keep routing data in the canonical YAML catalogs.
@@ -136,21 +136,26 @@ Core and Governed implementations must provide at least one deterministic bootst
 |-- .github/                                       # issue templates, PR template, CI, CODEOWNERS
 |-- schemas/                                       # authoritative machine-readable catalog schemas
 |-- scripts/                                       # helper scripts including validator/linter entrypoints
-|-- templates/
-|   |-- README.md                                  # template usage guide
-|   |-- ENTERPRISE.md.template                     # enterprise entrypoint
-|   |-- SOLUTION.md.template                       # solution entrypoint
-|   |-- DOMAIN.md.template                         # domain entrypoint
-|   |-- AGENTS.{ea,sa,da,dev}.md.template          # role-specific AGENTS.md
-|   |-- CLAUDE.{ea,sa,da,dev}.md.template          # role-specific CLAUDE.md bridge templates
-|   |-- initiatives.yml.template                   # enterprise routing catalog
-|   |-- domain-workstreams.yml.template            # solution routing catalog
-|   |-- domain-implementations.yml.template        # domain-to-implementation routing catalog
-|   |-- domain-registry.yml.template               # domain governance registry
-|   |-- solution-index.yml.template                # solution scope manifest
-|   |-- initiative-pipeline.yml.template           # portfolio pipeline source
-|   `-- industry/
-|       `-- domain-registry.telco.yml.template     # telco ODA component baseline
+|-- skills/
+|   `-- ea-convention/                             # ea-convention skill (manage, validate, scaffold)
+|       |-- SKILL.md                               # skill definition and operations
+|       |-- scripts/
+|       |   `-- validate_convention.py             # schema + lint validator
+|       |-- references/                            # JSON schemas for canonical artifacts
+|       `-- templates/
+|           |-- ENTERPRISE.md.template             # enterprise entrypoint
+|           |-- SOLUTION.md.template               # solution entrypoint
+|           |-- DOMAIN.md.template                 # domain entrypoint
+|           |-- AGENTS.{ea,sa,da,dev}.md.template  # role-specific AGENTS.md
+|           |-- CLAUDE.{ea,sa,da,dev}.md.template  # role-specific CLAUDE.md bridge templates
+|           |-- initiatives.yml.template           # enterprise routing catalog
+|           |-- domain-workstreams.yml.template    # solution routing catalog
+|           |-- domain-implementations.yml.template # domain-to-implementation routing catalog
+|           |-- domain-registry.yml.template       # domain governance registry
+|           |-- solution-index.yml.template        # solution scope manifest
+|           |-- initiative-pipeline.yml.template   # portfolio pipeline source
+|           `-- industry/
+|               `-- domain-registry.telco.yml.template # telco ODA component baseline
 |-- examples/
 |   |-- core/                                      # core routed example
 |   `-- governed/                                  # governed enterprise example

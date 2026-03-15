@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "domain-workstreams.schema.json",
+  "title": "Domain Workstreams",
+  "type": "object",
+  "required": ["version", "workspace_id", "initiative_id", "workstreams"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string" },
+    "workspace_id": { "type": "string" },
+    "initiative_id": { "type": "string" },
+    "generated_at_utc": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "workstreams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["workstream_id", "initiative_id", "domain_id", "domain_name", "name", "workstream_entrypoint", "workstream_repo_url", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "workstream_id": { "type": "string" },
+          "workstream_uuid": { "type": "string" },
+          "initiative_id": { "type": "string" },
+          "domain_id": { "type": "string" },
+          "domain_name": { "type": "string" },
+          "name": { "type": "string" },
+          "workstream_entrypoint": { "type": "string" },
+          "workstream_repo_url": { "type": "string" },
+          "workstream_path": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "inactive", "deprecated", "archived"] },
+          "owner": { "type": "string" },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+              "milestone": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "execution": { "type": "object" },
+    "notes": { "type": "string" }
+  }
+}

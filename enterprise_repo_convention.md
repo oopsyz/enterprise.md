@@ -103,8 +103,8 @@ This convention defines three architecture levels (`ENTERPRISE.md`, `SOLUTION.md
 
 Implementation references:
 
-1. AGENTS handoff templates: `templates/AGENTS.ea.md.template`, `templates/AGENTS.sa.md.template`, `templates/AGENTS.da.md.template`.
-2. Level entrypoint templates: `templates/ENTERPRISE.md.template`, `templates/SOLUTION.md.template`, `templates/DOMAIN.md.template`.
+1. AGENTS handoff templates: `skills/ea-convention/templates/AGENTS.ea.md.template`, `skills/ea-convention/templates/AGENTS.sa.md.template`, `skills/ea-convention/templates/AGENTS.da.md.template`.
+2. Level entrypoint templates: `skills/ea-convention/templates/ENTERPRISE.md.template`, `skills/ea-convention/templates/SOLUTION.md.template`, `skills/ea-convention/templates/DOMAIN.md.template`.
 3. End-to-end examples: `examples/core/`, `examples/governed/`.
 
 ### 3.3 Parent Link Format
