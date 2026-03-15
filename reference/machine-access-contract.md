@@ -57,8 +57,10 @@ The expected checks are:
 
 - schema and required fields
 - selector uniqueness
+- cross-file referential integrity
 - status-policy compliance
 - version compatibility
+- entrypoint/path existence checks when target artifacts are available to the validator
 
 ## Input Contract
 
@@ -103,6 +105,10 @@ Other applicable codes may also be used, such as:
 - `ERR_CONFLICT`
 - `ERR_TARGET_UNREACHABLE`
 - `ERR_ACCESS_DENIED`
+- `ERR_SELECTOR_DUPLICATE`
+- `ERR_INITIATIVE_NOT_FOUND`
+- `ERR_DOMAIN_NOT_FOUND`
+- `ERR_ENTRYPOINT_MISSING`
 
 ## Authority Rule
 
