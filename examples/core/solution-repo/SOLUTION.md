@@ -8,7 +8,7 @@ Purpose: Solution architecture entrypoint for BSS Modernization.
 
 ## Parent
 
-- [ENTERPRISE](https://github.com/tincanlab/ea-repo/blob/main/ENTERPRISE.md)
+- [ENTERPRISE](https://github.com/oopsyz/enterprise.md/blob/main/examples/core/enterprise-repo/ENTERPRISE.md)
 
 ## Critical File Contract
 
