@@ -1,12 +1,30 @@
 ﻿[CmdletBinding()]
 param(
-    [string]$RemoteRepoUrl = "https://github.com/oopsyz/test1"
+    [string]$RemoteRepoUrl,
+    [string]$TargetPath
 )
 
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$target = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "..\test1"))
+
+if ([string]::IsNullOrWhiteSpace($RemoteRepoUrl)) {
+    $RemoteRepoUrl = Read-Host "Enter the canonical GitHub repository URL to embed in generated files"
+}
+
+if ([string]::IsNullOrWhiteSpace($RemoteRepoUrl)) {
+    throw "RemoteRepoUrl is required."
+}
+
+if ([string]::IsNullOrWhiteSpace($TargetPath)) {
+    $defaultTarget = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "..\test1"))
+    $TargetPath = Read-Host "Enter the target directory to create the PoC in [$defaultTarget]"
+    if ([string]::IsNullOrWhiteSpace($TargetPath)) {
+        $TargetPath = $defaultTarget
+    }
+}
+
+$target = [System.IO.Path]::GetFullPath($TargetPath)
 
 if (!(Test-Path $target)) {
     New-Item -ItemType Directory -Path $target | Out-Null
@@ -394,4 +412,3 @@ Recommended reading order:
 
 Write-Output "Created monorepo PoC at: $target"
 Get-ChildItem -Recurse -File $target | ForEach-Object { $_.FullName.Substring($target.Length + 1) }
-

@@ -1,4 +1,4 @@
-﻿# SOLUTION
+# SOLUTION
 
 Solution architecture repo entrypoint. Owns the SA baseline and routes domain workstreams to domain repos.
 
@@ -8,7 +8,7 @@ Solution architecture repo entrypoint. Owns the SA baseline and routes domain wo
 
 ## Parent
 
-- [ENTERPRISE](https://github.com/tincanlab/ea-repo/blob/main/ENTERPRISE.md)
+- Example GitHub URL: [https://github.com/oopsyz/enterprise.md/blob/main/examples/core/enterprise-repo/ENTERPRISE.md](https://github.com/oopsyz/enterprise.md/blob/main/examples/core/enterprise-repo/ENTERPRISE.md)
 
 ## Critical File Contract
 

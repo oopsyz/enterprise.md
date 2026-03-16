@@ -1,4 +1,4 @@
-﻿# DOMAIN
+# DOMAIN
 
 Domain architecture repo entrypoint. Owns domain design baselines and routes to implementation repos via the domain implementations catalog.
 
@@ -8,7 +8,7 @@ Domain architecture repo entrypoint. Owns domain design baselines and routes to 
 
 ## Parent
 
-- [ENTERPRISE](https://github.com/tincanlab/ea-repo/blob/main/ENTERPRISE.md)
+- Example GitHub URL: [https://github.com/oopsyz/enterprise.md/blob/main/examples/core/enterprise-repo/ENTERPRISE.md](https://github.com/oopsyz/enterprise.md/blob/main/examples/core/enterprise-repo/ENTERPRISE.md)
 
 ## Critical File Contract
 
