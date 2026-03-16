@@ -507,4 +507,3 @@ Steps:
 5. Validate each `implementation_id` exists in `da/{domain_id}/domain-implementations.yml`.
 6. Append the new entry under `items:`.
 7. Write the file.
-

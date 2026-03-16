@@ -50,7 +50,7 @@ Authoritative machine-readable schemas for the canonical catalogs are maintained
 | [solution-index.yml.template](solution-index.yml.template) | Solution | C |
 | [initiative-pipeline.yml.template](initiative-pipeline.yml.template) | Enterprise | C |
 
-Note: `governance-state.yml` (required for the Governed profile) does not have a starter template. See [examples/governed/domain-repo/governance-state.yml](../examples/governed/domain-repo/governance-state.yml) for a working sample.
+Note: `governance-state.yml` (required for the Governed profile) does not have a starter template. See [examples/governed/domain-repo/governance-state.yml](../../../examples/governed/domain-repo/governance-state.yml) for a working sample.
 
 ## Industry-Specific Templates
 
@@ -60,14 +60,14 @@ Note: `governance-state.yml` (required for the Governed profile) does not have a
 
 ## Usage
 
-1. Decide whether you need Layer A only or a conformance profile (`Core` or `Governed`) from the [proposal](../enterprise_repo_convention.md).
+1. Decide whether you need Layer A only or a conformance profile (`Core` or `Governed`) from the [proposal](../../../enterprise_repo_convention.md).
 2. Copy the relevant templates into your repository.
 3. Remove the `.template` extension.
 4. Ensure your repository has an `AGENTS.md` that directs agents to read the level entrypoint (see Key Rule 2 in the proposal).
 5. If you use Claude Code, also add the matching `CLAUDE.*.md.template` file as `CLAUDE.md` and keep it as a bridge into `AGENTS.md`.
 6. Replace placeholder values (`<...>`) with your organization's data.
 7. Validate your catalogs against the schemas in [`../references/`](../references/) and apply the proposal's lint checks.
-8. See [examples/](../examples/) for complete working samples at each profile level.
+8. See [examples/](../../../examples/) for complete working samples at each profile level.
 
 ## Claude Code Compatibility
 
