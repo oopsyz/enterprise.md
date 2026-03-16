@@ -9,7 +9,7 @@ This document describes how [OpenAI Symphony](https://github.com/openai/symphony
 The enterprise.md convention defines three architecture levels and one execution role:
 
 | Level | Concern | Canonical Artifact | Owner |
-|-------|---------|-------------------|-------|
+| ------- | --------- | ------------------- | ------- |
 | EA | Portfolio governance | `initiatives.yml` | Enterprise architect |
 | SA | Solution decomposition, domain routing | `domain-workstreams.yml` | Solution architect |
 | DA | Domain planning, implementation targeting | `domain-implementations.yml` | Domain architect |
@@ -19,7 +19,7 @@ Symphony operates exclusively at the DEV layer. It runs inside the implementatio
 
 ## Where Symphony Runs
 
-```
+```text
 DA domain repo (governance)              Implementation repos (code)
 da/{domain}/                             next-ai-draw-io/
   domain-implementations.yml               WORKFLOW.md        <-- Symphony config
@@ -38,7 +38,7 @@ Each implementation repo listed in `domain-implementations.yml` can independentl
 
 The convention routes demand top-down through declarative artifacts. Symphony consumes demand at the bottom of this chain via an issue tracker.
 
-```
+```text
 EA: initiatives.yml
  |  initiative_id selects solution_repo_url
  v
@@ -68,7 +68,7 @@ Symphony does not need to read convention artifacts directly. It only needs issu
 ## Artifact Alignment
 
 | enterprise.md Artifact | Symphony Artifact | Relationship |
-|------------------------|-------------------|-------------|
+| ------------------------ | ------------------- | ------------- |
 | `domain-implementations.yml` | — | Points to repos where Symphony runs |
 | `domain-workstreams.yml` | — | Demand signals that become tracker issues |
 | — | `WORKFLOW.md` | Per-repo execution config; lives in implementation repo |
@@ -84,7 +84,7 @@ Both files guide agent behavior but at different scopes:
 
 They do not conflict. A Symphony-managed agent session can still read `AGENTS.md` as part of its prompt context. The `WORKFLOW.md` Liquid template can reference `AGENTS.md` content:
 
-```markdown
+```md
 ---
 agent:
   max_concurrent_agents: 5
@@ -107,7 +107,7 @@ Read `AGENTS.md` first to understand repo conventions.
 
 One domain architect governs several repos. Each runs its own Symphony instance.
 
-```
+```text
 da/payments/domain-implementations.yml
   - payment-api/       → WORKFLOW.md (Symphony, Linear project: PAYMENTS-API)
   - payment-gateway/   → WORKFLOW.md (Symphony, Linear project: PAYMENTS-GW)
@@ -128,7 +128,7 @@ A standalone team with only DA and DEV layers. `domain-implementations.yml` stil
 Symphony is an execution-layer runtime. It does not replace any convention-level concern:
 
 | Concern | Handled by | Not by |
-|---------|-----------|--------|
+| --------- | ----------- | -------- |
 | Portfolio prioritization | EA (`initiatives.yml`) | Symphony |
 | Solution decomposition and routing | SA (`domain-workstreams.yml`) | Symphony |
 | Domain planning and implementation targeting | DA (`domain-implementations.yml`) | Symphony |

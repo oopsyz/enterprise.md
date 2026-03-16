@@ -23,7 +23,7 @@ All file templates are in `{skill_base_dir}/templates/`. Always read from these
 files when creating convention artifacts — never use ad-hoc content.
 
 | Template file | Used for |
-|---|---|
+| --- | --- |
 | `ENTERPRISE.md.template` | EA entrypoint |
 | `SOLUTION.md.template` | SA entrypoint |
 | `DOMAIN.md.template` | DA domain entrypoint |
@@ -55,7 +55,7 @@ templates before writing.
 > VALIDATE operation and adjust ADD/INIT scaffolding accordingly.
 
 | Artifact | Reference path (this skill's default) |
-|---|---|
+| --- | --- |
 | Initiatives selector | `ea/architecture/portfolio/initiatives.yml` |
 | Domain registry | `ea/architecture/enterprise/domain-registry.yml` |
 | Solution index | `sa/solution-index.yml` |
@@ -65,14 +65,14 @@ templates before writing.
 ## Convention Overview
 
 | Layer | Entrypoint | Canonical Artifacts |
-|-------|------------|---------------------|
+| ------- | ------------ | --------------------- |
 | EA | `ENTERPRISE.md` | `initiatives.yml`, `domain-registry.yml` |
 | SA | `SOLUTION.md` | `solution-index.yml`, `domain-workstreams.yml` |
 | DA | `DOMAIN.md` | `domain-implementations.yml` |
 
 ### Routing Chain
 
-```
+```text
 INITIATIVE_ID
   → initiatives.yml → solution_entrypoint
     → domain-workstreams.yml → workstream_entrypoint
@@ -428,7 +428,7 @@ Steps:
 ## Error Codes
 
 | Code | Meaning |
-|------|---------|
+| ------ | --------- |
 | `ERR_INITIATIVE_NOT_FOUND` | `initiative_id` does not exist in `initiatives.yml` |
 | `ERR_DOMAIN_NOT_FOUND` | `domain_id` does not exist in `domain-registry.yml` |
 | `ERR_WORKSTREAM_NOT_FOUND` | `workstream_id` does not exist in `domain-workstreams.yml` |
