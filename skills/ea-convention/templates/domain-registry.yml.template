@@ -1,6 +1,6 @@
 # EA authoritative domain governance map.
 # Keep this file in EA repo at: architecture/enterprise/domain-registry.yml
-# Validate with: ../schemas/domain-registry.schema.json
+# Validate with: ../references/domain-registry.schema.json
 # Use domain-registry.telco.yml.template for Telco-specific one-ODA-component-per-domain baseline.
 # When a domain links to a repo, include `domain_entrypoint` so agents know which file to read.
 

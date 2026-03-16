@@ -48,15 +48,16 @@ jobs:
 
       - name: Validate core examples
         run: |
-          python scripts/validate_convention.py \
-            examples/core/enterprise-repo/initiatives.yml \
-            examples/core/solution-repo/domain-workstreams.yml \
-            examples/core/domain-repo/domain-implementations.yml
+          python skills/ea-convention/scripts/validate_convention.py \
+            --root . \
+            --initiatives examples/core/enterprise-repo/initiatives.yml \
+            --workstreams examples/core/solution-repo/domain-workstreams.yml
 
       - name: Validate governed examples
         run: |
-          python scripts/validate_convention.py \
-            examples/governed/enterprise-repo/initiatives.yml \
-            examples/governed/enterprise-repo/domain-registry.yml \
-            examples/governed/solution-repo/domain-workstreams.yml \
-            examples/governed/domain-repo/domain-implementations.yml
+          python skills/ea-convention/scripts/validate_convention.py \
+            --root . \
+            --initiatives examples/governed/enterprise-repo/initiatives.yml \
+            --domain-registry examples/governed/enterprise-repo/domain-registry.yml \
+            --solution-index examples/governed/solution-repo/solution-index.yml \
+            --workstreams examples/governed/solution-repo/domain-workstreams.yml

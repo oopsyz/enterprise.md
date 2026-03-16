@@ -40,7 +40,7 @@ Format note: YAML is canonical for routing catalogs.
 
 Note: `domain-implementations.yml.template` supports optional `repo.entrypoint` and `repo.git_ref` fields for deterministic navigation into external implementation repositories such as adopted open-source projects.
 
-Authoritative machine-readable schemas for the canonical catalogs are maintained under [`../schemas/`](../schemas/). A validator/linter can use those schemas for structural checks and then apply cross-file integrity and uniqueness rules from the proposal.
+Authoritative machine-readable schemas for the canonical catalogs are maintained under [`../references/`](../references/). A validator/linter can use those schemas for structural checks and then apply cross-file integrity and uniqueness rules from the proposal.
 
 ## Governance Templates
 
@@ -66,7 +66,7 @@ Note: `governance-state.yml` (required for the Governed profile) does not have a
 4. Ensure your repository has an `AGENTS.md` that directs agents to read the level entrypoint (see Key Rule 2 in the proposal).
 5. If you use Claude Code, also add the matching `CLAUDE.*.md.template` file as `CLAUDE.md` and keep it as a bridge into `AGENTS.md`.
 6. Replace placeholder values (`<...>`) with your organization's data.
-7. Validate your catalogs against the schemas in [`../schemas/`](../schemas/) and apply the proposal's lint checks.
+7. Validate your catalogs against the schemas in [`../references/`](../references/) and apply the proposal's lint checks.
 8. See [examples/](../examples/) for complete working samples at each profile level.
 
 ## Claude Code Compatibility

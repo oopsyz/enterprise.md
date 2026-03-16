@@ -17,14 +17,14 @@ Typical CI or lint implementations check:
 
 A thin validator/linter commonly layers these checks in two passes:
 
-1. validate each catalog against the authoritative machine-readable schema under `schemas/`
+1. validate each catalog against the authoritative machine-readable schema under `skills/ea-convention/references/`
 2. apply cross-file, selector-uniqueness, and topology-aware checks that cannot be fully expressed in schema alone
 
 Reference implementation in this repository:
 
-1. `scripts/validate_convention.py` validates schema conformance and cross-file rules.
-2. Use `--active-only` to enforce active-only routability checks.
-3. Use `--check-entrypoints` to enforce local entrypoint path existence checks where target files are expected to be present in the current checkout.
+1. `skills/ea-convention/scripts/validate_convention.py` validates schema conformance and cross-file rules.
+2. Use `--active-only` to restrict routable statuses to `active` only.
+3. Use `--repo-url` to enable local entrypoint path existence checks for entries that reference this repo.
 
 How these checks are implemented is toolchain-specific. Some teams will use repository-native CI, others will validate through provider APIs or orchestration runtimes.
 

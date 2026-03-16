@@ -1,27 +1,139 @@
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "domain-registry.schema.json",
-  "title": "Domain Registry",
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/domain-registry.schema.json",
+  "title": "domain-registry.yml",
   "type": "object",
   "required": ["version", "domains"],
-  "additionalProperties": false,
   "properties": {
-    "version": { "type": "string" },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "enterprise_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "domains": {
       "type": "array",
       "items": {
-        "type": "object",
-        "required": ["domain_id", "domain_name", "status", "owner", "domain_repo_url", "domain_entrypoint"],
-        "additionalProperties": true,
-        "properties": {
-          "domain_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
-          "domain_name": { "type": "string" },
-          "status": { "type": "string", "enum": ["active", "inactive", "deprecated", "archived"] },
-          "owner": { "type": "string" },
-          "domain_repo_url": { "type": "string" },
-          "domain_entrypoint": { "type": "string" }
-        }
+        "$ref": "#/$defs/domain"
       }
     }
-  }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "approved",
+        "ready",
+        "in_progress",
+        "paused",
+        "completed",
+        "archived",
+        "deprecated",
+        "inactive"
+      ]
+    },
+    "capability": {
+      "type": "object",
+      "required": ["capability_id", "name"],
+      "properties": {
+        "capability_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "domain": {
+      "type": "object",
+      "required": ["domain_id", "name", "owner", "status"],
+      "properties": {
+        "domain_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "owner": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "domain_repo_url": {
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "domain_entrypoint": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/capability"
+          }
+        },
+        "standards": {
+          "type": "object",
+          "properties": {
+            "frameworks": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            },
+            "policies": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "target_state": {
+          "type": "object",
+          "properties": {
+            "principles": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            },
+            "constraints": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "metadata": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["domain_repo_url"]
+          },
+          "then": {
+            "required": ["domain_entrypoint"]
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
 }
