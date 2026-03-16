@@ -1,6 +1,8 @@
-# Multi-Level Repository Navigation and Routing Convention
+# ENTERPRISE.md: Multi-Level Repository Navigation and Routing Convention
 
 A proposed standard for multi-level repository navigation and deterministic routing conventions that extend `AGENTS.md` to enterprise-scale, multi-repository delivery.
+
+中文版本： [README.zh-CN.md](README.zh-CN.md)
 
 ## Read The Specification
 
