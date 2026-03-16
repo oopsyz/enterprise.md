@@ -141,11 +141,13 @@ package** — a local folder the user copies into the root of the existing repo.
 Generates bootstrap package at `.convention-bootstrap/sa/` in the current repo.
 
 Required inputs:
+
 - `repo_url`: URL of the existing SA repo
 - `initiative_id`: must exist in `initiatives.yml`
 - `solution_key`: slug for this solution
 
 Package contents — read each from `templates/`:
+
 - `SOLUTION.md` ← `SOLUTION.md.template` (substitute `<enterprise-repo-url>`, `<solution-key>`)
 - `AGENTS.md` ← `AGENTS.sa.md.template`
 - `CLAUDE.md` ← `CLAUDE.sa.md.template`
@@ -153,6 +155,7 @@ Package contents — read each from `templates/`:
 - `architecture/solution/domain-workstreams.yml` ← `domain-workstreams.yml.template` (substitute `initiative_id`, set `workstreams: []`)
 
 After generating:
+
 1. Update `initiatives.yml` — set `solution_repo_url` to `repo_url` and `solution_entrypoint` to `SOLUTION.md`.
 2. Tell the user: copy the package into the root of the existing repo, then run VALIDATE.
 
@@ -163,16 +166,19 @@ After generating:
 Generates bootstrap package at `.convention-bootstrap/da/{domain_id}/` in the current repo.
 
 Required inputs:
+
 - `repo_url`: URL of the existing DA repo
 - `domain_id`: must exist in `domain-registry.yml`
 
 Package contents — read each from `templates/`:
+
 - `DOMAIN.md` ← `DOMAIN.md.template` (substitute `<enterprise-repo-url>`)
 - `AGENTS.md` ← `AGENTS.da.md.template`
 - `CLAUDE.md` ← `CLAUDE.da.md.template`
 - `domain-implementations.yml` ← `domain-implementations.yml.template` (set `implementations: []`, strip examples)
 
 After generating:
+
 1. Update `domain-registry.yml` — set `domain_repo_url` to `repo_url` and `domain_entrypoint` to `DOMAIN.md`.
 2. Tell the user: copy the package into the root of the existing repo, then run VALIDATE.
 
@@ -187,16 +193,19 @@ Generates bootstrap package at `.convention-bootstrap/dev/{domain_id}/` in the c
 DEV is an execution role under `da`, not a full architecture layer. Package is minimal.
 
 Required inputs:
+
 - `repo_url`: URL of the existing dev repo
 - `domain_id`: the domain this repo implements
 - `implementation_id`: must exist in `da/{domain_id}/domain-implementations.yml`
 
 Package contents:
+
 - `AGENTS.md` ← `AGENTS.dev.md.template` (substitute `domain_id`, `domain_entrypoint`)
 - `CLAUDE.md` ← `CLAUDE.dev.md.template` (substitute `domain_id`, `domain_entrypoint`)
 - `README.md` — only if one does not already exist: name, purpose, owning domain, link to `da/{domain_id}/DOMAIN.md`
 
 After generating:
+
 1. Update `da/{domain_id}/domain-implementations.yml` — set `repo.url` to `repo_url`, set `status: active`.
 2. Tell the user: copy the package into the root of the existing repo (do not overwrite an existing README.md — merge manually), then run VALIDATE.
 
@@ -208,10 +217,12 @@ Bootstrap a brand new enterprise repo with the full EA layer structure. Use this
 when starting from scratch — no existing `ea/` directory.
 
 Required inputs:
+
 - `repo_url`: URL of this repo
 - `owner`: team or role name for enterprise architecture
 
 Steps:
+
 1. Confirm `ea/ENTERPRISE.md` does not already exist. If it does, abort and suggest VALIDATE or STATUS instead.
 2. Create the following files from `templates/`:
    - `ea/ENTERPRISE.md` ← `ENTERPRISE.md.template`
@@ -251,9 +262,11 @@ All paths are relative to `--root`. Defaults match the reference layout (see Lay
 `--repo-url` should be the canonical URL of the repo being validated (e.g. `https://github.com/org/repo`). It is used to distinguish local entrypoints from remote ones. If omitted, remote entrypoint existence checks are skipped rather than producing false positives.
 
 **Schema validation** (requires `jsonschema` — skipped gracefully if not installed):
+
 - Each canonical YAML conforms to its JSON Schema in `references/`
 
 **Lint validation** (always runs):
+
 - `initiative_id`, `domain_id`, `workstream_id`, `implementation_id` uniqueness
 - `domain-workstreams.yml[].initiative_id` → exists in `initiatives.yml`
 - `domain-workstreams.yml[].domain_id` → exists in `domain-registry.yml`
@@ -270,6 +283,7 @@ Exit code 0 = clean. Exit code 1 = errors. Exit code 2 = missing dependencies.
 Trace the full routing chain for a given `initiative_id`.
 
 Steps:
+
 1. Read `ea/architecture/portfolio/initiatives.yml` — find matching `initiative_id`, check `status: active`, output `solution_entrypoint`.
 2. Read `sa/architecture/solution/domain-workstreams.yml` — list all workstreams where `initiative_id` matches, show `domain_id`, `status`, `workstream_entrypoint`.
 3. For each active workstream, read `da/{domain_id}/domain-implementations.yml` — list active implementations with `repo.url` and `repo.entrypoint`.
@@ -282,6 +296,7 @@ Steps:
 Show a summary of all layers.
 
 Steps:
+
 1. Read `ea/architecture/portfolio/initiatives.yml` — list initiatives with `status`.
 2. Read `ea/architecture/enterprise/domain-registry.yml` — list domains with `status`.
 3. Read `sa/architecture/solution/domain-workstreams.yml` — list workstreams grouped by `domain_id` with `status`.
@@ -296,6 +311,7 @@ Steps:
 Add a new initiative to `ea/architecture/portfolio/initiatives.yml`.
 
 Required fields:
+
 - `initiative_id`: unique, convention: `init-{slug}`
 - `name`: human-readable name
 - `status`: `active` or `inactive`
@@ -304,6 +320,7 @@ Required fields:
 - `solution_entrypoint`: path to `SOLUTION.md`
 
 Steps:
+
 1. Read `ea/architecture/portfolio/initiatives.yml`.
 2. Confirm `initiative_id` is not already present.
 3. Ask whether the solution lives in the **same repo** or a **separate repo**.
@@ -324,6 +341,7 @@ Steps:
 Add a new domain to the enterprise registry and scaffold its DA structure.
 
 Required fields:
+
 - `domain_id`: unique, convention: `{slug}` e.g. `payments-provider-integration`
 - `domain_name`: human-readable name
 - `status`: `active` or `inactive`
@@ -332,6 +350,7 @@ Required fields:
 - `domain_entrypoint`: path to `DOMAIN.md`
 
 Steps:
+
 1. Read `ea/architecture/enterprise/domain-registry.yml`.
 2. Confirm `domain_id` is not already present.
 3. Ask whether the domain lives in the **same repo** or a **separate repo**.
@@ -351,6 +370,7 @@ Steps:
 Add a new workstream to `sa/architecture/solution/domain-workstreams.yml`.
 
 Required fields:
+
 - `workstream_id`: unique, convention: `ws-{initiative_id}-{domain_id}`
 - `workstream_uuid`: UUID v4
 - `initiative_id`: must exist in `initiatives.yml`
@@ -363,9 +383,11 @@ Required fields:
 - `status`: `active` or `inactive`
 
 Optional fields:
+
 - `oda_component_name`, `tmfc_component_id`, `metadata.priority`, `metadata.milestone`
 
 Steps:
+
 1. Read `sa/architecture/solution/domain-workstreams.yml`.
 2. Confirm `workstream_id` is not already present.
 3. Confirm `initiative_id` exists in `initiatives.yml`.
@@ -386,6 +408,7 @@ First ask: is this an **existing project** (open-source or third-party) or a **c
 Register the pointer only. Repo already exists; the convention does not own it.
 
 Steps:
+
 1. Read `da/{domain_id}/domain-implementations.yml`.
 2. Confirm `implementation_id` is not already present.
 3. Append the new entry (modelled on the upstream example in `domain-implementations.yml.template`).
@@ -396,9 +419,11 @@ Steps:
 Scaffold a subdirectory for the custom implementation inside the monorepo.
 
 Additional required input:
+
 - `dev_path`: convention: `dev/{domain_id}/{implementation_id}/`
 
 Steps:
+
 1. Read `da/{domain_id}/domain-implementations.yml`.
 2. Confirm `implementation_id` is not already present.
 3. Scaffold `{dev_path}/`:
@@ -413,6 +438,7 @@ Steps:
 Generate a bootstrap package the user applies to the new repo.
 
 Steps:
+
 1. Read `da/{domain_id}/domain-implementations.yml`.
 2. Confirm `implementation_id` is not already present.
 3. Create bootstrap folder at `da/{domain_id}/bootstrap/{implementation_id}/`:
@@ -461,6 +487,7 @@ inbound workstream demand against implementation targets — but it is not requi
 by the current spec.
 
 Required fields:
+
 - `roadmap_item_id`: unique within domain, convention: `ri-{domain_id}-{slug}`
 - `workstream_ids`: one or more `workstream_id` values (must exist in `domain-workstreams.yml`)
 - `implementation_ids`: one or more `implementation_id` values (must exist in `domain-implementations.yml`)
@@ -469,11 +496,15 @@ Required fields:
 Optional fields: `name`, `priority`, `milestone`, `notes`
 
 Steps:
+
 1. If `da/{domain_id}/domain-roadmap.yml` does not exist, create it:
+
    `spec_name: domain-roadmap`, `spec_version: "1.0.0"`, `domain_id: {domain_id}`, `items: []`
+
 2. Read the file.
 3. Confirm `roadmap_item_id` is not already present.
 4. Validate each `workstream_id` exists in `domain-workstreams.yml`.
 5. Validate each `implementation_id` exists in `da/{domain_id}/domain-implementations.yml`.
 6. Append the new entry under `items:`.
 7. Write the file.
+
