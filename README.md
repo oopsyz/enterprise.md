@@ -2,6 +2,12 @@
 
 A proposed standard for multi-level repository navigation and deterministic routing conventions that extend `AGENTS.md` to enterprise-scale, multi-repository delivery.
 
+## Read The Specification
+
+The canonical specification for this proposal is:
+
+- [enterprise_repo_convention.md](enterprise_repo_convention.md)
+
 This repository intentionally uses `README.md` as the primary visitor-facing entrypoint. It does not define a root `DOMAIN.md`.
 
 If you use Claude Code, note that Claude Code natively uses `CLAUDE.md` as its project instruction file. Compatibility with this proposal is therefore achieved by bridging from `CLAUDE.md` into the `AGENTS.md` and level-entrypoint flow defined here.
