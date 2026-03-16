@@ -2,6 +2,12 @@
 
 一个拟议中的标准，用于定义多层级仓库导航与确定性路由约定，在 `AGENTS.md` 的基础上扩展到企业级、多仓库交付场景。
 
+## 阅读规范正文
+
+本提案的规范正文为：
+
+- [enterprise_repo_convention.zh-CN.md](enterprise_repo_convention.zh-CN.md)
+
 ## 状态
 
 **草案** - 欢迎反馈。
@@ -177,3 +183,5 @@ reference/
 ## 兼容性
 
 本提案是对 `AGENTS.md` 的增量扩展，不会替代或修改现有标准。
+
+对于 Claude Code 环境，Claude Code 原生使用 `CLAUDE.md` 作为项目指令文件。与本提案的兼容方式，是通过 `CLAUDE.md` 桥接到本提案定义的同一套仓库导航流程中，同时仍以 `AGENTS.md` 和对应层级的入口文件作为跨工具的规范约定。

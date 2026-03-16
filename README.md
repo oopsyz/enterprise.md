@@ -10,7 +10,6 @@ The canonical specification for this proposal is:
 
 This repository intentionally uses `README.md` as the primary visitor-facing entrypoint. It does not define a root `DOMAIN.md`.
 
-
 ## Status
 
 **Draft** - open for feedback.
