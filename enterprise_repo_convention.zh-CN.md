@@ -283,7 +283,7 @@ Purpose: Domain architecture entrypoint.
     1. `workstream_id`：当前负责该实现变更的工作流。瞬时字段；MAY 为 null。
     2. `initiative_id`：来源 initiative。若存在，MUST 与对应的 `domain-workstreams.yml` 和 `initiatives.yml` 条目保持一致。
     3. `owners`：团队或个人所有者列表。
-    4. `oda_component_name`、`tmfc_component_id`：TM Forum ODA 组件引用。
+    4. `metadata`：用于行业或组织特定注释的自由扩展映射。
 
 #### initiatives.yml
 

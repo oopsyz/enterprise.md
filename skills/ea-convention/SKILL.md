@@ -398,7 +398,7 @@ Required fields:
 
 Optional fields:
 
-- `oda_component_name`, `tmfc_component_id`, `metadata.priority`, `metadata.milestone`
+- `metadata.priority`, `metadata.milestone`
 
 Steps:
 

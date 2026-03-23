@@ -246,6 +246,11 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
     else:
         si_data = load_yaml(solution_index_path)
         validate_schema(si_data, schema_dir / "solution-index.schema.json", solution_index_path)
+        for di, domain in enumerate((si_data or {}).get("domains", [])):
+            for vfield in ("oda_component", "tmf_apis"):
+                if vfield in domain:
+                    warn(f"domains[{di}] contains vertical-specific field '{vfield}' — move to metadata: for industry annotations",
+                         path=solution_index_path)
         print(f"  solution-index: ok")
 
     workstream_ids: set[str] = set()
@@ -301,6 +306,11 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                     err("ERR_ENTRYPOINT_MISSING",
                         f"workstreams[{index}] workstream_entrypoint '{entrypoint}' not found",
                         path=workstreams_path)
+
+            for vfield in ("oda_component_name", "tmfc_component_id"):
+                if vfield in ws:
+                    warn(f"workstreams[{index}] contains vertical-specific field '{vfield}' — move to metadata: for industry annotations",
+                         path=workstreams_path)
 
             if status == "inactive":
                 warn(f"workstream '{ws.get('workstream_id', '')}' is inactive — not routable",
@@ -393,6 +403,11 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                             err("ERR_OVERLAPPING_PATHS",
                                 f"repo binding set for {repo_id} mixes '*' with scoped paths, violating the uniqueness invariant",
                                 path=impl_path)
+
+                    for vfield in ("oda_component_name", "tmfc_component_id"):
+                        if vfield in impl:
+                            warn(f"implementations[{index}] contains vertical-specific field '{vfield}' — move to metadata: for industry annotations",
+                                 path=impl_path)
 
                     # Entrypoint check for routable implementations
                     if impl.get("status") in routable_statuses:

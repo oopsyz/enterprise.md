@@ -253,14 +253,12 @@ entrypoints:
   cascade_state: .openarchitect/cascade-state.yml
 domains:
   - domain_key: order-management
-    oda_component: Order Management
     domain_repo:
       repo_url: $RemoteRepoUrl
       entrypoints:
         domain_md: da/DOMAIN.md
         agents_md: da/AGENTS.md
         cascade_state: .openarchitect/cascade-state.yml
-    tmf_apis: []
 repos:
   - repo_key: monorepo
     repo_url: $RemoteRepoUrl
@@ -284,13 +282,11 @@ workstreams:
     initiative_id: init-order-modernization
     domain_id: order-management
     domain_name: Order Management
-    oda_component_name: Order Management
     name: Order Modernization x Order Management
     workstream_entrypoint: da/DOMAIN.md
     workstream_git_ref: main
     workstream_repo_url: $RemoteRepoUrl
     workstream_path: da/
-    tmfc_component_id: TMFC005
     handoff_ref: poc-order-management
     status: active
     owner: domain-architecture

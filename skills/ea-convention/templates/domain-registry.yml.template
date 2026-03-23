@@ -31,9 +31,7 @@ domains:
       constraints:
         - External interfaces must remain backward-compatible for one minor version.
         - Domain emits lifecycle events for all state transitions.
-    metadata:
-      oda_component_name: Order Management
-      tmfc_component_id: TMFC005
+    metadata: {}
 
   - domain_id: catalog
     name: Product Catalog

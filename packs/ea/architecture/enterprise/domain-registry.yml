@@ -14,6 +14,4 @@ domains:
     capabilities:
       - capability_id: <cap-id>
         name: <capability description>
-    metadata:
-      oda_component_name: <TMF ODA component name>
-      tmfc_component_id: <TMFC###>
+    metadata: {}
