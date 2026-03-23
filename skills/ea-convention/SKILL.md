@@ -117,7 +117,7 @@ INITIATIVE_ID
 > must state the actual path for each artifact when invoking the operation, and
 > the agent should substitute that path wherever a reference path appears in
 > the steps below.
-
+>
 > **Getting started — monorepo first:** If you are new to the convention, we
 > recommend starting with a **single-repo (monorepo) setup** where EA, SA, DA,
 > and dev artifacts all live in one repository. This lets you explore the full
@@ -488,7 +488,7 @@ Present this as an opt-in prompt, matching the operation type:
 > *Scaffolding operations:*
 > The convention files have been created locally. Would you like me to commit
 > and push them to a new branch so you can open a pull request?
-
+>
 > *YAML-only operations:*
 > The registry has been updated. Would you like me to commit and push the
 > change to a new branch so you can open a pull request?
@@ -518,9 +518,11 @@ If the user accepts:
    - YAML-only: `convention: register implementation {implementation_id} in {domain_id}`
    - YAML-only: `convention: add roadmap item {roadmap_item_id} to {domain_id}`
 4. **Push** the branch with `-u` to set tracking:
+
    ```bash
    git push -u origin <branch-name>
    ```
+
 5. **Offer to open a pull request** using `gh pr create`. If the user accepts,
    create the PR targeting the repo's default branch. Detect it with one of
    these methods (try in order, use the first that succeeds):
