@@ -28,8 +28,6 @@ spec_version: "1.0.0"
 #
 # Traceability fields (optional, not used for routing):
 #   workstream_id        - Transient. The workstream currently handling changes to this implementation.
-#   oda_component_name   - TM Forum ODA component name.
-#   tmfc_component_id    - TM Forum component ID (e.g. TMFC023).
 #   owners               - List of team or individual owners.
 #
 # Uniqueness invariant:
@@ -50,8 +48,6 @@ implementations:
       paths: ["src/order-api/*"]
     # traceability (optional)
     workstream_id: <workstream-id>
-    oda_component_name: Order Management
-    tmfc_component_id: TMFC005
     owners: [<team>]
 
   # Monorepo example — whole repo (repo.url omitted, default paths)

@@ -283,7 +283,7 @@ Some organizations keep a first-party Domain repo as the canonical architecture 
     1. `workstream_id`: the workstream currently handling changes to this implementation. Transient; MAY be null.
     2. `initiative_id`: originating initiative. When present, MUST be consistent with the corresponding `domain-workstreams.yml` and `initiatives.yml` entries.
     3. `owners`: list of team or individual owners.
-    4. `oda_component_name`, `tmfc_component_id`: TM Forum ODA component references.
+    4. `metadata`: free-form extension map for industry- or organisation-specific annotations.
 
 #### initiatives.yml
 

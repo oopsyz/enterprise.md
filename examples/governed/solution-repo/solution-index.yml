@@ -11,23 +11,19 @@ entrypoints:
   cascade_state: .openarchitect/cascade-state.yml
 domains:
   - domain_key: order
-    oda_component: null
     domain_repo:
       repo_url: https://github.com/acme/domain-order
       entrypoints:
         domain_md: DOMAIN.md
         agents_md: AGENTS.md
         cascade_state: .openarchitect/cascade-state.yml
-    tmf_apis: []
   - domain_key: billing
-    oda_component: null
     domain_repo:
       repo_url: https://github.com/acme/domain-billing
       entrypoints:
         domain_md: DOMAIN.md
         agents_md: AGENTS.md
         cascade_state: .openarchitect/cascade-state.yml
-    tmf_apis: []
 repos:
   - repo_key: solution_design
     repo_url: https://github.com/acme/solution-bss

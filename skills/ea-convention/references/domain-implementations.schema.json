@@ -109,12 +109,6 @@
           "items": {
             "$ref": "#/$defs/nonEmptyString"
           }
-        },
-        "oda_component_name": {
-          "$ref": "#/$defs/nonEmptyString"
-        },
-        "tmfc_component_id": {
-          "$ref": "#/$defs/nonEmptyString"
         }
       },
       "additionalProperties": true

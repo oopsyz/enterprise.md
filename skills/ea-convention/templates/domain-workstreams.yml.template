@@ -23,13 +23,11 @@ workstreams:
     initiative_id: <initiative-id>
     domain_id: <domain-id>
     domain_name: <domain display name>
-    oda_component_name: <TMF ODA component name-or-null>
     name: <initiative x domain display name>
     workstream_entrypoint: <inputs/workstreams/<WORKSTREAM_ID>/WORKSTREAM.md-or-null>
     workstream_git_ref: <branch-tag-or-commit-ref>
     workstream_repo_url: <https://github.com/<org>/<domain-or-workstream-repo>>
     workstream_path: <repo-relative-folder-or-null>
-    tmfc_component_id: <TMFC###-or-null>
     handoff_ref: <component-handoff-ref-or-null>
     status: active
     owner: <domain-arch-owner-or-team>
@@ -43,13 +41,11 @@ workstreams:
   #   initiative_id: init-example
   #   domain_id: newdomain
   #   domain_name: New Domain
-  #   oda_component_name: <TMF ODA component name-or-null>
   #   name: Example x New Domain
   #   workstream_entrypoint: null
   #   workstream_git_ref: <branch-tag-or-commit-ref>
   #   workstream_repo_url: <https://github.com/<org>/<proposed-domain-repo>>
   #   workstream_path: <repo-relative-folder-or-null>
-  #   tmfc_component_id: <TMFC###-or-null>
   #   handoff_ref: <component-handoff-ref-or-null>
   #   status: approved
   #   owner: <proposed-owner>

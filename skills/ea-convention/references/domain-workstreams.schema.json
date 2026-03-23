@@ -80,9 +80,6 @@
         "domain_name": {
           "$ref": "#/$defs/nonEmptyString"
         },
-        "oda_component_name": {
-          "type": ["string", "null"]
-        },
         "name": {
           "$ref": "#/$defs/nonEmptyString"
         },
@@ -98,9 +95,6 @@
           "minLength": 1
         },
         "workstream_path": {
-          "type": ["string", "null"]
-        },
-        "tmfc_component_id": {
           "type": ["string", "null"]
         },
         "handoff_ref": {

@@ -8,7 +8,6 @@ description: >
   any layer. Keywords: initiative, domain, workstream, implementation, roadmap,
   ea, sa, da, domain-registry, domain-workstreams, domain-implementations,
   domain-roadmap, convention, routing, referential integrity.
-version: "1.0.0"
 ---
 
 # Enterprise Convention Skill
@@ -118,6 +117,16 @@ INITIATIVE_ID
 > must state the actual path for each artifact when invoking the operation, and
 > the agent should substitute that path wherever a reference path appears in
 > the steps below.
+>
+> **Getting started — monorepo first:** If you are new to the convention, we
+> recommend starting with a **single-repo (monorepo) setup** where EA, SA, DA,
+> and dev artifacts all live in one repository. This lets you explore the full
+> routing chain — from initiative to implementation — without managing multiple
+> repos, cloning, or bootstrap packages. Use INIT to create the EA layer, then
+> ADD INITIATIVE and ADD DOMAIN with the "same repo" option to scaffold SA and
+> DA alongside it. Once you are comfortable with how the layers connect, you can
+> split domains or solutions into their own repos using ONBOARD. The convention
+> works identically in both layouts; the only difference is where the files live.
 
 ### ONBOARD
 
@@ -131,8 +140,10 @@ First ask: which layer does this repo serve?
 - `da` — domain implementation repo (realizes a specific domain capability)
 - `dev` — coding-level repo where agents implement changes (execution role under `da`)
 
-The skill cannot write directly to an external repo. It generates a **bootstrap
-package** — a local folder the user copies into the root of the existing repo.
+The primary output is a **bootstrap package** — a local folder containing the
+convention artifacts for the target repo. The user can copy this into the
+external repo manually, or the Post-Scaffold Git Workflow can push it there
+directly if git/network access to the target repo is available (see below).
 
 ---
 
@@ -157,7 +168,7 @@ Package contents — read each from `templates/`:
 After generating:
 
 1. Update `initiatives.yml` — set `solution_repo_url` to `repo_url` and `solution_entrypoint` to `SOLUTION.md`.
-2. Tell the user: copy the package into the root of the existing repo, then run VALIDATE.
+2. Run the **Post-Scaffold Git Workflow** (handles both pushing to the target repo and the manual-copy fallback).
 
 ---
 
@@ -180,7 +191,7 @@ Package contents — read each from `templates/`:
 After generating:
 
 1. Update `domain-registry.yml` — set `domain_repo_url` to `repo_url` and `domain_entrypoint` to `DOMAIN.md`.
-2. Tell the user: copy the package into the root of the existing repo, then run VALIDATE.
+2. Run the **Post-Scaffold Git Workflow** (handles both pushing to the target repo and the manual-copy fallback).
 
 > `domain-roadmap.yml` is **not** included by default — it is a proposed extension. Use ADD ROADMAP ITEM (under Proposed Extensions) if the domain architect wants to adopt it.
 
@@ -207,7 +218,7 @@ Package contents:
 After generating:
 
 1. Update `da/{domain_id}/domain-implementations.yml` — set `repo.url` to `repo_url`, set `status: active`.
-2. Tell the user: copy the package into the root of the existing repo (do not overwrite an existing README.md — merge manually), then run VALIDATE.
+2. Run the **Post-Scaffold Git Workflow** (handles both pushing to the target repo and the manual-copy fallback). Note: if the target repo already has a `README.md`, the Push 2 commit should not overwrite it — warn the user to merge manually.
 
 ---
 
@@ -231,6 +242,7 @@ Steps:
    - `ea/architecture/portfolio/initiatives.yml` ← `initiatives.yml.template` (set `initiatives: []`, strip examples)
    - `ea/architecture/enterprise/domain-registry.yml` ← `domain-registry.yml.template` (set `domains: []`, strip examples)
 3. Confirm completion and tell the user their next steps: ADD DOMAIN, then ADD INITIATIVE.
+4. Run the **Post-Scaffold Git Workflow**.
 
 ---
 
@@ -333,6 +345,7 @@ Steps:
    - `sa/solution-index.yml` ← `solution-index.yml.template` (substitute `solution_key`, `initiative_id`)
    - `sa/architecture/solution/domain-workstreams.yml` ← `domain-workstreams.yml.template` (substitute `initiative_id`, set `workstreams: []`)
 7. If **separate repo**: skip scaffolding. Warn that `solution_entrypoint` must exist in the target repo before VALIDATE will pass.
+8. Run the **Post-Scaffold Git Workflow** (applies in both same-repo and separate-repo cases, since `initiatives.yml` was modified).
 
 ---
 
@@ -362,6 +375,7 @@ Steps:
    - `da/{domain_id}/CLAUDE.md` ← `CLAUDE.da.md.template`
    - `da/{domain_id}/domain-implementations.yml` ← `domain-implementations.yml.template` (set `implementations: []`, strip examples)
 7. If **separate repo**: skip scaffolding. Warn that `domain_entrypoint` must exist in the target repo before VALIDATE will pass.
+8. Run the **Post-Scaffold Git Workflow** (applies in both cases, since `domain-registry.yml` was modified).
 
 ---
 
@@ -384,7 +398,7 @@ Required fields:
 
 Optional fields:
 
-- `oda_component_name`, `tmfc_component_id`, `metadata.priority`, `metadata.milestone`
+- `metadata.priority`, `metadata.milestone`
 
 Steps:
 
@@ -394,6 +408,7 @@ Steps:
 4. Confirm `domain_id` exists in `domain-registry.yml`.
 5. Append the new entry (modelled on `domain-workstreams.yml.template` workstream entry shape).
 6. Write the file.
+7. Run the **Post-Scaffold Git Workflow**.
 
 ---
 
@@ -413,6 +428,7 @@ Steps:
 2. Confirm `implementation_id` is not already present.
 3. Append the new entry (modelled on the upstream example in `domain-implementations.yml.template`).
 4. Write the file.
+5. Run the **Post-Scaffold Git Workflow**.
 
 #### Case 2: Custom implementation — same repo (monorepo)
 
@@ -432,6 +448,7 @@ Steps:
    - `CLAUDE.md` ← `CLAUDE.dev.md.template` (substitute `domain_id`, `domain_entrypoint`)
 4. Append the new entry with `repo.paths: ["{dev_path}/**"]`, `repo.entrypoint: {dev_path}/README.md`.
 5. Write the file.
+6. Run the **Post-Scaffold Git Workflow**.
 
 #### Case 3: Custom implementation — separate repo
 
@@ -448,6 +465,132 @@ Steps:
 4. Append entry with `repo.url: "TODO: set repo url"` and `status: inactive`.
 5. Write the file.
 6. Remind user: set `repo.url` and flip `status: active` once the repo exists.
+7. Run the **Post-Scaffold Git Workflow**.
+
+---
+
+## Post-Scaffold Git Workflow
+
+After any operation that creates or modifies convention artifacts, **offer to
+push the changes into a branch of the remote repo**.
+
+This workflow applies to two categories of operation:
+
+- **Scaffolding operations** (create new files): INIT, ONBOARD, ADD INITIATIVE
+  with same-repo SA scaffolding, ADD DOMAIN with same-repo DA scaffolding,
+  ADD IMPLEMENTATION with monorepo scaffolding or bootstrap package.
+- **YAML-only operations** (modify existing files): ADD INITIATIVE
+  (separate-repo), ADD DOMAIN (separate-repo), ADD WORKSTREAM,
+  ADD IMPLEMENTATION case 1 (existing project), ADD ROADMAP ITEM.
+
+Present this as an opt-in prompt, matching the operation type:
+
+> *Scaffolding operations:*
+> The convention files have been created locally. Would you like me to commit
+> and push them to a new branch so you can open a pull request?
+>
+> *YAML-only operations:*
+> The registry has been updated. Would you like me to commit and push the
+> change to a new branch so you can open a pull request?
+
+If the user accepts:
+
+1. **Create a feature branch** from the current branch:
+   - Branch naming convention by operation:
+     - INIT: `convention/init`
+     - ONBOARD SA: `convention/onboard-sa-{solution_key}`
+     - ONBOARD DA: `convention/onboard-da-{domain_id}`
+     - ONBOARD DEV: `convention/onboard-dev-{domain_id}-{implementation_id}`
+     - ADD INITIATIVE: `convention/add-initiative-{initiative_id}`
+     - ADD DOMAIN: `convention/add-domain-{domain_id}`
+     - ADD WORKSTREAM: `convention/add-workstream-{workstream_id}`
+     - ADD IMPLEMENTATION: `convention/add-impl-{domain_id}-{implementation_id}`
+     - ADD ROADMAP ITEM: `convention/add-roadmap-{domain_id}-{roadmap_item_id}`
+2. **Stage only the files created or modified** by the operation — do not use
+   `git add -A` or `git add .`. Use explicit file paths.
+3. **Commit** with a descriptive message, e.g.:
+   - Scaffolding: `convention: bootstrap EA layer structure`
+   - Scaffolding: `convention: onboard SA for solution {solution_key}`
+   - Scaffolding: `convention: add domain {domain_id}`
+   - YAML-only: `convention: add initiative {initiative_id} (separate repo)`
+   - YAML-only: `convention: add domain {domain_id} (separate repo)`
+   - YAML-only: `convention: add workstream {workstream_id}`
+   - YAML-only: `convention: register implementation {implementation_id} in {domain_id}`
+   - YAML-only: `convention: add roadmap item {roadmap_item_id} to {domain_id}`
+4. **Push** the branch with `-u` to set tracking:
+
+   ```bash
+   git push -u origin <branch-name>
+   ```
+
+5. **Offer to open a pull request** using `gh pr create`. If the user accepts,
+   create the PR targeting the repo's default branch. Detect it with one of
+   these methods (try in order, use the first that succeeds):
+   1. `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`
+   2. `git rev-parse --abbrev-ref origin/HEAD` (returns e.g. `origin/main` — strip the `origin/` prefix)
+   3. Ask the user.
+
+   Create the PR with:
+   - Title: short description matching the commit message
+   - Body: list of files added/modified and the operation that produced them
+
+If the user declines, skip silently — do not re-prompt.
+
+> **Scope of the push — what goes where:**
+>
+> - **Same-repo scaffolding** (INIT, ADD INITIATIVE/DOMAIN with same-repo
+>   scaffolding, ADD IMPLEMENTATION monorepo): all generated files live
+>   permanently in this repo. Push them directly.
+>
+> - **YAML-only operations** (ADD INITIATIVE separate-repo, ADD DOMAIN
+>   separate-repo, ADD WORKSTREAM, ADD IMPLEMENTATION case 1, ADD ROADMAP
+>   ITEM): only existing YAML files are modified — no new directories or
+>   bootstrap packages. Push the modified file(s) directly. Push 2 does not
+>   apply.
+>
+> - **ONBOARD operations** (SA, DA, DEV) and **ADD IMPLEMENTATION separate-repo**:
+>   two pushes are involved — one to the enterprise repo and one to the target repo:
+>
+>   **Push 1 — Enterprise repo** (registry updates):
+>   - Registry files modified by the operation (`initiatives.yml`,
+>     `domain-registry.yml`, or `domain-implementations.yml`) belong in the
+>     enterprise repo permanently. Push them via the standard workflow above.
+>   - Do **not** push the bootstrap package to the enterprise repo — it is a
+>     temporary staging area and should be deleted locally after Push 2.
+>
+>   **Push 2 — Target repo** (bootstrap package → SA, DA, or DEV repo):
+>   After Push 1, check whether the agent has git and network access to the
+>   target repo (e.g. can it run `git ls-remote <repo_url>`?).
+>
+>   - **If access is available**, offer to push the bootstrap package directly:
+>
+>     > Would you like me to clone the target repo, apply the bootstrap package,
+>     > and push a branch there?
+>
+>     If the user accepts:
+>     1. Clone the target repo to a temporary directory (e.g.
+>        `../tmp/{repo-name}` or a system temp path).
+>     2. Copy the bootstrap package contents into the repo root.
+>     3. Create a feature branch:
+>        - ONBOARD SA: `convention/bootstrap-sa-{solution_key}`
+>        - ONBOARD DA: `convention/bootstrap-da-{domain_id}`
+>        - ONBOARD DEV: `convention/bootstrap-dev-{implementation_id}`
+>        - ADD IMPLEMENTATION separate-repo: `convention/bootstrap-impl-{implementation_id}`
+>     4. Stage only the bootstrap files (explicit paths, no `git add -A`).
+>     5. Commit with a descriptive message, e.g.
+>        `convention: bootstrap SA convention artifacts for {solution_key}`.
+>     6. Push the branch with `-u`.
+>     7. Offer to open a PR on the target repo via `gh pr create`.
+>     8. Clean up: delete the bootstrap package from the enterprise repo
+>        (`.convention-bootstrap/` or `da/{domain_id}/bootstrap/`).
+>
+>   - **If access is not available** (sandboxed environment, no network, auth
+>     failure), or the user declines, fall back to the manual path:
+>     1. Tell the user: copy the contents of the bootstrap package into the root
+>        of the target repo.
+>     2. Remind them to clean up the local staging folder
+>        (`.convention-bootstrap/` or `da/{domain_id}/bootstrap/`) afterward.
+>     3. Suggest running VALIDATE once the target repo has the files.
 
 ---
 
@@ -507,3 +650,4 @@ Steps:
 5. Validate each `implementation_id` exists in `da/{domain_id}/domain-implementations.yml`.
 6. Append the new entry under `items:`.
 7. Write the file.
+8. Run the **Post-Scaffold Git Workflow**.
