@@ -1,6 +1,6 @@
 # Machine Access Contract
 
-This companion document explains the optional machine access contract defined in Section 5.7 of the Multi-Level Repository Navigation and Routing Convention.
+This companion document explains the optional machine access contract defined in Section 5.8 of the Multi-Level Repository Navigation and Routing Convention.
 
 Purpose:
 
@@ -8,7 +8,7 @@ Purpose:
 - enable interoperable resolver behavior across CLI, API, MCP, or other access surfaces
 - keep transport and runtime choices outside the core convention
 
-This document is companion guidance. The normative contract lives in Section 5.7 of the main specification.
+This document is companion guidance. The normative contract lives in Section 5.8 of the main specification.
 
 ## Scope
 
@@ -100,15 +100,16 @@ Minimum required codes:
 - `ERR_SELECTOR_AMBIGUOUS`
 - `ERR_SELECTOR_NOT_ROUTABLE`
 
-Other applicable codes may also be used, such as:
+The full set of convention error codes is defined in Section 11 of the main specification. Beyond the minimum required codes above, implementations should support the following when applicable:
 
-- `ERR_CONFLICT`
 - `ERR_TARGET_UNREACHABLE`
 - `ERR_ACCESS_DENIED`
-- `ERR_SELECTOR_DUPLICATE`
-- `ERR_INITIATIVE_NOT_FOUND`
-- `ERR_DOMAIN_NOT_FOUND`
-- `ERR_ENTRYPOINT_MISSING`
+- `ERR_PARENT_LINK_MISSING`
+- `ERR_CONFLICT`
+- `ERR_INVALID_SCHEMA`
+- `ERR_OVERLAPPING_PATHS`
+- `ERR_NO_CONTEXT`
+- `ERR_REFERENCE_UNRESOLVED`
 
 ## Authority Rule
 
@@ -158,6 +159,6 @@ Prefer direct YAML reads when you want:
 
 ## Bottom Line
 
-Section 5.7 standardizes what a machine access surface must mean.
+Section 5.8 standardizes what a machine access surface must mean.
 
 This companion document explains how different implementations can realize that contract without turning the convention into a CLI or API specification.
