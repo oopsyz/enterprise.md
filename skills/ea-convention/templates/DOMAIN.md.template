@@ -55,6 +55,14 @@ inputs/
 
 `implementation_id` -> `domain-implementations.yml` -> `repo.url` + `repo.paths` + optional `repo.entrypoint` + optional `repo.git_ref`
 
+## DA Identity
+
+This domain's runtime and session identity is `domain_id`. Inbound workstreams
+(`workstream_id`) are demand units that attach to this domain-scoped ownership
+boundary — they do not create separate DA runtimes. `workstream_repo_url` in
+`domain-workstreams.yml` is the handoff context location; `domain_repo_url` in
+`domain-registry.yml` is the authoritative DA target.
+
 ## Upstream Inputs
 
 - Prefer `inputs/workstreams/<WORKSTREAM_ID>/` because `WORKSTREAM_ID` is the

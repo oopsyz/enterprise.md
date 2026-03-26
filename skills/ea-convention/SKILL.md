@@ -86,6 +86,9 @@ INITIATIVE_ID
 - A workstream is a **demand unit** against a domain, not a unique implementation unit.
 - `domain-workstreams.yml` is dual-purpose: deterministic routing metadata + inbound demand signals.
 - The **domain architect** reconciles competing workstreams into a coherent domain change plan.
+- DA runtime identity is **domain-scoped**: `domain_id` is the canonical DA session and ownership identity, not `workstream_id`.
+- `workstream_repo_url` identifies the **handoff context location**, not a separate DA container or runtime target. When both `workstream_repo_url` and `domain_repo_url` exist, use the former for handoff retrieval and the latter for authoritative DA target resolution.
+- A workstream handoff is attachable to an existing domain-scoped DA session; it does not create a new ownership boundary.
 
 ### Three-Artifact Domain Chain (proposed)
 
