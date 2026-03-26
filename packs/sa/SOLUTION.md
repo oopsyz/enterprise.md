@@ -40,7 +40,7 @@ architecture/
 
 ## Routing
 
-`WORKSTREAM_ID` -> `architecture/solution/domain-workstreams.yml` -> `workstream_repo_url` + `workstream_entrypoint`
+`WORKSTREAM_ID` -> `architecture/solution/domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
 
 ## Scope
 

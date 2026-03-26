@@ -262,8 +262,8 @@ Some organizations keep a first-party Domain repo as the canonical architecture 
 3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
    When the enterprise level exists (i.e., `initiatives.yml` is present), entries MUST also include `initiative_id` to link the workstream to its originating initiative. When no enterprise level exists (two-level topology per Section 12.2), `initiative_id` MAY be omitted.
    `initiative_id`, when present, enables correlation between workstreams and initiatives but does not create a normative routing step; the canonical selector for `domain-workstreams.yml` remains `workstream_id`.
-   `domain_id` is the stable target identity and remains required even when `workstream_repo_url` is sufficient for direct runtime resolution.
-4. `domain-workstreams.yml` entries MUST include `workstream_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository.
+   `domain_id` is the stable target identity, the canonical DA runtime and session identity (see Section 5.7.3), and remains required even when `workstream_repo_url` is sufficient for direct runtime resolution. Multiple workstreams from different initiatives MAY reference the same `domain_id`; this many-to-one relationship does not imply multiple DA runtime ownership boundaries.
+4. `domain-workstreams.yml` entries MUST include `workstream_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository. `workstream_repo_url` identifies the repository location of the workstream handoff context and does not, by itself, imply a unique DA runtime or session per workstream (see Section 5.7.2).
 5. `workstream_entrypoint` MAY be `null` while the workstream context has not yet been materialized. For any routable workstream status, `workstream_entrypoint` MUST be non-null.
 6. `domain-workstreams.yml` entries MAY include `workstream_path` to identify the repo-relative folder that contains the workstream artifacts.
 7. `domain-implementations.yml` entries MUST include:
@@ -404,7 +404,7 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
    3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision
 6. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
 
-These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.7) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
+These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.8) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
 
 ### 5.6 Selector Uniqueness
 
@@ -412,7 +412,45 @@ These error semantics are normative for all routing behavior, regardless of whet
 2. When a catalog defines `implementation_id` in `domain-implementations.yml`, each value MUST be unique within that catalog.
 3. Implementations MUST fail closed on duplicate selector values.
 
-### 5.7 Optional Machine Access Contract
+### 5.7 DA Runtime Identity and Workstream Semantics
+
+#### 5.7.1 Domain-Workstream Relationship
+
+1. `workstream_id` remains the canonical selector for `domain-workstreams.yml` and identifies the inbound Solution Architecture to Domain Architecture handoff.
+2. `domain_id` identifies the stable owning domain target for the workstream and is required even when `workstream_repo_url` is sufficient for direct runtime routing.
+3. Multiple `workstream_id` values from different initiatives MAY reference the same `domain_id`.
+4. This many-to-one relationship does not imply multiple Domain Architecture runtime ownership boundaries. Workstreams are inbound demand units; domain ownership remains anchored on `domain_id`.
+
+#### 5.7.2 `workstream_repo_url` Semantics
+
+1. `workstream_repo_url` identifies the repository location of the workstream handoff context.
+2. `workstream_repo_url` does not, by itself, imply a unique Domain Architecture runtime or session per workstream.
+3. When the workstream handoff context is stored in the same repository as the owning domain, `workstream_repo_url` and `domain_repo_url` may be equal.
+4. When both `workstream_repo_url` and authoritative `domain_repo_url` are available, implementations MUST distinguish:
+   1. handoff-context retrieval (use `workstream_repo_url`)
+   2. authoritative domain-owned runtime target resolution (use `domain_repo_url`)
+
+#### 5.7.3 DA Runtime Identity
+
+1. Domain Architecture runtime ownership is domain-scoped.
+2. The canonical runtime and session identity for a Domain Architecture owner is `domain_id`.
+3. A runtime MAY accept a `workstream_id` handoff as input, but it MUST map that handoff to the owning `domain_id` before establishing or reusing long-lived Domain Architecture session continuity.
+4. Implementations SHOULD preserve the originating `workstream_id` as inbound context associated with the domain-scoped session.
+
+#### 5.7.4 Validation Stages
+
+1. Implementations MAY perform an initial planning or discovery validation using handoff-visible catalogs or derived reports.
+2. Planning or discovery validation is not authoritative for final Domain Architecture target resolution.
+3. Final startup validation MUST resolve the authoritative domain target from `domain-registry.yml` when that registry is present in the operating model.
+4. If planning validation and authoritative startup validation disagree, implementations MUST fail closed at startup.
+
+#### 5.7.5 Runtime Metadata
+
+1. Implementations SHOULD avoid overloaded generic runtime metadata fields such as `repo_url` on domain-scoped Domain Architecture rows unless their meaning is explicitly documented.
+2. If runtime metadata is derived from `workstream_repo_url` for a domain-scoped Domain Architecture view, it SHOULD use a more explicit field name such as `workstream_context_repo_url` or `handoff_repo_url`.
+3. `domain_repo_url` remains the authoritative domain-owned runtime target when Domain Architecture runtime identity is domain-scoped.
+
+### 5.8 Optional Machine Access Contract
 
 Implementations MAY expose machine access surfaces over canonical routing catalogs.
 

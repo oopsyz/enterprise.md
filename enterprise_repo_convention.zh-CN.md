@@ -262,8 +262,8 @@ Purpose: Domain architecture entrypoint.
 3. `domain-workstreams.yml` 条目 MUST 包含 `domain_id`、`workstream_entrypoint` 和 `workstream_git_ref`。
    当企业层存在（即存在 `initiatives.yml`）时，条目还 MUST 包含 `initiative_id`，以将工作流关联到其来源 initiative。当企业层不存在（第 12.2 节定义的两层拓扑）时，`initiative_id` MAY 省略。
    当 `initiative_id` 存在时，它可用于将工作流与 initiative 做关联，但不会创建一个规范性的路由步骤；`domain-workstreams.yml` 的规范选择器仍然是 `workstream_id`。
-   `domain_id` 是稳定的目标标识，即使 `workstream_repo_url` 已足以进行直接运行时解析，它仍然是必需字段。
-4. `domain-workstreams.yml` 条目 MUST 包含 `workstream_repo_url`，除非运行时能够访问一个权威的 `domain-registry.yml`，可将 `domain_id` 解析为稳定的领域仓库。
+   `domain_id` 是稳定的目标标识，也是规范性的 DA 运行时与会话标识（见第 5.7.3 节）；即使 `workstream_repo_url` 已足以进行直接运行时解析，它仍然是必需字段。来自不同 initiative 的多个 workstream MAY 引用同一个 `domain_id`；这种多对一关系并不意味着存在多个 DA 运行时归属边界。
+4. `domain-workstreams.yml` 条目 MUST 包含 `workstream_repo_url`，除非运行时能够访问一个权威的 `domain-registry.yml`，可将 `domain_id` 解析为稳定的领域仓库。`workstream_repo_url` 标识工作流交接上下文所在的仓库位置，其本身并不意味着每个工作流都有唯一的 DA 运行时或会话（见第 5.7.2 节）。
 5. 在工作流上下文尚未实体化时，`workstream_entrypoint` MAY 为 `null`。对于任何可路由的工作流状态，`workstream_entrypoint` MUST 为非空。
 6. `domain-workstreams.yml` 条目 MAY 包含 `workstream_path`，用于标识承载该工作流工件的仓库相对目录。
 7. `domain-implementations.yml` 条目 MUST 包含：
@@ -404,7 +404,7 @@ implementations:
    3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> 被引用仓库/版本中的真实文件
 6. 实现 MUST NOT 回退到仓库名启发式、关键词搜索或其他推断上下文。
 
-无论是否实现了可选的机器访问契约（第 5.7 节），这些错误语义对所有路由行为都是规范性的。实现如何暴露这些错误（结构化错误对象、异常、日志事件）由实现自行决定；必须“失败即关闭”的行为要求不变。
+无论是否实现了可选的机器访问契约（第 5.8 节），这些错误语义对所有路由行为都是规范性的。实现如何暴露这些错误（结构化错误对象、异常、日志事件）由实现自行决定；必须“失败即关闭”的行为要求不变。
 
 ### 5.6 选择器唯一性
 
@@ -412,7 +412,45 @@ implementations:
 2. 当目录在 `domain-implementations.yml` 中定义 `implementation_id` 时，每个值 MUST 在该目录内唯一。
 3. 实现 MUST 在存在重复选择器值时失败即关闭。
 
-### 5.7 可选的机器访问契约
+### 5.7 DA 运行时身份与工作流语义
+
+#### 5.7.1 领域与工作流关系
+
+1. `workstream_id` 仍然是 `domain-workstreams.yml` 的规范性选择器，用于标识从 Solution Architecture 到 Domain Architecture 的入站交接。
+2. `domain_id` 标识该工作流所归属的稳定领域目标；即使 `workstream_repo_url` 已足以进行直接运行时路由，它仍然是必需字段。
+3. 来自不同 initiative 的多个 `workstream_id` MAY 引用同一个 `domain_id`。
+4. 这种多对一关系并不意味着存在多个 Domain Architecture 运行时归属边界。工作流是入站需求单元；领域归属仍然锚定在 `domain_id` 上。
+
+#### 5.7.2 `workstream_repo_url` 语义
+
+1. `workstream_repo_url` 标识工作流交接上下文所在的仓库位置。
+2. `workstream_repo_url` 本身并不意味着每个工作流都有唯一的 Domain Architecture 运行时或会话。
+3. 当工作流交接上下文存储在与所属领域相同的仓库中时，`workstream_repo_url` 与 `domain_repo_url` MAY 相同。
+4. 当 `workstream_repo_url` 与权威的 `domain_repo_url` 同时存在时，实现 MUST 区分：
+   1. 交接上下文提取（使用 `workstream_repo_url`）
+   2. 权威的领域自有运行时目标解析（使用 `domain_repo_url`）
+
+#### 5.7.3 DA 运行时身份
+
+1. Domain Architecture 运行时归属是领域作用域的。
+2. Domain Architecture 所有者的规范性运行时与会话标识是 `domain_id`。
+3. 运行时 MAY 接受 `workstream_id` 交接作为输入，但在建立或复用长期的 Domain Architecture 会话连续性之前，MUST 将该交接映射到所属的 `domain_id`。
+4. 实现 SHOULD 保留原始 `workstream_id`，并将其作为与领域作用域会话关联的入站上下文。
+
+#### 5.7.4 校验阶段
+
+1. 实现 MAY 使用交接可见的目录或派生报告执行初始规划或发现校验。
+2. 规划或发现校验并不是最终 Domain Architecture 目标解析的权威依据。
+3. 当运行模型中存在 `domain-registry.yml` 时，最终启动校验 MUST 从该注册表中解析权威的领域目标。
+4. 如果规划校验与权威启动校验结果不一致，实现 MUST 在启动时失败即关闭。
+
+#### 5.7.5 运行时元数据
+
+1. 对于领域作用域的 Domain Architecture 视图，实现 SHOULD 避免使用诸如 `repo_url` 这类语义未明确记录的泛化运行时元数据字段。
+2. 如果领域作用域的 Domain Architecture 视图中的运行时元数据源自 `workstream_repo_url`，它 SHOULD 使用更明确的字段名，例如 `workstream_context_repo_url` 或 `handoff_repo_url`。
+3. 当 Domain Architecture 运行时身份是领域作用域时，`domain_repo_url` 仍然是权威的领域自有运行时目标。
+
+### 5.8 可选的机器访问契约
 
 实现 MAY 在规范路由目录之上暴露机器访问接口。
 
