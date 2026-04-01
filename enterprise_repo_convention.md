@@ -40,6 +40,30 @@ To implement this principle, the proposal defines two independent layers (adopta
 
 An organization can adopt Layer A without Layer B, but conformance profiles start at routed adoption.
 
+Catalogs at a glance:
+
+```yaml
+# initiatives.yml
+version: "1.0"
+initiatives:
+  - { initiative_id: init-example, solution_repo_url: https://github.com/example/solution-repo, solution_entrypoint: SOLUTION.md, status: active }
+```
+
+```yaml
+# domain-workstreams.yml
+version: "1.0"
+workstreams:
+  - { workstream_id: ws-init-example-order, initiative_id: init-example, domain_id: order, workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md, workstream_git_ref: feature/ws-init-example-order, status: active }
+```
+
+```yaml
+# domain-implementations.yml
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - { implementation_id: order-api, status: active, repo: { paths: ["src/order-api/*"] } }
+```
+
 ```mermaid
 flowchart LR
     subgraph ER["Enterprise repo"]
@@ -103,9 +127,23 @@ This convention defines three architecture levels (`ENTERPRISE.md`, `SOLUTION.md
 
 Implementation references:
 
-1. AGENTS handoff templates: `skills/ea-convention/templates/AGENTS.ea.md.template`, `skills/ea-convention/templates/AGENTS.sa.md.template`, `skills/ea-convention/templates/AGENTS.da.md.template`.
-2. Level entrypoint templates: `skills/ea-convention/templates/ENTERPRISE.md.template`, `skills/ea-convention/templates/SOLUTION.md.template`, `skills/ea-convention/templates/DOMAIN.md.template`.
-3. End-to-end examples: `examples/core/`, `examples/governed/`.
+1. AGENTS handoff templates: [AGENTS.ea.md.template](skills/ea-convention/templates/AGENTS.ea.md.template), [AGENTS.sa.md.template](skills/ea-convention/templates/AGENTS.sa.md.template), [AGENTS.da.md.template](skills/ea-convention/templates/AGENTS.da.md.template)
+2. Level entrypoint templates: [ENTERPRISE.md.template](skills/ea-convention/templates/ENTERPRISE.md.template), [SOLUTION.md.template](skills/ea-convention/templates/SOLUTION.md.template), [DOMAIN.md.template](skills/ea-convention/templates/DOMAIN.md.template)
+3. Core profile overview: [examples/core/README.md](examples/core/README.md)
+4. Governed profile overview: [examples/governed/README.md](examples/governed/README.md)
+5. Representative core artifacts: [examples/core/enterprise-repo/ENTERPRISE.md](examples/core/enterprise-repo/ENTERPRISE.md), [examples/core/enterprise-repo/initiatives.yml](examples/core/enterprise-repo/initiatives.yml), [examples/core/solution-repo/SOLUTION.md](examples/core/solution-repo/SOLUTION.md), [examples/core/solution-repo/domain-workstreams.yml](examples/core/solution-repo/domain-workstreams.yml), [examples/core/domain-repo/DOMAIN.md](examples/core/domain-repo/DOMAIN.md), [examples/core/domain-repo/domain-implementations.yml](examples/core/domain-repo/domain-implementations.yml)
+
+Repository-local bounded-context guidance note:
+
+1. In a Domain repository, `AGENTS.md` SHOULD reinforce that the repository is a bounded context. A concise pattern is: `You are operating strictly inside the <Domain Name> bounded context. Never modify or reference artifacts owned by another domain without escalation through the authoritative routing or governance artifacts.`
+
+Example traversal:
+
+1. Read `AGENTS.md`.
+2. Open the level entrypoint named by that repo's startup instruction.
+3. Use the canonical selector catalog for the next boundary instead of searching by repo name.
+4. Open the resolved target repository and entrypoint.
+5. Re-anchor on the target repository's local `AGENTS.md` before continuing.
 
 ### 3.3 Parent Link Format
 
@@ -129,6 +167,13 @@ The repository model implies four common working roles:
 2. `sa`: solution architecture. Owns solution-level decomposition, workstream routing, and solution-scoped coordination across domains.
 3. `da`: domain architecture. Owns domain boundaries, domain design baselines, and the authoritative mapping from `implementation_id` to implementation targets.
 4. `dev`: implementation execution role operating within the scope defined by `da`. `dev` consumes domain context and implementation targets but does not define a new architecture layer.
+
+Bounded-context contract:
+
+1. `DOMAIN.md` plus `domain-implementations.yml` define the canonical bounded-context contract for a domain.
+2. This contract SHOULD make the domain's ubiquitous language, invariants, authoritative interfaces, and implementation targets explicit.
+3. Domain-to-domain relationships MUST be expressed through domain-owned artifacts such as entrypoints, schemas, APIs, or other authoritative references. They MUST NOT be inferred from repository adjacency, naming similarity, or incidental code references.
+4. `da` owns this contract. `dev` executes within it.
 
 Normative `dev` semantics:
 
@@ -226,6 +271,41 @@ Format rules:
 
 1. YAML is the canonical format for all catalogs in this proposal.
 
+Catalog intent at a glance:
+
+```yaml
+# enterprise to solution
+version: "1.0"
+initiatives:
+  - initiative_id: init-bss-modernization
+    solution_repo_url: https://github.com/acme/solution-bss
+    solution_entrypoint: SOLUTION.md
+    status: active
+```
+
+```yaml
+# solution to domain handoff
+version: "1.0"
+workstreams:
+  - workstream_id: ws-bss-order
+    initiative_id: init-bss-modernization
+    domain_id: order
+    workstream_entrypoint: inputs/workstreams/ws-bss-order/WORKSTREAM.md
+    workstream_git_ref: feature/ws-bss-order
+    status: active
+```
+
+```yaml
+# domain to implementation target
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: order-api
+    status: active
+    repo:
+      paths: ["src/order-api/*"]
+```
+
 Authorship note: Routing catalogs are typically generated artifacts -- produced by an intake pipeline that filters a richer source (for example `initiative-pipeline.yml`) and writes the selector manifest. Because they are generated, they must remain separate from the human-authored entrypoint (`ENTERPRISE.md`). Inlining them into the entrypoint would either make the entrypoint a generated file (conflicting with its role as a stable navigation guide) or introduce a hand-maintained duplicate that drifts from the pipeline source.
 
 ### 5.2 Versioning Contract
@@ -248,6 +328,7 @@ Runtime behavior:
 2. Producers MUST provide migration notes when incrementing `MAJOR`.
 
 Authoritative machine-readable schemas for canonical catalog validation are maintained under `skills/ea-convention/references/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog version contract in this section.
+Appendix A lists the schema file paths, schema identifiers, and intended purpose for each canonical schema without duplicating schema structure in Markdown.
 
 ### 5.3 Minimum Fields
 
@@ -360,6 +441,26 @@ implementations:
       paths: ["*"]
 ```
 
+Monorepo path-scoping example:
+
+```yaml
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: order-api
+    status: active
+    repo:
+      paths: ["apps/order-api/*"]
+      entrypoint: apps/order-api/README.md
+  - implementation_id: order-worker
+    status: active
+    repo:
+      paths: ["apps/order-worker/*"]
+      entrypoint: apps/order-worker/README.md
+```
+
+In this pattern, `repo.url` is omitted because both implementations live in the same repository as the catalog. Deterministic routing is preserved by non-overlapping `repo.paths`.
+
 ### 5.4 Status Vocabulary (Normative)
 
 Allowed values:
@@ -403,6 +504,9 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
    2. `domain-workstreams.yml[].domain_id` -> `domain-registry.yml[].domain_id`
    3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision
 6. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
+7. Deprecated targets are read-only discovery targets. A resolver MAY return a deprecated entry for traceability or migration context, but MUST NOT route write operations through it.
+8. When a deprecated entry includes `replaced_by`, the resolver SHOULD surface those successor `implementation_id` values as migration hints. These hints do not override the fail-closed requirement for write routing.
+9. Redirect behavior is explicit only. Implementations MUST NOT infer replacements unless they are declared in the authoritative catalog.
 
 These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.8) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
 
@@ -532,16 +636,17 @@ Override rule:
 
 ## 9. Conformance Profiles
 
+Routed adoption means deterministic selector-based resolution at each architecture boundary that exists in the operating model.
+
 ### Core Profile
 
-Required:
+Checklist:
 
-1. Layer A (`AGENTS.md` plus the applicable level entrypoints)
-2. deterministic bootstrap discovery mechanism for the topmost level present in the organization
-3. routing catalogs for each level boundary that exists in the organization:
-   1. enterprise->solution (when both enterprise and solution levels exist): `initiatives.yml`
-   2. solution->domain (when both solution and domain levels exist): `domain-workstreams.yml`
-   3. domain->implementation (when selector-driven domain->implementation routing boundary exists): `domain-implementations.yml`
+1. `AGENTS.md` plus the applicable level entrypoints exist for the levels in scope.
+2. A deterministic bootstrap discovery mechanism exists for the topmost level present in the organization.
+3. `initiatives.yml` exists when both enterprise and solution levels exist.
+4. `domain-workstreams.yml` exists when both solution and domain levels exist.
+5. `domain-implementations.yml` exists when selector-driven domain-to-implementation routing is in scope.
 
 A two-level organization (for example Solution + Domain only) satisfies the Core profile with `domain-workstreams.yml` for solution->domain workstream routing. It requires `domain-implementations.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
 
@@ -553,16 +658,13 @@ Core profile resolution rule:
 
 ### Governed Profile
 
-Required:
+Checklist:
 
-1. Core profile
-2. domain governance registry (for example `domain-registry.yml`)
-   1. when a domain entry includes `domain_repo_url`, it MUST include `domain_entrypoint`
-3. solution scope/index manifest (for example `solution-index.yml`)
-4. governance state artifact with minimum fields:
-   1. `spec_name`
-   2. `spec_version`
-   3. `layers` (dict keyed by cascade layer name, each with `status`)
+1. Core profile requirements are satisfied.
+2. A domain governance registry exists, for example `domain-registry.yml`.
+3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint`.
+4. A solution scope or index manifest exists, for example `solution-index.yml`.
+5. A governance state artifact exists with minimum fields `spec_name`, `spec_version`, and `layers`.
 
 Governance layer status values are separate from the routing status vocabulary in Section 5.4. Allowed governance layer statuses: `not_started`, `in_progress`, `proposed`, `approved`, `blocked`, `rejected`.
 
@@ -642,6 +744,21 @@ Top-down per-boundary routing sequence (each step requires the caller to possess
    2. otherwise resolve `domain_id` -> authoritative `domain-registry.yml` -> `domain_repo_url`
 4. `implementation_id` -> `domain-implementations.yml` -> repo location + optional `repo.entrypoint` + optional `repo.git_ref` (when selector-driven domain->implementation routing boundary exists)
 
+Context mapping patterns:
+
+1. Anti-corruption layer: when one domain consumes another through translation, the translating boundary SHOULD be declared in domain-owned artifacts rather than inferred from code structure.
+2. Published language: when a domain exposes shared event, API, or schema vocabulary, agents SHOULD consume that published contract rather than reverse-engineer private implementation types.
+3. Shared kernel: when two domains intentionally share a narrow model, the shared surface MUST be explicitly identified so agents do not widen the coupling implicitly.
+4. Customer/supplier: when one domain depends on another's roadmap or contract, the dependency SHOULD be represented by authoritative upstream references and not by direct editing across repositories.
+
+AI-first usage:
+
+1. Tool-capable agents SHOULD start with `AGENTS.md`, then open the applicable level entrypoint, then use the canonical selector catalog for the next boundary.
+2. For cross-level work, prompts and automation SHOULD name selectors and expected routing steps explicitly, for example: `Resolve initiative init-bss-modernization through initiatives.yml, then open the target SOLUTION.md.`
+3. Domain-scoped execution SHOULD begin from `DOMAIN.md` and `domain-implementations.yml`, not from monorepo-wide search or guessed repository ownership.
+4. This pattern reduces context-window waste because the agent opens the smallest authoritative artifact set needed for the current boundary instead of searching across unrelated repositories.
+5. After crossing into a target implementation repository, the agent MUST re-anchor on that repository's local `AGENTS.md` before taking implementation-local actions.
+
 Developer traversal semantics:
 
 1. `dev` startup is anchored at the domain layer: `AGENTS.md` -> `DOMAIN.md` -> `domain-implementations.yml` -> target implementation repository and optional `repo.entrypoint`/`repo.git_ref`.
@@ -667,3 +784,15 @@ This proposal is additive:
 4. Claude Code compatibility is achieved through `CLAUDE.md` bridging into this convention's repository flow; this proposal does not assume native Claude Code support for `AGENTS.md`.
 
 Reference implementation layout, operational mapping patterns, agent context guidance, and adoption notes are maintained in companion documents under `reference/`.
+
+## Appendix A. Canonical Schemas
+
+| Schema file | `$id` | Purpose |
+|---|---|---|
+| [skills/ea-convention/references/initiatives.schema.json](skills/ea-convention/references/initiatives.schema.json) | `https://example.com/enterprise.md/schemas/initiatives.schema.json` | Structural validation for enterprise-to-solution routing catalogs |
+| [skills/ea-convention/references/domain-workstreams.schema.json](skills/ea-convention/references/domain-workstreams.schema.json) | `https://example.com/enterprise.md/schemas/domain-workstreams.schema.json` | Structural validation for solution-to-domain workstream routing catalogs |
+| [skills/ea-convention/references/domain-implementations.schema.json](skills/ea-convention/references/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | Structural validation for domain-to-implementation routing catalogs |
+| [skills/ea-convention/references/domain-registry.schema.json](skills/ea-convention/references/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | Structural validation for governed-profile domain registries |
+| [skills/ea-convention/references/solution-index.schema.json](skills/ea-convention/references/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | Structural validation for governed-profile solution manifests |
+
+The repository also contains [skills/ea-convention/references/domain-roadmap.schema.json](skills/ea-convention/references/domain-roadmap.schema.json) with `$id` `https://example.com/enterprise.md/schemas/domain-roadmap.schema.json`. It is intentionally excluded from the canonical table above because `domain-roadmap.yml` is a proposed extension, not part of the normative catalog set in this specification draft.

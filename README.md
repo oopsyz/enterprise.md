@@ -88,12 +88,27 @@ Short form:
 
 ## Conformance Profiles
 
-| Profile | What you need |
-|---|---|
-| **Core** | Layer A + deterministic bootstrap discovery for the topmost level present + routing catalogs for boundaries that exist |
-| **Governed** | Core + governance registry, solution scope manifest, and governance state artifact |
+`Core` checklist:
 
-See [examples/](examples/) for working samples of each profile.
+1. `AGENTS.md` plus the applicable level entrypoints exist.
+2. A deterministic bootstrap discovery mechanism exists for the topmost level present.
+3. `initiatives.yml` exists when enterprise and solution levels both exist.
+4. `domain-workstreams.yml` exists when solution and domain levels both exist.
+5. `domain-implementations.yml` exists when selector-driven domain-to-implementation routing is in scope.
+
+`Governed` checklist:
+
+1. All `Core` requirements are satisfied.
+2. A domain governance registry exists, for example `domain-registry.yml`.
+3. A solution scope or index manifest exists, for example `solution-index.yml`.
+4. A governance state artifact exists with `spec_name`, `spec_version`, and `layers`.
+
+Routed adoption means deterministic selector-based resolution at each architecture boundary that exists in the operating model. Absent boundaries do not require placeholder catalogs.
+
+Examples:
+
+1. [examples/core/README.md](examples/core/README.md)
+2. [examples/governed/README.md](examples/governed/README.md)
 
 Format note: YAML is canonical for routing catalogs.
 
@@ -115,6 +130,48 @@ Core and Governed implementations must provide at least one deterministic bootst
 2. Environment variable.
 3. Well-known discovery endpoint.
 
+Catalogs at a glance:
+
+```yaml
+# initiatives.yml
+version: "1.0"
+initiatives:
+  - initiative_id: init-bss-modernization
+    solution_repo_url: https://github.com/acme/solution-bss
+    solution_entrypoint: SOLUTION.md
+    status: active
+```
+
+```yaml
+# domain-workstreams.yml
+version: "1.0"
+workstreams:
+  - workstream_id: ws-bss-order
+    initiative_id: init-bss-modernization
+    domain_id: order
+    workstream_entrypoint: inputs/workstreams/ws-bss-order/WORKSTREAM.md
+    workstream_git_ref: feature/ws-bss-order
+    status: active
+```
+
+```yaml
+# domain-implementations.yml
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: order-api
+    status: active
+    repo:
+      paths: ["src/order-api/*"]
+```
+
+Example traversal:
+
+1. Start in `AGENTS.md`.
+2. Open the level entrypoint named there.
+3. Resolve the next boundary through the canonical catalog, not through repo-name search.
+4. Open the resolved target entrypoint and re-anchor on that repository's local `AGENTS.md`.
+
 ## Quick Start
 
 1. Read the [full proposal](enterprise_repo_convention.md).
@@ -123,7 +180,12 @@ Core and Governed implementations must provide at least one deterministic bootst
 4. Validate your catalog files using the `ea-convention` skill's validator (for example: `python skills/ea-convention/scripts/validate_convention.py --root .`) or run schema checks against the authoritative schemas under `skills/ea-convention/references/`.
 5. Define the bootstrap discovery mechanism if you are adopting the Core or Governed profile (e.g., an `ENTERPRISE_REPO_URL` environment variable, a startup parameter, or a well-known endpoint like `https://config.example.com/enterprise-catalog`).
 6. Replace placeholder values with your organization's data and keep routing data in the canonical YAML catalogs.
-7. See [examples/](examples/) for complete working samples at each profile level.
+7. See [examples/core/README.md](examples/core/README.md) and [examples/governed/README.md](examples/governed/README.md) for complete working samples.
+8. For existing estates, use the brownfield guide: [reference/brownfield-adoption.md](reference/brownfield-adoption.md).
+
+Domain repository note:
+
+1. In a Domain repo, `AGENTS.md` should make the bounded-context boundary explicit. A short pattern is: `You are operating strictly inside the <Domain Name> bounded context. Never modify or reference artifacts owned by another domain without escalation through the authoritative routing or governance artifacts.`
 
 ## Repository Contents
 
@@ -164,6 +226,7 @@ Core and Governed implementations must provide at least one deterministic bootst
 |   |-- core/                                      # core routed example
 |   `-- governed/                                  # governed enterprise example
 `-- reference/
+    |-- brownfield-adoption.md                    # incremental adoption path for existing repo estates
     |-- harness-engineering.md                     # reference note
     |-- operational-guidance.md                    # non-normative CI, observability, and layout guidance
     `-- machine-access-contract.md                 # optional contract for querying canonical routing catalogs
