@@ -10,6 +10,7 @@ domains:
     owner: order-team
     domain_repo_url: https://github.com/acme/domain-order
     domain_entrypoint: DOMAIN.md
+    domain_git_ref: main
     status: active
     capabilities:
       - capability_id: cap-order-capture
@@ -29,6 +30,7 @@ domains:
     owner: billing-team
     domain_repo_url: https://github.com/acme/domain-billing
     domain_entrypoint: DOMAIN.md
+    domain_git_ref: main
     status: active
     capabilities:
       - capability_id: cap-billing-generation

@@ -34,7 +34,7 @@ domain-registry.yml                       <- domain governance registry
 
 ## Routing
 
-`INITIATIVE_ID` -> `initiatives.yml` -> `solution_repo_url` + `solution_entrypoint`
+`INITIATIVE_ID` -> `initiatives.yml` -> `solution_repo_url` + `solution_entrypoint` + `solution_git_ref`
 
 ## Policy
 

@@ -41,6 +41,7 @@
         "initiative_id",
         "solution_repo_url",
         "solution_entrypoint",
+        "solution_git_ref",
         "status"
       ],
       "properties": {
@@ -56,6 +57,9 @@
           "minLength": 1
         },
         "solution_entrypoint": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "solution_git_ref": {
           "$ref": "#/$defs/nonEmptyString"
         },
         "status": {

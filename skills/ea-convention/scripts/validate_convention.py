@@ -285,6 +285,10 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         active_ws = 0
         for index, ws in enumerate(workstreams_list):
             ws_init_id = ws.get("initiative_id", "")
+            if initiative_ids and not ws_init_id:
+                err("ERR_SELECTOR_MISSING",
+                    f"workstreams[{index}] requires initiative_id when initiatives.yml is present",
+                    path=workstreams_path)
             if ws_init_id and initiative_ids and ws_init_id not in initiative_ids:
                 err("ERR_INITIATIVE_NOT_FOUND",
                     f"workstreams[{index}] initiative_id '{ws_init_id}' not in initiatives",
@@ -319,7 +323,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                     path=workstreams_path)
 
             # Without a domain registry, workstreams need their own repo URL
-            if not has_domain_registry and not isinstance(ws_url, str):
+            if not has_domain_registry and not normalized_ws_url:
                 err("ERR_TARGET_UNREACHABLE",
                     f"workstreams[{index}] requires domain_repo_url when no domain-registry.yml is provided",
                     path=workstreams_path)

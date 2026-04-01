@@ -44,7 +44,7 @@ architecture/
 
 ## Routing
 
-`INITIATIVE_ID` -> `architecture/portfolio/initiatives.yml` -> `solution_repo_url` + `solution_entrypoint`
+`INITIATIVE_ID` -> `architecture/portfolio/initiatives.yml` -> `solution_repo_url` + `solution_entrypoint` + `solution_git_ref`
 
 ## Policy
 

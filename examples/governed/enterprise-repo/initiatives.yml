@@ -8,6 +8,7 @@ initiatives:
     name: BSS Modernization
     solution_repo_url: https://github.com/acme/solution-bss
     solution_entrypoint: SOLUTION.md
+    solution_git_ref: main
     status: active
     owner: bss-architecture-team
     metadata:

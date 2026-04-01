@@ -100,7 +100,7 @@ Short form:
 
 1. All `Core` requirements are satisfied.
 2. A domain governance registry exists, for example `domain-registry.yml`.
-3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint`.
+3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint` and `domain_git_ref`.
 4. A solution scope or index manifest exists, for example `solution-index.yml`.
 5. A governance state artifact exists with `spec_name`, `spec_version`, and `layers`.
 
@@ -119,7 +119,7 @@ Canonical catalogs and selectors:
 
 | Catalog | Level | Selector | Resolves |
 |---|---|---|---|
-| `initiatives.yml` | Enterprise | `initiative_id` | solution repository + `solution_entrypoint` |
+| `initiatives.yml` | Enterprise | `initiative_id` | solution repository + `solution_entrypoint` + `solution_git_ref` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + workstream context + repo target |
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 

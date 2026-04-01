@@ -46,14 +46,14 @@ Catalogs at a glance:
 # initiatives.yml
 version: "1.0"
 initiatives:
-  - { initiative_id: init-example, solution_repo_url: https://github.com/example/solution-repo, solution_entrypoint: SOLUTION.md, status: active }
+  - { initiative_id: init-example, solution_repo_url: https://github.com/example/solution-repo, solution_entrypoint: SOLUTION.md, solution_git_ref: main, status: active }
 ```
 
 ```yaml
 # domain-workstreams.yml
 version: "1.0"
 workstreams:
-  - { workstream_id: ws-init-example-order, initiative_id: init-example, domain_id: order, workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md, workstream_git_ref: feature/ws-init-example-order, status: active }
+  - { workstream_id: ws-init-example-order, initiative_id: init-example, domain_id: order, workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md, workstream_git_ref: feature/ws-init-example-order, domain_repo_url: https://github.com/example/order-domain-repo, status: active }
 ```
 
 ```yaml
@@ -261,7 +261,7 @@ This standard defines file names and semantics, not fixed directories.
 
 | Catalog | Level | Selector | Resolves |
 |---|---|---|---|
-| `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
+| `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` + `solution_git_ref` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 
@@ -280,6 +280,7 @@ initiatives:
   - initiative_id: init-bss-modernization
     solution_repo_url: https://github.com/acme/solution-bss
     solution_entrypoint: SOLUTION.md
+    solution_git_ref: main
     status: active
 ```
 
@@ -292,6 +293,7 @@ workstreams:
     domain_id: order
     workstream_entrypoint: inputs/workstreams/ws-bss-order/WORKSTREAM.md
     workstream_git_ref: feature/ws-bss-order
+    domain_repo_url: https://github.com/acme/domain-order
     status: active
 ```
 
@@ -330,7 +332,7 @@ Runtime behavior:
 1. Consumers MUST fail closed on unknown `MAJOR` versions.
 2. Producers MUST provide migration notes when incrementing `MAJOR`.
 
-Authoritative machine-readable schemas for canonical catalog validation are maintained under `skills/ea-convention/references/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog version contract in this section.
+Authoritative machine-readable schemas for canonical catalog validation are maintained under `skills/ea-convention/references/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog version contract in this section. Topology-dependent conditions from Sections 5.3, 5.5, and 9 remain normative validator rules in addition to standalone schema validation because they depend on the surrounding artifact set.
 Appendix A lists the schema file paths, schema identifiers, and intended purpose for each canonical schema without duplicating schema structure in Markdown.
 
 ### 5.3 Minimum Fields
@@ -341,8 +343,9 @@ Rationale for implementation target metadata:
 
 Some organizations keep a first-party Domain repo as the canonical architecture overlay while adopting third-party or open-source repositories as implementation targets. In that model, repo-only resolution is not sufficient for deterministic agent navigation because the external repository may not implement this convention and may expose multiple plausible entry files. Optional implementation target metadata therefore allows the Domain repo to declare both the exact file an agent should open and, when needed, the revision the architecture was validated against, without requiring any change to the external repository itself.
 
-1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) alongside `solution_repo_url`.
-2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`).
+1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) and `solution_git_ref` alongside `solution_repo_url`.
+2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`) and `domain_git_ref`.
+   `solution_git_ref` and `domain_git_ref` identify the concrete repository revision used for deterministic routing and entrypoint validation at those boundaries.
 3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
    When the enterprise level exists (i.e., `initiatives.yml` is present), entries MUST also include `initiative_id` to link the workstream to its originating initiative. When no enterprise level exists (two-level topology per Section 12.2), `initiative_id` MAY be omitted.
    `initiative_id`, when present, enables correlation between workstreams and initiatives but does not create a normative routing step; the canonical selector for `domain-workstreams.yml` remains `workstream_id`.
@@ -377,6 +380,7 @@ initiatives:
   - initiative_id: init-example
     solution_repo_url: https://github.com/example/solution-repo
     solution_entrypoint: SOLUTION.md
+    solution_git_ref: main
     status: active
 ```
 
@@ -505,7 +509,7 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 5. At minimum, the following references MUST resolve when the corresponding artifacts are present and available to the resolver or validator:
    1. `domain-workstreams.yml[].initiative_id` -> `initiatives.yml[].initiative_id`
    2. `domain-workstreams.yml[].domain_id` -> `domain-registry.yml[].domain_id`
-   3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision
+   3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision when the corresponding entrypoint field is non-null. The applicable revision field is `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as appropriate.
 6. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
 7. Deprecated targets are read-only discovery targets. A resolver MAY return a deprecated entry for traceability or migration context, but MUST NOT route write operations through it.
 8. When a deprecated entry includes `replaced_by`, the resolver SHOULD surface those successor `implementation_id` values as migration hints. These hints do not override the fail-closed requirement for write routing.
@@ -605,16 +609,17 @@ Migration policy:
 
 Validators for this convention MUST check:
 
-1. schema and required-field conformance using the authoritative schemas under `skills/ea-convention/references/`
-2. selector uniqueness (see Section 5.6)
-3. cross-file reference integrity for all normative references in Section 5.5
-4. status-policy compliance
-5. catalog version compatibility against Section 5.2
+1. structural schema and required-field conformance using the authoritative schemas under `skills/ea-convention/references/`
+2. topology-dependent conditional conformance from Sections 5.3 and 9 that depends on the surrounding artifact set (for example when `initiative_id` or `domain_repo_url` is required)
+3. selector uniqueness (see Section 5.6)
+4. cross-file reference integrity for all normative references in Section 5.5
+5. status-policy compliance
+6. catalog version compatibility against Section 5.2
 
 When the referenced repository or revision is accessible to the validator, it SHOULD also check:
 
 1. referenced repository URLs are reachable with validator identity (or provider API equivalent)
-2. referenced entrypoint paths exist in the target repository/revision
+2. referenced entrypoint paths exist in the target repository/revision declared by `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as applicable
 
 Companion operational guidance, including CI realization patterns and observability practices, is maintained in `reference/operational-guidance.md`.
 
@@ -664,7 +669,7 @@ Checklist:
 
 1. Core profile requirements are satisfied.
 2. A domain governance registry exists, for example `domain-registry.yml`.
-3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint`.
+3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint` and `domain_git_ref`.
 4. A solution scope or index manifest exists, for example `solution-index.yml`.
 5. A governance state artifact exists with minimum fields `spec_name`, `spec_version`, and `layers`.
 
@@ -739,7 +744,7 @@ Companion observability guidance, including suggested failure record fields and 
 
 Top-down per-boundary routing sequence (each step requires the caller to possess the selector for that boundary):
 
-1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint`
+1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint` + `solution_git_ref`
 2. `workstream_id` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
 3. Repository resolution for a workstream handoff and DA startup:
    1. self-sufficient target resolution: use `domain_repo_url` when present in `domain-workstreams.yml`

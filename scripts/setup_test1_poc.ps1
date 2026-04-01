@@ -157,17 +157,19 @@ initiatives:
     owner: solution-architecture
     solution_repo_url: $RemoteRepoUrl
     solution_entrypoint: sa/SOLUTION.md
+    solution_git_ref: main
 "@
 
 Set-Content -Path $eaRegistry -Encoding UTF8 -Value @"
 version: "1.0"
 domains:
   - domain_id: order-management
-    domain_name: Order Management
+    name: Order Management
     status: active
     owner: domain-architecture
     domain_repo_url: $RemoteRepoUrl
     domain_entrypoint: da/DOMAIN.md
+    domain_git_ref: main
 "@
 
 $saSolution = Join-Path $target "sa/SOLUTION.md"
