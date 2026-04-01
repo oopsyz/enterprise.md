@@ -40,6 +40,30 @@ To implement this principle, the proposal defines two independent layers (adopta
 
 An organization can adopt Layer A without Layer B, but conformance profiles start at routed adoption.
 
+Catalogs at a glance:
+
+```yaml
+# initiatives.yml
+version: "1.0"
+initiatives:
+  - { initiative_id: init-example, solution_repo_url: https://github.com/example/solution-repo, solution_entrypoint: SOLUTION.md, solution_git_ref: main, status: active }
+```
+
+```yaml
+# domain-workstreams.yml
+version: "1.0"
+workstreams:
+  - { workstream_id: ws-init-example-order, initiative_id: init-example, domain_id: order, workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md, workstream_git_ref: feature/ws-init-example-order, domain_repo_url: https://github.com/example/order-domain-repo, status: active }
+```
+
+```yaml
+# domain-implementations.yml
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - { implementation_id: order-api, status: active, repo: { paths: ["src/order-api/*"] } }
+```
+
 ```mermaid
 flowchart LR
     subgraph ER["Enterprise repo"]
@@ -103,9 +127,23 @@ This convention defines three architecture levels (`ENTERPRISE.md`, `SOLUTION.md
 
 Implementation references:
 
-1. AGENTS handoff templates: `skills/ea-convention/templates/AGENTS.ea.md.template`, `skills/ea-convention/templates/AGENTS.sa.md.template`, `skills/ea-convention/templates/AGENTS.da.md.template`.
-2. Level entrypoint templates: `skills/ea-convention/templates/ENTERPRISE.md.template`, `skills/ea-convention/templates/SOLUTION.md.template`, `skills/ea-convention/templates/DOMAIN.md.template`.
-3. End-to-end examples: `examples/core/`, `examples/governed/`.
+1. AGENTS handoff templates: [AGENTS.ea.md.template](skills/ea-convention/templates/AGENTS.ea.md.template), [AGENTS.sa.md.template](skills/ea-convention/templates/AGENTS.sa.md.template), [AGENTS.da.md.template](skills/ea-convention/templates/AGENTS.da.md.template)
+2. Level entrypoint templates: [ENTERPRISE.md.template](skills/ea-convention/templates/ENTERPRISE.md.template), [SOLUTION.md.template](skills/ea-convention/templates/SOLUTION.md.template), [DOMAIN.md.template](skills/ea-convention/templates/DOMAIN.md.template)
+3. Core profile overview: [examples/core/README.md](examples/core/README.md)
+4. Governed profile overview: [examples/governed/README.md](examples/governed/README.md)
+5. Representative core artifacts: [examples/core/enterprise-repo/ENTERPRISE.md](examples/core/enterprise-repo/ENTERPRISE.md), [examples/core/enterprise-repo/initiatives.yml](examples/core/enterprise-repo/initiatives.yml), [examples/core/solution-repo/SOLUTION.md](examples/core/solution-repo/SOLUTION.md), [examples/core/solution-repo/domain-workstreams.yml](examples/core/solution-repo/domain-workstreams.yml), [examples/core/domain-repo/DOMAIN.md](examples/core/domain-repo/DOMAIN.md), [examples/core/domain-repo/domain-implementations.yml](examples/core/domain-repo/domain-implementations.yml)
+
+Repository-local bounded-context guidance note:
+
+1. In a Domain repository, `AGENTS.md` SHOULD reinforce that the repository is a bounded context. A concise pattern is: `You are operating strictly inside the <Domain Name> bounded context. Never modify or reference artifacts owned by another domain without escalation through the authoritative routing or governance artifacts.`
+
+Example traversal:
+
+1. Read `AGENTS.md`.
+2. Open the level entrypoint named by that repo's startup instruction.
+3. Use the canonical selector catalog for the next boundary instead of searching by repo name.
+4. Open the resolved target repository and entrypoint.
+5. Re-anchor on the target repository's local `AGENTS.md` before continuing.
 
 ### 3.3 Parent Link Format
 
@@ -129,6 +167,13 @@ The repository model implies four common working roles:
 2. `sa`: solution architecture. Owns solution-level decomposition, workstream routing, and solution-scoped coordination across domains.
 3. `da`: domain architecture. Owns domain boundaries, domain design baselines, and the authoritative mapping from `implementation_id` to implementation targets.
 4. `dev`: implementation execution role operating within the scope defined by `da`. `dev` consumes domain context and implementation targets but does not define a new architecture layer.
+
+Bounded-context contract:
+
+1. `DOMAIN.md` plus `domain-implementations.yml` define the canonical bounded-context contract for a domain.
+2. This contract SHOULD make the domain's ubiquitous language, invariants, authoritative interfaces, and implementation targets explicit.
+3. Domain-to-domain relationships MUST be expressed through domain-owned artifacts such as entrypoints, schemas, APIs, or other authoritative references. They MUST NOT be inferred from repository adjacency, naming similarity, or incidental code references.
+4. `da` owns this contract. `dev` executes within it.
 
 Normative `dev` semantics:
 
@@ -216,7 +261,7 @@ This standard defines file names and semantics, not fixed directories.
 
 | Catalog | Level | Selector | Resolves |
 |---|---|---|---|
-| `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` |
+| `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` + `solution_git_ref` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 
@@ -225,6 +270,43 @@ Catalog resolution is defined per boundary. This specification does not guarante
 Format rules:
 
 1. YAML is the canonical format for all catalogs in this proposal.
+
+Catalog intent at a glance:
+
+```yaml
+# enterprise to solution
+version: "1.0"
+initiatives:
+  - initiative_id: init-bss-modernization
+    solution_repo_url: https://github.com/acme/solution-bss
+    solution_entrypoint: SOLUTION.md
+    solution_git_ref: main
+    status: active
+```
+
+```yaml
+# solution to domain handoff
+version: "1.0"
+workstreams:
+  - workstream_id: ws-bss-order
+    initiative_id: init-bss-modernization
+    domain_id: order
+    workstream_entrypoint: inputs/workstreams/ws-bss-order/WORKSTREAM.md
+    workstream_git_ref: feature/ws-bss-order
+    domain_repo_url: https://github.com/acme/domain-order
+    status: active
+```
+
+```yaml
+# domain to implementation target
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: order-api
+    status: active
+    repo:
+      paths: ["src/order-api/*"]
+```
 
 Authorship note: Routing catalogs are typically generated artifacts -- produced by an intake pipeline that filters a richer source (for example `initiative-pipeline.yml`) and writes the selector manifest. Because they are generated, they must remain separate from the human-authored entrypoint (`ENTERPRISE.md`). Inlining them into the entrypoint would either make the entrypoint a generated file (conflicting with its role as a stable navigation guide) or introduce a hand-maintained duplicate that drifts from the pipeline source.
 
@@ -235,6 +317,9 @@ Catalog headers MUST follow the canonical schema for that catalog type:
 1. `initiatives.yml` MUST include `version`.
 2. `domain-workstreams.yml` MUST include `version`.
 3. `domain-implementations.yml` MUST include `spec_name` and `spec_version`.
+4. Governed companion artifacts with authoritative schemas in this repository follow the same header discipline:
+   1. `domain-registry.yml` MUST include `version`.
+   2. `solution-index.yml` MUST include `version`.
 
 Version rules:
 
@@ -247,7 +332,8 @@ Runtime behavior:
 1. Consumers MUST fail closed on unknown `MAJOR` versions.
 2. Producers MUST provide migration notes when incrementing `MAJOR`.
 
-Authoritative machine-readable schemas for canonical catalog validation are maintained under `skills/ea-convention/references/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog version contract in this section.
+Authoritative machine-readable schemas for canonical catalog validation are maintained under `skills/ea-convention/references/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog version contract in this section. Topology-dependent conditions from Sections 5.3, 5.5, and 9 remain normative validator rules in addition to standalone schema validation because they depend on the surrounding artifact set.
+Appendix A lists the schema file paths, schema identifiers, and intended purpose for each canonical schema without duplicating schema structure in Markdown.
 
 ### 5.3 Minimum Fields
 
@@ -257,13 +343,14 @@ Rationale for implementation target metadata:
 
 Some organizations keep a first-party Domain repo as the canonical architecture overlay while adopting third-party or open-source repositories as implementation targets. In that model, repo-only resolution is not sufficient for deterministic agent navigation because the external repository may not implement this convention and may expose multiple plausible entry files. Optional implementation target metadata therefore allows the Domain repo to declare both the exact file an agent should open and, when needed, the revision the architecture was validated against, without requiring any change to the external repository itself.
 
-1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) alongside `solution_repo_url`.
-2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`).
+1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) and `solution_git_ref` alongside `solution_repo_url`.
+2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`) and `domain_git_ref`.
+   `solution_git_ref` and `domain_git_ref` identify the concrete repository revision used for deterministic routing and entrypoint validation at those boundaries.
 3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
    When the enterprise level exists (i.e., `initiatives.yml` is present), entries MUST also include `initiative_id` to link the workstream to its originating initiative. When no enterprise level exists (two-level topology per Section 12.2), `initiative_id` MAY be omitted.
    `initiative_id`, when present, enables correlation between workstreams and initiatives but does not create a normative routing step; the canonical selector for `domain-workstreams.yml` remains `workstream_id`.
-   `domain_id` is the stable target identity and remains required even when `workstream_repo_url` is sufficient for direct runtime resolution.
-4. `domain-workstreams.yml` entries MUST include `workstream_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository.
+   `domain_id` is the stable target identity, the canonical DA runtime and session identity (see Section 5.7.3), and remains required even when `domain_repo_url` is sufficient for self-sufficient runtime resolution in topologies without an authoritative domain registry. Multiple workstreams from different initiatives MAY reference the same `domain_id`; this many-to-one relationship does not imply multiple DA runtime ownership boundaries.
+4. `domain-workstreams.yml` entries MUST include `domain_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository. In topologies without an authoritative domain registry, `domain_repo_url` in `domain-workstreams.yml` is the self-sufficient repository target for the owning domain. When `domain_repo_url` is omitted under this rule, implementations MUST interpret `workstream_entrypoint` and `workstream_git_ref` relative to the authoritative `domain_repo_url` resolved from `domain-registry.yml`.
 5. `workstream_entrypoint` MAY be `null` while the workstream context has not yet been materialized. For any routable workstream status, `workstream_entrypoint` MUST be non-null.
 6. `domain-workstreams.yml` entries MAY include `workstream_path` to identify the repo-relative folder that contains the workstream artifacts.
 7. `domain-implementations.yml` entries MUST include:
@@ -293,6 +380,7 @@ initiatives:
   - initiative_id: init-example
     solution_repo_url: https://github.com/example/solution-repo
     solution_entrypoint: SOLUTION.md
+    solution_git_ref: main
     status: active
 ```
 
@@ -306,7 +394,7 @@ workstreams:
     domain_id: order
     workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md
     workstream_git_ref: feature/ws-init-example-order
-    workstream_repo_url: https://github.com/example/order-domain-repo
+    domain_repo_url: https://github.com/example/order-domain-repo
     workstream_path: inputs/workstreams/ws-init-example-order/
     status: active
 ```
@@ -360,6 +448,26 @@ implementations:
       paths: ["*"]
 ```
 
+Monorepo path-scoping example:
+
+```yaml
+spec_name: multi-scale-routing
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: order-api
+    status: active
+    repo:
+      paths: ["apps/order-api/*"]
+      entrypoint: apps/order-api/README.md
+  - implementation_id: order-worker
+    status: active
+    repo:
+      paths: ["apps/order-worker/*"]
+      entrypoint: apps/order-worker/README.md
+```
+
+In this pattern, `repo.url` is omitted because both implementations live in the same repository as the catalog. Deterministic routing is preserved by non-overlapping `repo.paths`.
+
 ### 5.4 Status Vocabulary (Normative)
 
 Allowed values:
@@ -401,10 +509,13 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 5. At minimum, the following references MUST resolve when the corresponding artifacts are present and available to the resolver or validator:
    1. `domain-workstreams.yml[].initiative_id` -> `initiatives.yml[].initiative_id`
    2. `domain-workstreams.yml[].domain_id` -> `domain-registry.yml[].domain_id`
-   3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision
+   3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision when the corresponding entrypoint field is non-null. The applicable revision field is `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as appropriate.
 6. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
+7. Deprecated targets are read-only discovery targets. A resolver MAY return a deprecated entry for traceability or migration context, but MUST NOT route write operations through it.
+8. When a deprecated entry includes `replaced_by`, the resolver SHOULD surface those successor `implementation_id` values as migration hints. These hints do not override the fail-closed requirement for write routing.
+9. Redirect behavior is explicit only. Implementations MUST NOT infer replacements unless they are declared in the authoritative catalog.
 
-These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.7) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
+These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.8) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
 
 ### 5.6 Selector Uniqueness
 
@@ -412,7 +523,44 @@ These error semantics are normative for all routing behavior, regardless of whet
 2. When a catalog defines `implementation_id` in `domain-implementations.yml`, each value MUST be unique within that catalog.
 3. Implementations MUST fail closed on duplicate selector values.
 
-### 5.7 Optional Machine Access Contract
+### 5.7 DA Runtime Identity and Workstream Semantics
+
+#### 5.7.1 Domain-Workstream Relationship
+
+1. A workstream is a solution-scoped inbound demand unit against a domain. It carries handoff context for a specific initiative or change stream, but it does not define a distinct Domain Architecture ownership boundary.
+2. `workstream_id` remains the canonical selector for `domain-workstreams.yml` and identifies the inbound Solution Architecture to Domain Architecture handoff.
+3. `domain_id` identifies the stable owning domain target for the workstream and is required even when `domain_repo_url` is sufficient for self-sufficient runtime resolution in topologies without an authoritative domain registry.
+4. Multiple `workstream_id` values from different initiatives MAY reference the same `domain_id`.
+5. This many-to-one relationship does not imply multiple Domain Architecture runtime ownership boundaries. Workstreams are inbound demand units; domain ownership remains anchored on `domain_id`.
+
+#### 5.7.2 `domain_repo_url` Semantics at the Solution-Domain Boundary
+
+1. `domain_repo_url` identifies the repository location of the owning domain target for the workstream.
+2. `domain_repo_url` in `domain-workstreams.yml` does not imply a unique Domain Architecture runtime or session per workstream; it identifies the shared domain-owned repository target.
+3. When authoritative `domain-registry.yml` is absent, `domain_repo_url` in `domain-workstreams.yml` provides self-sufficient runtime resolution for the Solution to Domain boundary.
+4. When authoritative `domain-registry.yml` is present, `domain_repo_url` in `domain-workstreams.yml` MAY be omitted. If it is present, it is redundant and MUST match the authoritative registry value for the same `domain_id`.
+
+#### 5.7.3 DA Runtime Identity
+
+1. Domain Architecture runtime ownership is domain-scoped.
+2. The canonical runtime and session identity for a Domain Architecture owner is `domain_id`.
+3. A runtime MAY accept a `workstream_id` handoff as input, but it MUST map that handoff to the owning `domain_id` before establishing or reusing long-lived Domain Architecture session continuity.
+4. Implementations SHOULD preserve the originating `workstream_id` as inbound context associated with the domain-scoped session.
+
+#### 5.7.4 Validation Stages
+
+1. Implementations MAY perform an initial planning or discovery validation using handoff-visible catalogs or derived reports.
+2. Planning or discovery validation is not authoritative for final Domain Architecture target resolution.
+3. Final startup validation MUST resolve the authoritative domain target from `domain-registry.yml` when that registry is present in the operating model.
+4. If planning validation and authoritative startup validation disagree, implementations MUST fail closed at startup.
+
+#### 5.7.5 Runtime Metadata
+
+1. Implementations SHOULD avoid overloaded generic runtime metadata fields such as `repo_url` on domain-scoped Domain Architecture rows unless their meaning is explicitly documented.
+2. If runtime metadata is derived from `domain-workstreams.yml[].domain_repo_url`, it MUST be interpreted as the domain-owned repository target for that `domain_id`, not as a workstream-scoped runtime identity.
+3. `domain_repo_url` remains the authoritative domain-owned runtime target when Domain Architecture runtime identity is domain-scoped.
+
+### 5.8 Optional Machine Access Contract
 
 Implementations MAY expose machine access surfaces over canonical routing catalogs.
 
@@ -461,16 +609,17 @@ Migration policy:
 
 Validators for this convention MUST check:
 
-1. schema and required-field conformance using the authoritative schemas under `skills/ea-convention/references/`
-2. selector uniqueness (see Section 5.6)
-3. cross-file reference integrity for all normative references in Section 5.5
-4. status-policy compliance
-5. catalog version compatibility against Section 5.2
+1. structural schema and required-field conformance using the authoritative schemas under `skills/ea-convention/references/`
+2. topology-dependent conditional conformance from Sections 5.3 and 9 that depends on the surrounding artifact set (for example when `initiative_id` or `domain_repo_url` is required)
+3. selector uniqueness (see Section 5.6)
+4. cross-file reference integrity for all normative references in Section 5.5
+5. status-policy compliance
+6. catalog version compatibility against Section 5.2
 
 When the referenced repository or revision is accessible to the validator, it SHOULD also check:
 
 1. referenced repository URLs are reachable with validator identity (or provider API equivalent)
-2. referenced entrypoint paths exist in the target repository/revision
+2. referenced entrypoint paths exist in the target repository/revision declared by `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as applicable
 
 Companion operational guidance, including CI realization patterns and observability practices, is maintained in `reference/operational-guidance.md`.
 
@@ -494,37 +643,35 @@ Override rule:
 
 ## 9. Conformance Profiles
 
+Routed adoption means deterministic selector-based resolution at each architecture boundary that exists in the operating model.
+
 ### Core Profile
 
-Required:
+Checklist:
 
-1. Layer A (`AGENTS.md` plus the applicable level entrypoints)
-2. deterministic bootstrap discovery mechanism for the topmost level present in the organization
-3. routing catalogs for each level boundary that exists in the organization:
-   1. enterprise->solution (when both enterprise and solution levels exist): `initiatives.yml`
-   2. solution->domain (when both solution and domain levels exist): `domain-workstreams.yml`
-   3. domain->implementation (when selector-driven domain->implementation routing boundary exists): `domain-implementations.yml`
+1. `AGENTS.md` plus the applicable level entrypoints exist for the levels in scope.
+2. A deterministic bootstrap discovery mechanism exists for the topmost level present in the organization.
+3. `initiatives.yml` exists when both enterprise and solution levels exist.
+4. `domain-workstreams.yml` exists when both solution and domain levels exist.
+5. `domain-implementations.yml` exists when selector-driven domain-to-implementation routing is in scope.
 
 A two-level organization (for example Solution + Domain only) satisfies the Core profile with `domain-workstreams.yml` for solution->domain workstream routing. It requires `domain-implementations.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
 
 Core profile resolution rule:
 
 1. `domain-workstreams.yml` MUST be self-sufficient for runtime resolution when no authoritative `domain-registry.yml` is available.
-2. In that case, each workstream entry MUST include `workstream_repo_url`.
-3. When an authoritative `domain-registry.yml` is available at runtime, `workstream_repo_url` MAY be omitted and `domain_id` is resolved through the registry.
+2. In that case, each workstream entry MUST include `domain_repo_url`.
+3. When an authoritative `domain-registry.yml` is available at runtime, `domain_repo_url` MAY be omitted and `domain_id` is resolved through the registry.
 
 ### Governed Profile
 
-Required:
+Checklist:
 
-1. Core profile
-2. domain governance registry (for example `domain-registry.yml`)
-   1. when a domain entry includes `domain_repo_url`, it MUST include `domain_entrypoint`
-3. solution scope/index manifest (for example `solution-index.yml`)
-4. governance state artifact with minimum fields:
-   1. `spec_name`
-   2. `spec_version`
-   3. `layers` (dict keyed by cascade layer name, each with `status`)
+1. Core profile requirements are satisfied.
+2. A domain governance registry exists, for example `domain-registry.yml`.
+3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint` and `domain_git_ref`.
+4. A solution scope or index manifest exists, for example `solution-index.yml`.
+5. A governance state artifact exists with minimum fields `spec_name`, `spec_version`, and `layers`.
 
 Governance layer status values are separate from the routing status vocabulary in Section 5.4. Allowed governance layer statuses: `not_started`, `in_progress`, `proposed`, `approved`, `blocked`, `rejected`.
 
@@ -597,12 +744,28 @@ Companion observability guidance, including suggested failure record fields and 
 
 Top-down per-boundary routing sequence (each step requires the caller to possess the selector for that boundary):
 
-1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint`
+1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint` + `solution_git_ref`
 2. `workstream_id` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
-3. Repository resolution for a workstream target:
-   1. use `workstream_repo_url` when present in `domain-workstreams.yml`
-   2. otherwise resolve `domain_id` -> authoritative `domain-registry.yml` -> `domain_repo_url`
+3. Repository resolution for a workstream handoff and DA startup:
+   1. self-sufficient target resolution: use `domain_repo_url` when present in `domain-workstreams.yml`
+   2. authoritative target resolution fallback: when `domain_repo_url` is omitted and authoritative `domain-registry.yml` is present, resolve `domain_id` -> `domain_repo_url` and interpret `workstream_entrypoint` + `workstream_git_ref` there
+   3. when both are available, `domain-registry.yml` remains authoritative and any duplicated `domain_repo_url` in `domain-workstreams.yml` MUST match it
 4. `implementation_id` -> `domain-implementations.yml` -> repo location + optional `repo.entrypoint` + optional `repo.git_ref` (when selector-driven domain->implementation routing boundary exists)
+
+Context mapping patterns:
+
+1. Anti-corruption layer: when one domain consumes another through translation, the translating boundary SHOULD be declared in domain-owned artifacts rather than inferred from code structure.
+2. Published language: when a domain exposes shared event, API, or schema vocabulary, agents SHOULD consume that published contract rather than reverse-engineer private implementation types.
+3. Shared kernel: when two domains intentionally share a narrow model, the shared surface MUST be explicitly identified so agents do not widen the coupling implicitly.
+4. Customer/supplier: when one domain depends on another's roadmap or contract, the dependency SHOULD be represented by authoritative upstream references and not by direct editing across repositories.
+
+AI-first usage:
+
+1. Tool-capable agents SHOULD start with `AGENTS.md`, then open the applicable level entrypoint, then use the canonical selector catalog for the next boundary.
+2. For cross-level work, prompts and automation SHOULD name selectors and expected routing steps explicitly, for example: `Resolve initiative init-bss-modernization through initiatives.yml, then open the target SOLUTION.md.`
+3. Domain-scoped execution SHOULD begin from `DOMAIN.md` and `domain-implementations.yml`, not from monorepo-wide search or guessed repository ownership.
+4. This pattern reduces context-window waste because the agent opens the smallest authoritative artifact set needed for the current boundary instead of searching across unrelated repositories.
+5. After crossing into a target implementation repository, the agent MUST re-anchor on that repository's local `AGENTS.md` before taking implementation-local actions.
 
 Developer traversal semantics:
 
@@ -629,3 +792,15 @@ This proposal is additive:
 4. Claude Code compatibility is achieved through `CLAUDE.md` bridging into this convention's repository flow; this proposal does not assume native Claude Code support for `AGENTS.md`.
 
 Reference implementation layout, operational mapping patterns, agent context guidance, and adoption notes are maintained in companion documents under `reference/`.
+
+## Appendix A. Canonical Schemas
+
+| Schema file | `$id` | Purpose |
+|---|---|---|
+| [skills/ea-convention/references/initiatives.schema.json](skills/ea-convention/references/initiatives.schema.json) | `https://example.com/enterprise.md/schemas/initiatives.schema.json` | Structural validation for enterprise-to-solution routing catalogs |
+| [skills/ea-convention/references/domain-workstreams.schema.json](skills/ea-convention/references/domain-workstreams.schema.json) | `https://example.com/enterprise.md/schemas/domain-workstreams.schema.json` | Structural validation for solution-to-domain workstream routing catalogs |
+| [skills/ea-convention/references/domain-implementations.schema.json](skills/ea-convention/references/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | Structural validation for domain-to-implementation routing catalogs |
+| [skills/ea-convention/references/domain-registry.schema.json](skills/ea-convention/references/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | Structural validation for governed-profile domain registries |
+| [skills/ea-convention/references/solution-index.schema.json](skills/ea-convention/references/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | Structural validation for governed-profile solution manifests |
+
+The repository also contains [skills/ea-convention/references/domain-roadmap.schema.json](skills/ea-convention/references/domain-roadmap.schema.json) with `$id` `https://example.com/enterprise.md/schemas/domain-roadmap.schema.json`. It is intentionally excluded from the canonical table above because `domain-roadmap.yml` is a proposed extension, not part of the normative catalog set in this specification draft.

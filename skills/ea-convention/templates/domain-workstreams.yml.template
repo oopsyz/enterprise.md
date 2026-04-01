@@ -8,7 +8,7 @@
 # A runtime may resolve `domain_id` through an authoritative EA
 # `domain-registry.yml` when available.
 # If no such registry is available at runtime, each workstream entry must be
-# self-sufficient and include `workstream_repo_url`.
+# self-sufficient and include `domain_repo_url`.
 # `workstream_entrypoint` may be null before the workstream context exists, but
 # it must be non-null for any routable workstream status.
 
@@ -26,7 +26,7 @@ workstreams:
     name: <initiative x domain display name>
     workstream_entrypoint: <inputs/workstreams/<WORKSTREAM_ID>/WORKSTREAM.md-or-null>
     workstream_git_ref: <branch-tag-or-commit-ref>
-    workstream_repo_url: <https://github.com/<org>/<domain-or-workstream-repo>>
+    domain_repo_url: <https://github.com/<org>/<domain-repo>>
     workstream_path: <repo-relative-folder-or-null>
     handoff_ref: <component-handoff-ref-or-null>
     status: active
@@ -44,7 +44,7 @@ workstreams:
   #   name: Example x New Domain
   #   workstream_entrypoint: null
   #   workstream_git_ref: <branch-tag-or-commit-ref>
-  #   workstream_repo_url: <https://github.com/<org>/<proposed-domain-repo>>
+  #   domain_repo_url: <https://github.com/<org>/<proposed-domain-repo>>
   #   workstream_path: <repo-relative-folder-or-null>
   #   handoff_ref: <component-handoff-ref-or-null>
   #   status: approved

@@ -10,6 +10,7 @@ domains:
     owner: <domain-owner>
     domain_repo_url: https://github.com/<org>/<domain-repo>
     domain_entrypoint: DOMAIN.md
+    domain_git_ref: main
     status: active
     capabilities:
       - capability_id: <cap-id>

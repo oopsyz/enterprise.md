@@ -12,7 +12,7 @@ workstreams:
     name: <initiative-domain-name>
     workstream_entrypoint: inputs/workstreams/<workstream-id>/WORKSTREAM.md
     workstream_git_ref: <branch-or-tag>
-    workstream_repo_url: https://github.com/<org>/<domain-repo>
+    domain_repo_url: https://github.com/<org>/<domain-repo>
     workstream_path: inputs/workstreams/<workstream-id>/
     status: active
     owner: <domain-owner>

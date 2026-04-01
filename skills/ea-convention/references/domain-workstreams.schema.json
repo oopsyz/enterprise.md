@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/enterprise.md/schemas/domain-workstreams.schema.json",
   "title": "domain-workstreams.yml",
+  "$comment": "This schema is authoritative for structural validation. Topology-dependent rules such as when initiative_id or domain_repo_url are required are enforced by validators using the surrounding artifact set, per the specification.",
   "type": "object",
   "required": ["version", "workstreams"],
   "properties": {
@@ -89,7 +90,7 @@
         "workstream_git_ref": {
           "$ref": "#/$defs/nonEmptyString"
         },
-        "workstream_repo_url": {
+        "domain_repo_url": {
           "type": ["string", "null"],
           "format": "uri",
           "minLength": 1

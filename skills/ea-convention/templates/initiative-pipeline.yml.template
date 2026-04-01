@@ -6,7 +6,7 @@
 #     --pipeline architecture/portfolio/initiative-pipeline.yml \
 #     --out architecture/portfolio/initiatives.yml
 # Publication gate:
-# - If routing.publish_to_selector=true, solution_repo_url must be set.
+# - If routing.publish_to_selector=true, solution_repo_url and solution_git_ref must be set.
 # - If solution_repo_url is missing, keep publish_to_selector=false until repo-creation completes.
 
 version: "1.0"
@@ -27,6 +27,7 @@ initiatives:
     t_shirt_size: l
     roi_band: high
     solution_repo_url: https://github.com/<github-org>/<solution-repo>
+    solution_git_ref: main
     routing:
       publish_to_selector: true
       selector_status: active

@@ -157,17 +157,19 @@ initiatives:
     owner: solution-architecture
     solution_repo_url: $RemoteRepoUrl
     solution_entrypoint: sa/SOLUTION.md
+    solution_git_ref: main
 "@
 
 Set-Content -Path $eaRegistry -Encoding UTF8 -Value @"
 version: "1.0"
 domains:
   - domain_id: order-management
-    domain_name: Order Management
+    name: Order Management
     status: active
     owner: domain-architecture
     domain_repo_url: $RemoteRepoUrl
     domain_entrypoint: da/DOMAIN.md
+    domain_git_ref: main
 "@
 
 $saSolution = Join-Path $target "sa/SOLUTION.md"
@@ -215,7 +217,7 @@ architecture/
 
 ## Routing
 
-`WORKSTREAM_ID` -> `architecture/solution/domain-workstreams.yml` -> `workstream_repo_url` + `workstream_entrypoint`
+`WORKSTREAM_ID` -> `architecture/solution/domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
 
 ## Scope
 
@@ -285,7 +287,7 @@ workstreams:
     name: Order Modernization x Order Management
     workstream_entrypoint: da/DOMAIN.md
     workstream_git_ref: main
-    workstream_repo_url: $RemoteRepoUrl
+    domain_repo_url: $RemoteRepoUrl
     workstream_path: da/
     handoff_ref: poc-order-management
     status: active

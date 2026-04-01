@@ -8,6 +8,7 @@ initiatives:
     name: <initiative-name>
     solution_repo_url: https://github.com/<org>/<solution-repo>
     solution_entrypoint: SOLUTION.md
+    solution_git_ref: main
     status: active
     owner: <sa-team>
     metadata:

@@ -25,8 +25,44 @@ Reference implementation in this repository:
 1. `skills/ea-convention/scripts/validate_convention.py` validates schema conformance and cross-file rules.
 2. Use `--active-only` to restrict routable statuses to `active` only.
 3. Use `--repo-url` to enable local entrypoint path existence checks for entries that reference this repo.
+4. This validator does not check Markdown links or heading anchors in documentation; use a separate doc-link check for that.
 
 How these checks are implemented is toolchain-specific. Some teams will use repository-native CI, others will validate through provider APIs or orchestration runtimes.
+
+Minimal CI example:
+
+```yaml
+name: validate-convention
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install jsonschema pyyaml
+      - run: python skills/ea-convention/scripts/validate_convention.py --root .
+```
+
+Minimal pre-commit example:
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: validate-enterprise-convention
+        name: validate-enterprise-convention
+        entry: python skills/ea-convention/scripts/validate_convention.py --root .
+        language: system
+        pass_filenames: false
+```
 
 ## Observability
 
@@ -49,8 +85,16 @@ Recommended harness/context practices:
 1. Treat entrypoint files as maps, not encyclopedias.
 2. Keep detailed knowledge in linked artifacts and canonical documents.
 3. Add mechanical doc freshness checks in CI.
+4. Start traversal with `AGENTS.md`, then the applicable level entrypoint, then the canonical selector catalog for the next boundary.
+5. Treat `DOMAIN.md` plus `domain-implementations.yml` as the bounded-context contract for domain-scoped execution.
 
 For additional harness-oriented guidance, see [harness-engineering.md](harness-engineering.md).
+
+Possible IDE and agent integrations:
+
+1. A lightweight IDE extension can resolve selectors like `initiative_id` or `implementation_id` into repository targets without changing the canonical YAML source.
+2. Agent plugins can prefetch only the resolved entrypoint and catalog row for the current task, which keeps context windows smaller than repo-wide search.
+3. Provider catalogs such as Backstage, Nx graph metadata, or similar inventory tools can mirror or enrich these artifacts, but they should not replace the canonical routing semantics stored in YAML.
 
 ## Reference Layout
 
@@ -94,3 +138,5 @@ For proposal process purposes, a common decomposition is:
 2. optional extension: routing catalog specification
 3. companion extension: schema conformance profile and migration guidance
 4. companion guidance: harness/context engineering and operational practices
+
+For brownfield rollout patterns, see [brownfield-adoption.md](brownfield-adoption.md).

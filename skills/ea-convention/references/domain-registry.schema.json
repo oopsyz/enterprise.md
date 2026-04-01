@@ -73,6 +73,9 @@
         "domain_entrypoint": {
           "$ref": "#/$defs/nonEmptyString"
         },
+        "domain_git_ref": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
         "status": {
           "$ref": "#/$defs/status"
         },
@@ -128,7 +131,7 @@
             "required": ["domain_repo_url"]
           },
           "then": {
-            "required": ["domain_entrypoint"]
+            "required": ["domain_entrypoint", "domain_git_ref"]
           }
         }
       ],
