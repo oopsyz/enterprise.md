@@ -315,6 +315,9 @@ Catalog headers MUST follow the canonical schema for that catalog type:
 1. `initiatives.yml` MUST include `version`.
 2. `domain-workstreams.yml` MUST include `version`.
 3. `domain-implementations.yml` MUST include `spec_name` and `spec_version`.
+4. Governed companion artifacts with authoritative schemas in this repository follow the same header discipline:
+   1. `domain-registry.yml` MUST include `version`.
+   2. `solution-index.yml` MUST include `version`.
 
 Version rules:
 

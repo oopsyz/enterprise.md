@@ -100,8 +100,9 @@ Short form:
 
 1. All `Core` requirements are satisfied.
 2. A domain governance registry exists, for example `domain-registry.yml`.
-3. A solution scope or index manifest exists, for example `solution-index.yml`.
-4. A governance state artifact exists with `spec_name`, `spec_version`, and `layers`.
+3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint`.
+4. A solution scope or index manifest exists, for example `solution-index.yml`.
+5. A governance state artifact exists with `spec_name`, `spec_version`, and `layers`.
 
 Routed adoption means deterministic selector-based resolution at each architecture boundary that exists in the operating model. Absent boundaries do not require placeholder catalogs.
 
