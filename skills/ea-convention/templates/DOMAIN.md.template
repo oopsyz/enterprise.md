@@ -59,9 +59,9 @@ inputs/
 
 This domain's runtime and session identity is `domain_id`. Inbound workstreams
 (`workstream_id`) are demand units that attach to this domain-scoped ownership
-boundary — they do not create separate DA runtimes. `workstream_repo_url` in
-`domain-workstreams.yml` is the handoff context location; `domain_repo_url` in
-`domain-registry.yml` is the authoritative DA target.
+boundary — they do not create separate DA runtimes. `domain_repo_url` in
+`domain-workstreams.yml` is the resolved domain repo target; when
+`domain-registry.yml` exists, its `domain_repo_url` is authoritative.
 
 ## Upstream Inputs
 

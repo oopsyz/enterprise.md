@@ -89,7 +89,7 @@
         "workstream_git_ref": {
           "$ref": "#/$defs/nonEmptyString"
         },
-        "workstream_repo_url": {
+        "domain_repo_url": {
           "type": ["string", "null"],
           "format": "uri",
           "minLength": 1

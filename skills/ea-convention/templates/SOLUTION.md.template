@@ -53,8 +53,9 @@ architecture/
 `WORKSTREAM_ID` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
 
 Multiple workstreams from different initiatives may target the same `domain_id`.
-`workstream_repo_url` identifies the handoff context location, not a unique DA
-runtime per workstream. DA runtime identity is domain-scoped (see
+`domain_repo_url` identifies the owning domain repository target for the
+workstream. It does not imply a unique DA runtime per workstream. DA runtime
+identity is domain-scoped (see
 `enterprise_repo_convention.md` Section 5.7).
 
 ## SA Container Context

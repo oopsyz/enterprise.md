@@ -131,40 +131,9 @@ Core and Governed implementations must provide at least one deterministic bootst
 2. Environment variable.
 3. Well-known discovery endpoint.
 
-Catalogs at a glance:
+Catalog examples are maintained in the canonical spec to avoid drift:
 
-```yaml
-# initiatives.yml
-version: "1.0"
-initiatives:
-  - initiative_id: init-bss-modernization
-    solution_repo_url: https://github.com/acme/solution-bss
-    solution_entrypoint: SOLUTION.md
-    status: active
-```
-
-```yaml
-# domain-workstreams.yml
-version: "1.0"
-workstreams:
-  - workstream_id: ws-bss-order
-    initiative_id: init-bss-modernization
-    domain_id: order
-    workstream_entrypoint: inputs/workstreams/ws-bss-order/WORKSTREAM.md
-    workstream_git_ref: feature/ws-bss-order
-    status: active
-```
-
-```yaml
-# domain-implementations.yml
-spec_name: multi-scale-routing
-spec_version: "1.0.0"
-implementations:
-  - implementation_id: order-api
-    status: active
-    repo:
-      paths: ["src/order-api/*"]
-```
+- [enterprise_repo_convention.md](enterprise_repo_convention.md) Section 5.1
 
 Example traversal:
 

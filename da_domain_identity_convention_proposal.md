@@ -2,7 +2,7 @@
 
 Status: **Ratified**
 Accepted into: `enterprise_repo_convention.md` Section 5.3 (field rules) and Section 5.7 (DA Runtime Identity and Workstream Semantics)
-Option adopted: **Option A** — keep current fields, clarify semantics
+Option adopted: **Ratified upstream** — use domain-scoped repository targeting semantics
 
 ## Origin
 
@@ -12,7 +12,7 @@ The immediate trigger was a disagreement in the Worker Container implementation 
 
 ## Problem Statement
 
-The convention text and templates correctly preserved `workstream_id` as the canonical SA to DA selector, but the field name `workstream_repo_url` created a strong implication that each workstream is a standalone DA runtime target.
+The convention text and templates correctly preserved `workstream_id` as the canonical SA to DA selector, but earlier draft field naming created a strong implication that each workstream was a standalone DA runtime target.
 
 That implication conflicted with the intended operating model used by domain owners:
 
@@ -73,7 +73,7 @@ Normative reference: `enterprise_repo_convention.md` Section 5.7.2, Section 13.
 
 ## Catalog Shape
 
-The accepted change did not alter the `domain-workstreams.yml` schema. The YAML shape remains:
+The accepted change preserves the overall `domain-workstreams.yml` shape while making the owning domain repository target explicit:
 
 ```yaml
 version: "1.0"
@@ -82,7 +82,7 @@ workstreams:
     initiative_id: init-a
     domain_id: order
     status: active
-    workstream_repo_url: https://github.com/example/order-domain
+    domain_repo_url: https://github.com/example/order-domain
     workstream_entrypoint: inputs/workstreams/ws-init-a-order/WORKSTREAM.md
     workstream_git_ref: main
 ```
@@ -91,7 +91,7 @@ The semantics are now explicit:
 
 - `workstream_id` remains the canonical SA to DA handoff selector.
 - `domain_id` is the DA ownership and session identity.
-- `workstream_repo_url` identifies the repository location for the workstream handoff context, not a separate DA runtime identity.
+- `domain_repo_url` identifies the owning domain repository target for the workstream, not a separate DA runtime identity.
 
 Illustrative example with two initiatives converging on one domain:
 
@@ -102,7 +102,7 @@ workstreams:
     initiative_id: init-a
     domain_id: order
     status: active
-    workstream_repo_url: https://github.com/example/order-domain
+    domain_repo_url: https://github.com/example/order-domain
     workstream_entrypoint: inputs/workstreams/ws-init-a-order/WORKSTREAM.md
     workstream_git_ref: main
 
@@ -110,7 +110,7 @@ workstreams:
     initiative_id: init-b
     domain_id: order
     status: active
-    workstream_repo_url: https://github.com/example/order-domain
+    domain_repo_url: https://github.com/example/order-domain
     workstream_entrypoint: inputs/workstreams/ws-init-b-order/WORKSTREAM.md
     workstream_git_ref: main
 ```
@@ -122,13 +122,11 @@ In that example, both workstreams hand off to the same domain-owned DA runtime f
 The convention now makes the following distinction explicit (Section 5.7.5):
 
 - `domain_repo_url` is the authoritative domain-owned DA target repository when DA runtime identity is domain-scoped.
-- `workstream_repo_url` identifies the repository location of the inbound workstream handoff context.
-- Any runtime metadata field derived from `workstream_repo_url` for a domain-scoped DA row must not be treated as the authoritative DA target repo.
+- Any runtime metadata field derived from `domain-workstreams.yml[].domain_repo_url` for a domain-scoped DA row must not be treated as a workstream-scoped runtime identity.
 
 If a runtime or dashboard wants to expose workstream-derived repository context for a domain-owned DA view, it should prefer a more explicit name such as:
 
 - `workstream_context_repo_url`
-- `handoff_repo_url`
 
 If a generic `repo_url` field is retained for compatibility, the implementation should document clearly whether it is:
 
@@ -143,25 +141,25 @@ The following points are now normative in `enterprise_repo_convention.md`:
 2. `domain_id` is the canonical DA runtime identity. (Section 5.7.3)
 3. DA runtime/session continuity must be domain-scoped, not workstream-scoped. (Section 5.7.3)
 4. A workstream handoff must be attachable to an existing domain-scoped DA session. (Section 5.7.3)
-5. `workstream_repo_url` is not the identity of a separate DA container. It identifies either the repository containing workstream handoff artifacts, or a direct route to the domain-owned repo when the workstream artifact lives there. (Section 5.3 item 4, Section 5.7.2)
-6. When both `workstream_repo_url` and authoritative `domain_repo_url` exist, the convention describes which is used for handoff retrieval vs. DA runtime target. (Section 5.7.2)
+5. `domain_repo_url` in `domain-workstreams.yml` is not the identity of a separate DA container. It identifies the owning domain repository target for self-sufficient routing. (Section 5.3 item 4, Section 5.7.2)
+6. When both `domain-workstreams.yml[].domain_repo_url` and authoritative `domain-registry.yml[].domain_repo_url` exist, the registry remains authoritative and the values must match. (Section 5.7.2)
 7. Many workstreams from different initiatives may converge on one domain-owned DA runtime. (Section 5.7.1)
 8. Overloaded generic runtime fields such as `repo_url` for domain-scoped DA rows are discouraged unless semantics are explicitly documented. (Section 5.7.5)
 
 ## Option Evaluation (Historical)
 
-Three options were evaluated. Option A was adopted.
+Three options were evaluated. Option A was initially adopted; the upstream convention subsequently moved to domain-scoped repository targeting aligned with Option B's direction.
 
-### Option A: Keep the current field, clarify semantics (Adopted)
+### Option A: Keep the earlier field naming, clarify semantics (Historical)
 
-Keep `workstream_repo_url`, defined as: "Repository location for the workstream handoff context. This field does not imply a unique DA runtime per workstream."
+Keep the earlier workstream-scoped repository naming and clarify that it does not imply a unique DA runtime per workstream.
 
 Pros: backward compatible, minimal schema disruption.
 Cons: name remains potentially misleading.
 
-### Option B: Rename the field (Deferred)
+### Option B: Rename the field to domain-owned targeting (Superseded by upstream changes)
 
-Rename `workstream_repo_url` to `handoff_repo_url`, `workstream_context_repo_url`, or `workstream_source_repo_url`. If ambiguity remains high after the Option A clarification, this is the next step.
+Rename the field to a domain-owned repository target. This is the direction now reflected in the upstream convention.
 
 ### Option C: Split handoff and ownership explicitly (Not adopted)
 
@@ -177,7 +175,7 @@ Worker Container and similar runtimes should adopt these semantics, which are no
 4. If a workstream-based startup path exists, it should resolve:
    - `workstream_id` -> `domain_id`
    - then attach or route to the DA runtime for that domain
-5. In DA domain mode, `OPENARCHITECT_GIT_REPO_URL` must resolve from authoritative `domain_repo_url`, not from `workstream_repo_url`.
+5. In DA domain mode, `OPENARCHITECT_GIT_REPO_URL` must resolve from authoritative `domain_repo_url`.
 6. Discovery and workload automation should avoid conflating:
    - workstream as inbound handoff
    - domain as DA ownership/runtime identity
@@ -221,22 +219,22 @@ but they are implementation conveniences rather than normative selector rules.
 
 The following upstream convention artifacts have been updated:
 
-- [enterprise_repo_convention.md](/c:/Projects/enterprise.md/enterprise_repo_convention.md) — Section 5.3 field rules and Section 5.7 (DA Runtime Identity and Workstream Semantics)
-- [skills/ea-convention/SKILL.md](/c:/Projects/enterprise.md/skills/ea-convention/SKILL.md) — Workstream Semantics section
-- [skills/ea-convention/templates/SOLUTION.md.template](/c:/Projects/enterprise.md/skills/ea-convention/templates/SOLUTION.md.template) — Routing section
-- [skills/ea-convention/templates/DOMAIN.md.template](/c:/Projects/enterprise.md/skills/ea-convention/templates/DOMAIN.md.template) — DA Identity section
+- [enterprise_repo_convention.md](enterprise_repo_convention.md) — Section 5.3 field rules and Section 5.7 (DA Runtime Identity and Workstream Semantics)
+- [skills/ea-convention/SKILL.md](skills/ea-convention/SKILL.md) — Workstream Semantics section
+- [skills/ea-convention/templates/SOLUTION.md.template](skills/ea-convention/templates/SOLUTION.md.template) — Routing section
+- [skills/ea-convention/templates/DOMAIN.md.template](skills/ea-convention/templates/DOMAIN.md.template) — DA Identity section
 
 ## Remaining Downstream Alignment (Worker Container)
 
-The following Worker Container artifacts should align with the ratified convention. This is downstream implementation work, not a convention change:
+The following Worker Container artifacts should align with the ratified convention. This is downstream implementation work, not a convention change. Paths are shown as sibling-repo relative references, not links in this repository:
 
-- [DOMAIN.md](/c:/Projects/worker_container/DOMAIN.md)
-- [README.md](/c:/Projects/worker_container/README.md)
-- [docs/startup_contract.md](/c:/Projects/worker_container/docs/startup_contract.md)
-- [scripts/launch_container.py](/c:/Projects/worker_container/scripts/launch_container.py)
-- [scripts/discover_enterprise_repo_graph.py](/c:/Projects/worker_container/scripts/discover_enterprise_repo_graph.py)
-- [scripts/workload_manager.py](/c:/Projects/worker_container/scripts/workload_manager.py)
-- [scripts/role_dispatcher.py](/c:/Projects/worker_container/scripts/role_dispatcher.py)
+- `../worker_container/DOMAIN.md`
+- `../worker_container/README.md`
+- `../worker_container/docs/startup_contract.md`
+- `../worker_container/scripts/launch_container.py`
+- `../worker_container/scripts/discover_enterprise_repo_graph.py`
+- `../worker_container/scripts/workload_manager.py`
+- `../worker_container/scripts/role_dispatcher.py`
 
 ## Migration Guidance
 

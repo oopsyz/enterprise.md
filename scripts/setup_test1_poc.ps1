@@ -285,7 +285,7 @@ workstreams:
     name: Order Modernization x Order Management
     workstream_entrypoint: da/DOMAIN.md
     workstream_git_ref: main
-    workstream_repo_url: $RemoteRepoUrl
+    domain_repo_url: $RemoteRepoUrl
     workstream_path: da/
     handoff_ref: poc-order-management
     status: active

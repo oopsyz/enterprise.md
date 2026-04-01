@@ -262,8 +262,8 @@ Purpose: Domain architecture entrypoint.
 3. `domain-workstreams.yml` 条目 MUST 包含 `domain_id`、`workstream_entrypoint` 和 `workstream_git_ref`。
    当企业层存在（即存在 `initiatives.yml`）时，条目还 MUST 包含 `initiative_id`，以将工作流关联到其来源 initiative。当企业层不存在（第 12.2 节定义的两层拓扑）时，`initiative_id` MAY 省略。
    当 `initiative_id` 存在时，它可用于将工作流与 initiative 做关联，但不会创建一个规范性的路由步骤；`domain-workstreams.yml` 的规范选择器仍然是 `workstream_id`。
-   `domain_id` 是稳定的目标标识，也是规范性的 DA 运行时与会话标识（见第 5.7.3 节）；即使 `workstream_repo_url` 已足以进行直接运行时解析，它仍然是必需字段。来自不同 initiative 的多个 workstream MAY 引用同一个 `domain_id`；这种多对一关系并不意味着存在多个 DA 运行时归属边界。
-4. `domain-workstreams.yml` 条目 MUST 包含 `workstream_repo_url`，除非运行时能够访问一个权威的 `domain-registry.yml`，可将 `domain_id` 解析为稳定的领域仓库。`workstream_repo_url` 标识工作流交接上下文所在的仓库位置，其本身并不意味着每个工作流都有唯一的 DA 运行时或会话（见第 5.7.2 节）。
+   `domain_id` 是稳定的目标标识，也是规范性的 DA 运行时与会话标识（见第 5.7.3 节）；即使 `domain_repo_url` 已足以在没有权威领域注册表的拓扑中进行自给自足的运行时解析，它仍然是必需字段。来自不同 initiative 的多个 workstream MAY 引用同一个 `domain_id`；这种多对一关系并不意味着存在多个 DA 运行时归属边界。
+4. `domain-workstreams.yml` 条目 MUST 包含 `domain_repo_url`，除非运行时能够访问一个权威的 `domain-registry.yml`，可将 `domain_id` 解析为稳定的领域仓库。在没有权威 `domain-registry.yml` 的拓扑中，`domain-workstreams.yml` 中的 `domain_repo_url` 是所属领域的自给自足仓库目标。当该字段按此规则省略时，实现 MUST 将 `workstream_entrypoint` 和 `workstream_git_ref` 解释为相对于从 `domain-registry.yml` 解析出的权威 `domain_repo_url`。
 5. 在工作流上下文尚未实体化时，`workstream_entrypoint` MAY 为 `null`。对于任何可路由的工作流状态，`workstream_entrypoint` MUST 为非空。
 6. `domain-workstreams.yml` 条目 MAY 包含 `workstream_path`，用于标识承载该工作流工件的仓库相对目录。
 7. `domain-implementations.yml` 条目 MUST 包含：
@@ -306,7 +306,7 @@ workstreams:
     domain_id: order
     workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md
     workstream_git_ref: feature/ws-init-example-order
-    workstream_repo_url: https://github.com/example/order-domain-repo
+    domain_repo_url: https://github.com/example/order-domain-repo
     workstream_path: inputs/workstreams/ws-init-example-order/
     status: active
 ```
@@ -417,18 +417,16 @@ implementations:
 #### 5.7.1 领域与工作流关系
 
 1. `workstream_id` 仍然是 `domain-workstreams.yml` 的规范性选择器，用于标识从 Solution Architecture 到 Domain Architecture 的入站交接。
-2. `domain_id` 标识该工作流所归属的稳定领域目标；即使 `workstream_repo_url` 已足以进行直接运行时路由，它仍然是必需字段。
+2. `domain_id` 标识该工作流所归属的稳定领域目标；即使 `domain_repo_url` 已足以在没有权威领域注册表的拓扑中进行自给自足的运行时解析，它仍然是必需字段。
 3. 来自不同 initiative 的多个 `workstream_id` MAY 引用同一个 `domain_id`。
 4. 这种多对一关系并不意味着存在多个 Domain Architecture 运行时归属边界。工作流是入站需求单元；领域归属仍然锚定在 `domain_id` 上。
 
-#### 5.7.2 `workstream_repo_url` 语义
+#### 5.7.2 解决方案到领域边界上的 `domain_repo_url` 语义
 
-1. `workstream_repo_url` 标识工作流交接上下文所在的仓库位置。
-2. `workstream_repo_url` 本身并不意味着每个工作流都有唯一的 Domain Architecture 运行时或会话。
-3. 当工作流交接上下文存储在与所属领域相同的仓库中时，`workstream_repo_url` 与 `domain_repo_url` MAY 相同。
-4. 当 `workstream_repo_url` 与权威的 `domain_repo_url` 同时存在时，实现 MUST 区分：
-   1. 交接上下文提取（使用 `workstream_repo_url`）
-   2. 权威的领域自有运行时目标解析（使用 `domain_repo_url`）
+1. `domain_repo_url` 标识该工作流所归属的领域目标仓库位置。
+2. `domain-workstreams.yml` 中的 `domain_repo_url` 并不意味着每个工作流都有唯一的 Domain Architecture 运行时或会话；它标识的是共享的领域自有仓库目标。
+3. 当权威的 `domain-registry.yml` 不存在时，`domain-workstreams.yml` 中的 `domain_repo_url` 为解决方案到领域边界提供自给自足的运行时解析。
+4. 当权威的 `domain-registry.yml` 存在时，`domain-workstreams.yml` 中的 `domain_repo_url` MAY 被省略。如果提供了该字段，它是冗余的，并且 MUST 与同一 `domain_id` 的权威注册表值一致。
 
 #### 5.7.3 DA 运行时身份
 
@@ -447,7 +445,7 @@ implementations:
 #### 5.7.5 运行时元数据
 
 1. 对于领域作用域的 Domain Architecture 视图，实现 SHOULD 避免使用诸如 `repo_url` 这类语义未明确记录的泛化运行时元数据字段。
-2. 如果领域作用域的 Domain Architecture 视图中的运行时元数据源自 `workstream_repo_url`，它 SHOULD 使用更明确的字段名，例如 `workstream_context_repo_url` 或 `handoff_repo_url`。
+2. 如果运行时元数据源自 `domain-workstreams.yml[].domain_repo_url`，它 MUST 被解释为该 `domain_id` 的领域自有仓库目标，而不是某个 workstream 作用域的运行时身份。
 3. 当 Domain Architecture 运行时身份是领域作用域时，`domain_repo_url` 仍然是权威的领域自有运行时目标。
 
 ### 5.8 可选的机器访问契约
@@ -548,8 +546,8 @@ implementations:
 Core 档位解析规则：
 
 1. 当运行时没有权威的 `domain-registry.yml` 可用时，`domain-workstreams.yml` MUST 对运行时解析自给自足。
-2. 在这种情况下，每个工作流条目 MUST 包含 `workstream_repo_url`。
-3. 当运行时可访问权威 `domain-registry.yml` 时，`workstream_repo_url` MAY 省略，此时通过 `domain_id` 经由该注册表解析。
+2. 在这种情况下，每个工作流条目 MUST 包含 `domain_repo_url`。
+3. 当运行时可访问权威 `domain-registry.yml` 时，`domain_repo_url` MAY 省略，此时通过 `domain_id` 经由该注册表解析。
 
 ### Governed 档位
 
@@ -638,8 +636,9 @@ layers:
 1. `initiative_id` -> `initiatives.yml` -> 解决方案仓库 + `solution_entrypoint`
 2. `workstream_id` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
 3. 工作流目标的仓库解析：
-   1. 若 `domain-workstreams.yml` 中存在 `workstream_repo_url`，则使用它
-   2. 否则解析 `domain_id` -> 权威 `domain-registry.yml` -> `domain_repo_url`
+   1. 自给自足目标解析：若 `domain-workstreams.yml` 中存在 `domain_repo_url`，则使用它
+   2. 权威目标解析回退：当 `domain_repo_url` 被省略且权威 `domain-registry.yml` 存在时，解析 `domain_id` -> `domain_repo_url`，并在那里解释 `workstream_entrypoint` + `workstream_git_ref`
+   3. 当两者都存在时，`domain-registry.yml` 仍然是权威来源，且 `domain-workstreams.yml` 中重复声明的 `domain_repo_url` MUST 与之匹配
 4. `implementation_id` -> `domain-implementations.yml` -> 仓库位置 + 可选 `repo.entrypoint` + 可选 `repo.git_ref`（当存在选择器驱动的领域到实现路由边界时）
 
 开发者遍历语义：

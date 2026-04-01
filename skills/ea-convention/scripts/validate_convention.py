@@ -143,6 +143,12 @@ def canonical_repo_id(artifact_path: Path, repo_url: str | None) -> str:
     return f"self:{artifact_path.resolve().parent.as_posix().lower()}"
 
 
+def normalize_repo_url(repo_url: Any) -> str | None:
+    if isinstance(repo_url, str) and repo_url:
+        return repo_url.rstrip("/")
+    return None
+
+
 def ensure_unique_ids(
     entries: list[dict[str, Any]], key: str, path: Any
 ) -> set[str]:
@@ -208,6 +214,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         print(f"  initiatives: {len(initiative_ids)} ({', '.join(sorted(initiative_ids)) or 'none'})")
 
     domain_ids: set[str] = set()
+    domain_repo_urls_by_id: dict[str, str] = {}
     has_domain_registry = False
     if not domain_registry_path.exists():
         if "domain_registry" in explicit_paths:
@@ -221,8 +228,12 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         domains_list = (registry_data or {}).get("domains", [])
         domain_ids = ensure_unique_ids(domains_list, "domain_id", domain_registry_path)
         for index, domain in enumerate(domains_list):
+            domain_id = domain.get("domain_id", "")
             d_url = domain.get("domain_repo_url", "")
             d_ep = domain.get("domain_entrypoint", "")
+            normalized_d_url = normalize_repo_url(d_url)
+            if isinstance(domain_id, str) and domain_id and normalized_d_url:
+                domain_repo_urls_by_id[domain_id] = normalized_d_url
             if d_ep and is_local_path(d_url, this_repo_url):
                 if not file_exists_local(root, d_ep):
                     err("ERR_ENTRYPOINT_MISSING",
@@ -287,7 +298,19 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
 
             status = ws.get("status")
             entrypoint = ws.get("workstream_entrypoint")
-            ws_url = ws.get("workstream_repo_url", "")
+            domain_repo_url = ws.get("domain_repo_url")
+            ws_url = domain_repo_url if isinstance(domain_repo_url, str) else ""
+            normalized_ws_url = normalize_repo_url(domain_repo_url)
+            registry_ws_url = domain_repo_urls_by_id.get(ws_dom_id)
+
+            if "workstream_repo_url" in ws:
+                warn(f"workstreams[{index}] uses legacy field 'workstream_repo_url' - rename to 'domain_repo_url'",
+                     path=workstreams_path)
+
+            if normalized_ws_url and registry_ws_url and normalized_ws_url != registry_ws_url:
+                err("ERR_CONFLICT",
+                    f"workstreams[{index}] domain_repo_url '{domain_repo_url}' does not match authoritative domain-registry.yml value '{registry_ws_url}' for domain_id '{ws_dom_id}'",
+                    path=workstreams_path)
 
             # Routable workstreams must have an entrypoint
             if status in routable_statuses and not isinstance(entrypoint, str):
@@ -298,7 +321,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
             # Without a domain registry, workstreams need their own repo URL
             if not has_domain_registry and not isinstance(ws_url, str):
                 err("ERR_TARGET_UNREACHABLE",
-                    f"workstreams[{index}] requires workstream_repo_url when no domain-registry.yml is provided",
+                    f"workstreams[{index}] requires domain_repo_url when no domain-registry.yml is provided",
                     path=workstreams_path)
 
             if entrypoint and is_local_path(ws_url, this_repo_url):

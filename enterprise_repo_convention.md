@@ -346,8 +346,8 @@ Some organizations keep a first-party Domain repo as the canonical architecture 
 3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
    When the enterprise level exists (i.e., `initiatives.yml` is present), entries MUST also include `initiative_id` to link the workstream to its originating initiative. When no enterprise level exists (two-level topology per Section 12.2), `initiative_id` MAY be omitted.
    `initiative_id`, when present, enables correlation between workstreams and initiatives but does not create a normative routing step; the canonical selector for `domain-workstreams.yml` remains `workstream_id`.
-   `domain_id` is the stable target identity, the canonical DA runtime and session identity (see Section 5.7.3), and remains required even when `workstream_repo_url` is sufficient for direct runtime resolution. Multiple workstreams from different initiatives MAY reference the same `domain_id`; this many-to-one relationship does not imply multiple DA runtime ownership boundaries.
-4. `domain-workstreams.yml` entries MUST include `workstream_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository. `workstream_repo_url` identifies the repository location of the workstream handoff context and does not, by itself, imply a unique DA runtime or session per workstream (see Section 5.7.2).
+   `domain_id` is the stable target identity, the canonical DA runtime and session identity (see Section 5.7.3), and remains required even when `domain_repo_url` is sufficient for self-sufficient runtime resolution in topologies without an authoritative domain registry. Multiple workstreams from different initiatives MAY reference the same `domain_id`; this many-to-one relationship does not imply multiple DA runtime ownership boundaries.
+4. `domain-workstreams.yml` entries MUST include `domain_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository. In topologies without an authoritative domain registry, `domain_repo_url` in `domain-workstreams.yml` is the self-sufficient repository target for the owning domain. When `domain_repo_url` is omitted under this rule, implementations MUST interpret `workstream_entrypoint` and `workstream_git_ref` relative to the authoritative `domain_repo_url` resolved from `domain-registry.yml`.
 5. `workstream_entrypoint` MAY be `null` while the workstream context has not yet been materialized. For any routable workstream status, `workstream_entrypoint` MUST be non-null.
 6. `domain-workstreams.yml` entries MAY include `workstream_path` to identify the repo-relative folder that contains the workstream artifacts.
 7. `domain-implementations.yml` entries MUST include:
@@ -390,7 +390,7 @@ workstreams:
     domain_id: order
     workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md
     workstream_git_ref: feature/ws-init-example-order
-    workstream_repo_url: https://github.com/example/order-domain-repo
+    domain_repo_url: https://github.com/example/order-domain-repo
     workstream_path: inputs/workstreams/ws-init-example-order/
     status: active
 ```
@@ -523,19 +523,18 @@ These error semantics are normative for all routing behavior, regardless of whet
 
 #### 5.7.1 Domain-Workstream Relationship
 
-1. `workstream_id` remains the canonical selector for `domain-workstreams.yml` and identifies the inbound Solution Architecture to Domain Architecture handoff.
-2. `domain_id` identifies the stable owning domain target for the workstream and is required even when `workstream_repo_url` is sufficient for direct runtime routing.
-3. Multiple `workstream_id` values from different initiatives MAY reference the same `domain_id`.
-4. This many-to-one relationship does not imply multiple Domain Architecture runtime ownership boundaries. Workstreams are inbound demand units; domain ownership remains anchored on `domain_id`.
+1. A workstream is a solution-scoped inbound demand unit against a domain. It carries handoff context for a specific initiative or change stream, but it does not define a distinct Domain Architecture ownership boundary.
+2. `workstream_id` remains the canonical selector for `domain-workstreams.yml` and identifies the inbound Solution Architecture to Domain Architecture handoff.
+3. `domain_id` identifies the stable owning domain target for the workstream and is required even when `domain_repo_url` is sufficient for self-sufficient runtime resolution in topologies without an authoritative domain registry.
+4. Multiple `workstream_id` values from different initiatives MAY reference the same `domain_id`.
+5. This many-to-one relationship does not imply multiple Domain Architecture runtime ownership boundaries. Workstreams are inbound demand units; domain ownership remains anchored on `domain_id`.
 
-#### 5.7.2 `workstream_repo_url` Semantics
+#### 5.7.2 `domain_repo_url` Semantics at the Solution-Domain Boundary
 
-1. `workstream_repo_url` identifies the repository location of the workstream handoff context.
-2. `workstream_repo_url` does not, by itself, imply a unique Domain Architecture runtime or session per workstream.
-3. When the workstream handoff context is stored in the same repository as the owning domain, `workstream_repo_url` and `domain_repo_url` may be equal.
-4. When both `workstream_repo_url` and authoritative `domain_repo_url` are available, implementations MUST distinguish:
-   1. handoff-context retrieval (use `workstream_repo_url`)
-   2. authoritative domain-owned runtime target resolution (use `domain_repo_url`)
+1. `domain_repo_url` identifies the repository location of the owning domain target for the workstream.
+2. `domain_repo_url` in `domain-workstreams.yml` does not imply a unique Domain Architecture runtime or session per workstream; it identifies the shared domain-owned repository target.
+3. When authoritative `domain-registry.yml` is absent, `domain_repo_url` in `domain-workstreams.yml` provides self-sufficient runtime resolution for the Solution to Domain boundary.
+4. When authoritative `domain-registry.yml` is present, `domain_repo_url` in `domain-workstreams.yml` MAY be omitted. If it is present, it is redundant and MUST match the authoritative registry value for the same `domain_id`.
 
 #### 5.7.3 DA Runtime Identity
 
@@ -554,7 +553,7 @@ These error semantics are normative for all routing behavior, regardless of whet
 #### 5.7.5 Runtime Metadata
 
 1. Implementations SHOULD avoid overloaded generic runtime metadata fields such as `repo_url` on domain-scoped Domain Architecture rows unless their meaning is explicitly documented.
-2. If runtime metadata is derived from `workstream_repo_url` for a domain-scoped Domain Architecture view, it SHOULD use a more explicit field name such as `workstream_context_repo_url` or `handoff_repo_url`.
+2. If runtime metadata is derived from `domain-workstreams.yml[].domain_repo_url`, it MUST be interpreted as the domain-owned repository target for that `domain_id`, not as a workstream-scoped runtime identity.
 3. `domain_repo_url` remains the authoritative domain-owned runtime target when Domain Architecture runtime identity is domain-scoped.
 
 ### 5.8 Optional Machine Access Contract
@@ -656,8 +655,8 @@ A two-level organization (for example Solution + Domain only) satisfies the Core
 Core profile resolution rule:
 
 1. `domain-workstreams.yml` MUST be self-sufficient for runtime resolution when no authoritative `domain-registry.yml` is available.
-2. In that case, each workstream entry MUST include `workstream_repo_url`.
-3. When an authoritative `domain-registry.yml` is available at runtime, `workstream_repo_url` MAY be omitted and `domain_id` is resolved through the registry.
+2. In that case, each workstream entry MUST include `domain_repo_url`.
+3. When an authoritative `domain-registry.yml` is available at runtime, `domain_repo_url` MAY be omitted and `domain_id` is resolved through the registry.
 
 ### Governed Profile
 
@@ -742,9 +741,10 @@ Top-down per-boundary routing sequence (each step requires the caller to possess
 
 1. `initiative_id` -> `initiatives.yml` -> solution repository + `solution_entrypoint`
 2. `workstream_id` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
-3. Repository resolution for a workstream target:
-   1. use `workstream_repo_url` when present in `domain-workstreams.yml`
-   2. otherwise resolve `domain_id` -> authoritative `domain-registry.yml` -> `domain_repo_url`
+3. Repository resolution for a workstream handoff and DA startup:
+   1. self-sufficient target resolution: use `domain_repo_url` when present in `domain-workstreams.yml`
+   2. authoritative target resolution fallback: when `domain_repo_url` is omitted and authoritative `domain-registry.yml` is present, resolve `domain_id` -> `domain_repo_url` and interpret `workstream_entrypoint` + `workstream_git_ref` there
+   3. when both are available, `domain-registry.yml` remains authoritative and any duplicated `domain_repo_url` in `domain-workstreams.yml` MUST match it
 4. `implementation_id` -> `domain-implementations.yml` -> repo location + optional `repo.entrypoint` + optional `repo.git_ref` (when selector-driven domain->implementation routing boundary exists)
 
 Context mapping patterns:
