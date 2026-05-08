@@ -76,6 +76,14 @@
         "domain_git_ref": {
           "$ref": "#/$defs/nonEmptyString"
         },
+        "default_agent": {
+          "$ref": "#/$defs/nonEmptyString",
+          "description": "Default owning agent for this domain. Must be a DA domain specialist, not only a cross-cutting reviewer."
+        },
+        "fallback_agent": {
+          "$ref": "#/$defs/nonEmptyString",
+          "description": "Fallback owning agent for this domain when no finer specialist is available. Must be a DA domain specialist."
+        },
         "status": {
           "$ref": "#/$defs/status"
         },
