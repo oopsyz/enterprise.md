@@ -9,7 +9,7 @@ Usage:
                                   [--initiatives PATH] [--domain-registry PATH]
                                   [--solution-index PATH] [--workstreams PATH]
                                   [--da-root PATH]
-                                  [--active-only]
+                                  [--active-only] [--allow-empty]
 
 Path arguments are relative to --root. They default to the reference layout
 (ea/architecture/portfolio/initiatives.yml etc.). Repos using a different layout
@@ -20,6 +20,8 @@ Partial-adoption topology support:
   Missing layer catalogs are treated as absent (skipped with a note) unless the
   user explicitly supplied that path — in which case the file is expected to exist.
   This means a DA-only repo will not fail on missing EA or SA catalogs.
+  If no catalog artifacts are found at all, validation fails with ERR_NO_CONTEXT
+  unless --allow-empty is supplied.
 
 DA layout assumption:
   The validator assumes one subdirectory per domain under --da-root, each
@@ -149,6 +151,38 @@ def normalize_repo_url(repo_url: Any) -> str | None:
     return None
 
 
+def normalize_repo_path(repo_path: str) -> str:
+    path = repo_path.replace("\\", "/").strip()
+    while path.startswith("./"):
+        path = path[2:]
+    return path
+
+
+def glob_static_prefix(pattern: str) -> str:
+    wildcard_positions = [
+        pos
+        for pos in (pattern.find("*"), pattern.find("?"), pattern.find("["))
+        if pos >= 0
+    ]
+    if not wildcard_positions:
+        return pattern
+    return pattern[:min(wildcard_positions)]
+
+
+def glob_paths_overlap(left: str, right: str) -> bool:
+    left = normalize_repo_path(left)
+    right = normalize_repo_path(right)
+    if left == right or left == "*" or right == "*":
+        return True
+
+    left_prefix = glob_static_prefix(left)
+    right_prefix = glob_static_prefix(right)
+    if not left_prefix or not right_prefix:
+        return True
+
+    return left_prefix.startswith(right_prefix) or right_prefix.startswith(left_prefix)
+
+
 def ensure_unique_ids(
     entries: list[dict[str, Any]], key: str, path: Any
 ) -> set[str]:
@@ -159,7 +193,7 @@ def ensure_unique_ids(
         if not isinstance(value, str) or not value:
             continue
         if value in seen:
-            err("ERR_SELECTOR_DUPLICATE",
+            err("ERR_SELECTOR_AMBIGUOUS",
                 f"duplicate {key} '{value}' at entries {seen[value]} and {index}",
                 path=path)
         else:
@@ -171,7 +205,7 @@ def ensure_unique_ids(
 # --- Main validation ---
 
 def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
-        this_repo_url: str | None, active_only: bool) -> int:
+        this_repo_url: str | None, active_only: bool, allow_empty: bool) -> int:
     """
     explicit_paths: set of path keys the user passed explicitly on the CLI.
     If a catalog is absent AND its key is not in explicit_paths, it is treated
@@ -179,6 +213,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
     the file is expected to exist and its absence is an error.
     """
     routable_statuses = {"active"} if active_only else ROUTABLE_STATUSES
+    catalog_count = 0
 
     print(f"Validating convention at: {root}")
     print(f"Repo URL: {this_repo_url or '(not provided — remote entrypoint checks skipped)'}")
@@ -199,6 +234,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         else:
             note("initiatives.yml absent — EA layer not present in this repo")
     else:
+        catalog_count += 1
         initiatives_data = load_yaml(initiatives_path)
         validate_schema(initiatives_data, schema_dir / "initiatives.schema.json", initiatives_path)
         initiatives_list = (initiatives_data or {}).get("initiatives", [])
@@ -222,6 +258,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         else:
             note("domain-registry.yml absent — EA domain registry not present in this repo")
     else:
+        catalog_count += 1
         has_domain_registry = True
         registry_data = load_yaml(domain_registry_path)
         validate_schema(registry_data, schema_dir / "domain-registry.schema.json", domain_registry_path)
@@ -255,6 +292,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         else:
             note("solution-index.yml absent — SA layer not present in this repo")
     else:
+        catalog_count += 1
         si_data = load_yaml(solution_index_path)
         validate_schema(si_data, schema_dir / "solution-index.schema.json", solution_index_path)
         for di, domain in enumerate((si_data or {}).get("domains", [])):
@@ -271,6 +309,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         else:
             note("domain-workstreams.yml absent — SA workstream catalog not present in this repo")
     else:
+        catalog_count += 1
         ws_data = load_yaml(workstreams_path)
         validate_schema(ws_data, schema_dir / "domain-workstreams.schema.json", workstreams_path)
 
@@ -282,7 +321,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
 
         workstreams_list = (ws_data or {}).get("workstreams", [])
         workstream_ids = ensure_unique_ids(workstreams_list, "workstream_id", workstreams_path)
-        active_ws = 0
+        routable_ws = 0
         for index, ws in enumerate(workstreams_list):
             ws_init_id = ws.get("initiative_id", "")
             if initiative_ids and not ws_init_id:
@@ -316,6 +355,11 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                     f"workstreams[{index}] domain_repo_url '{domain_repo_url}' does not match authoritative domain-registry.yml value '{registry_ws_url}' for domain_id '{ws_dom_id}'",
                     path=workstreams_path)
 
+            if "workstream_entrypoint" not in ws:
+                err("ERR_ENTRYPOINT_MISSING",
+                    f"workstreams[{index}] must include workstream_entrypoint; use null before materialization",
+                    path=workstreams_path)
+
             # Routable workstreams must have an entrypoint
             if status in routable_statuses and not isinstance(entrypoint, str):
                 err("ERR_ENTRYPOINT_MISSING",
@@ -343,9 +387,9 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 warn(f"workstream '{ws.get('workstream_id', '')}' is inactive — not routable",
                      path=workstreams_path)
             elif status in routable_statuses:
-                active_ws += 1
+                routable_ws += 1
 
-        print(f"  workstreams: {len(workstream_ids)} total, {active_ws} active")
+        print(f"  workstreams: {len(workstream_ids)} total, {routable_ws} routable")
 
     # -------------------------
     # 3. DOMAIN LAYER
@@ -378,6 +422,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
             if not impl_path.exists():
                 warn(f"domain '{domain_id}' has no domain-implementations.yml")
             else:
+                catalog_count += 1
                 impl_data = load_yaml(impl_path)
                 validate_schema(impl_data, schema_dir / "domain-implementations.schema.json", impl_path)
                 implementations = (impl_data or {}).get("implementations", [])
@@ -394,11 +439,11 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                                     path=impl_path)
 
                 # --- path binding uniqueness (ERR_OVERLAPPING_PATHS) ---
-                bindings: dict[str, dict[str, int]] = defaultdict(dict)
-                active_impl = 0
+                bindings: dict[str, list[tuple[str, int]]] = defaultdict(list)
+                routable_impl = 0
                 for index, impl in enumerate(implementations):
                     if impl.get("status") in routable_statuses:
-                        active_impl += 1
+                        routable_impl += 1
 
                     repo = impl.get("repo") or {}
                     if not isinstance(repo, dict):
@@ -414,19 +459,21 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                             for alias in aliases
                             if isinstance(alias, str) and alias
                         )
+                    repo_ids = list(dict.fromkeys(repo_ids))
 
                     for repo_id in repo_ids:
                         for repo_path in repo_paths:
                             if not isinstance(repo_path, str):
                                 continue
-                            prior = bindings[repo_id].get(repo_path)
-                            if prior is not None:
-                                err("ERR_OVERLAPPING_PATHS",
-                                    f"implementations[{index}] duplicates repo binding ({repo_id}, {repo_path}) already used by implementations[{prior}]",
-                                    path=impl_path)
-                            bindings[repo_id][repo_path] = index
+                            for prior_path, prior_index in bindings[repo_id]:
+                                if glob_paths_overlap(repo_path, prior_path):
+                                    err("ERR_OVERLAPPING_PATHS",
+                                        f"implementations[{index}] repo binding ({repo_id}, {repo_path}) overlaps implementations[{prior_index}] path '{prior_path}'",
+                                        path=impl_path)
+                            bindings[repo_id].append((repo_path, index))
 
-                        if "*" in bindings[repo_id] and len(bindings[repo_id]) > 1:
+                        path_values = [path_value for path_value, _ in bindings[repo_id]]
+                        if "*" in path_values and len(path_values) > 1:
                             err("ERR_OVERLAPPING_PATHS",
                                 f"repo binding set for {repo_id} mixes '*' with scoped paths, violating the uniqueness invariant",
                                 path=impl_path)
@@ -452,6 +499,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 # --- domain-roadmap.yml (proposed extension) ---
                 roadmap_count = 0
                 if roadmap_path.exists():
+                    catalog_count += 1
                     roadmap_data = load_yaml(roadmap_path)
                     validate_schema(roadmap_data, schema_dir / "domain-roadmap.schema.json", roadmap_path)
                     for item in (roadmap_data or {}).get("items", []):
@@ -468,13 +516,17 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                                     f"roadmap item '{riid}' references unknown implementation_id '{iid}'",
                                     path=roadmap_path)
 
-                print(f"  {domain_id}: {len(impl_ids)} impl(s), {active_impl} active"
+                print(f"  {domain_id}: {len(impl_ids)} impl(s), {routable_impl} routable"
                       + (f", {roadmap_count} roadmap item(s) [proposed ext]" if roadmap_count else ""))
 
     # -------------------------
     # 4. RESULTS
     # -------------------------
     print()
+    if catalog_count == 0 and not allow_empty:
+        err("ERR_NO_CONTEXT",
+            "no convention catalog artifacts were found; pass explicit paths or --allow-empty for Layer A-only validation")
+
     if warnings:
         print(f"Warnings ({len(warnings)}):")
         for w in warnings:
@@ -500,6 +552,8 @@ def main() -> None:
 Partial-adoption topology:
   Missing layer catalogs are treated as 'layer not present' (skipped) unless
   you pass the path explicitly on the CLI, in which case the file is expected.
+  If no catalog artifacts are found at all, validation fails unless
+  --allow-empty is supplied.
 
 DA layout:
   The validator assumes one subdirectory per domain under --da-root, each
@@ -532,6 +586,8 @@ Default paths (reference layout):
                         help=f"Path to DA domain root directory (default: {DEFAULTS['da_root']})")
     parser.add_argument("--active-only", action="store_true",
                         help="Treat only status=active as routable (default: active + in_progress)")
+    parser.add_argument("--allow-empty", action="store_true",
+                        help="Return clean when no catalog artifacts are found, for Layer A-only validation")
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
@@ -553,7 +609,7 @@ Default paths (reference layout):
         else:
             paths[key] = default
 
-    sys.exit(run(root, schema_dir, paths, explicit_paths, args.repo_url, args.active_only))
+    sys.exit(run(root, schema_dir, paths, explicit_paths, args.repo_url, args.active_only, args.allow_empty))
 
 
 if __name__ == "__main__":

@@ -38,5 +38,5 @@ domain-registry.yml                       <- domain governance registry
 
 ## Policy
 
-- Active-only routing; fail-closed on non-active status.
+- Default routing allows `active` and `in_progress`; use active-only routing only when explicitly configured.
 - Resolve solution targets from `initiatives.yml` (canonical routing source).

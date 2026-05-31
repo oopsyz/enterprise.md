@@ -79,7 +79,7 @@ INITIATIVE_ID
       → domain-implementations.yml → repo.url + repo.paths + repo.entrypoint
 ```
 
-**Policy:** fail-closed on `status: inactive`. Only `status: active` entries are routable.
+**Policy:** fail closed on non-routable statuses. By default, `status: active` and `status: in_progress` entries are routable; use the validator's `--active-only` option to restrict routing to `active`.
 
 ### Workstream Semantics
 
@@ -105,7 +105,7 @@ INITIATIVE_ID
 
 - `domain-workstreams.yml[].initiative_id` → must exist in `initiatives.yml[].initiative_id`
 - `domain-workstreams.yml[].domain_id` → must exist in `domain-registry.yml[].domain_id`
-- `domain-workstreams.yml[].workstream_entrypoint` → must be a real file path
+- `domain-workstreams.yml[].workstream_entrypoint` → must be present; may be `null` before materialization, but must be a real file path for routable statuses
 - `domain-roadmap.yml[].workstream_ids[]` → each must exist in `domain-workstreams.yml[].workstream_id`
 - `domain-roadmap.yml[].implementation_ids[]` → each must exist in `domain-implementations.yml[].implementation_id`
 - `domain-registry.yml[].domain_entrypoint` → must be a real file path
@@ -360,7 +360,7 @@ Add a new domain to the enterprise registry and scaffold its DA structure.
 Required fields:
 
 - `domain_id`: unique, convention: `{slug}` e.g. `payments-provider-integration`
-- `domain_name`: human-readable name
+- `name`: human-readable name
 - `status`: `active` or `inactive`
 - `owner`: team or role name
 - `domain_repo_url`: URL of the domain repo
@@ -606,7 +606,7 @@ If the user declines, skip silently — do not re-prompt.
 | `ERR_DOMAIN_NOT_FOUND` | `domain_id` does not exist in `domain-registry.yml` |
 | `ERR_WORKSTREAM_NOT_FOUND` | `workstream_id` does not exist in `domain-workstreams.yml` |
 | `ERR_IMPLEMENTATION_NOT_FOUND` | `implementation_id` does not exist in `domain-implementations.yml` |
-| `ERR_SELECTOR_DUPLICATE` | ID already exists in the target artifact |
+| `ERR_SELECTOR_AMBIGUOUS` | ID already exists in the target artifact |
 | `ERR_ENTRYPOINT_MISSING` | Referenced file path does not exist |
 | `ERR_STATUS_INACTIVE` | Entry exists but `status` is not `active` — fail-closed |
 

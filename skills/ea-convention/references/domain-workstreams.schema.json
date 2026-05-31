@@ -61,6 +61,7 @@
       "required": [
         "workstream_id",
         "domain_id",
+        "workstream_entrypoint",
         "workstream_git_ref",
         "status"
       ],
