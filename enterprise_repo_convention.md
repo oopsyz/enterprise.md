@@ -337,6 +337,28 @@ Appendix A lists the schema file paths, schema identifiers, and intended purpose
 
 ### 5.3 Minimum Fields
 
+#### Two repository-URL fields, two layers
+
+The convention carries a repository URL at two different layers, and they resolve different things. They are commonly *not* the same repository, so they are described together here before the per-field rules below.
+
+| Field | Catalog | Layer | Points at | What lives there |
+| --- | --- | --- | --- | --- |
+| `domain_repo_url` | `domain-registry.yml` (governed profile); also `domain-workstreams.yml` for self-sufficient routing | Enterprise governance / solution-to-domain boundary | The domain's governance home | `DOMAIN.md`, `AGENTS.md`, the bounded-context contract and domain design baselines |
+| `repo.url` | `domain-implementations.yml` | Domain to implementation | An implementation (code) target | agent/skill/service code, tests, build files |
+
+`domain_repo_url` answers *"where is this domain governed?"* `repo.url` answers *"where is a given component of this domain implemented?"* A domain is governed in one place but MAY be implemented across several repositories, so the two URLs frequently diverge.
+
+`domain_repo_url` is authoritative in `domain-registry.yml` but MAY also appear in `domain-workstreams.yml` to provide self-sufficient solution-to-domain routing when no authoritative registry is available (see Sections 5.3 item 4 and 5.7.2). When both are present, the registry value is authoritative and any `domain-workstreams.yml` copy MUST match it. The cardinalities below describe `domain_repo_url` in its authoritative registry role.
+
+Cardinalities:
+
+1. **Domain to `domain_repo_url` is 1:1.** `domain_repo_url` is optional (see the governed checklist in Section 9 and the registry schema). Each registry entry that declares `domain_repo_url` has exactly one governance home for that `domain_id`.
+2. **Many domains MAY share one `domain_repo_url` (N:1).** Several `domain_id` entries MAY point at the same governance repository (a shared-governance-repo topology, where many domains' `DOMAIN.md`/`AGENTS.md` live in one repository). This is permitted; `domain_repo_url` is not subject to a uniqueness invariant. Each domain still resolves to its own `domain_entrypoint` within that repository.
+3. **One domain MAY have many `repo.url` (1:N).** A single `domain-implementations.yml` lists N implementations, each with its own `repo` object, so one domain can target many implementation repositories. The §5.3 example below mixes monorepo and multi-repo implementations in one catalog.
+4. **The same `repo.url` MAY repeat across implementations** when, and only when, their `repo.paths` do not overlap (the monorepo case). This is bounded by the uniqueness invariant in Section 5.3 item 9: every `(canonical(repo.url), matched path)` pair maps to exactly one `implementation_id`, where the set `{repo.url} ∪ repo.aliases` participates in the invariant. Distinct canonical URL/alias/path binding sets do not collide.
+
+Note: the `domain-implementations.yml` uniqueness invariants are built from `implementation_id` and the `(canonical(repo.url) ∪ repo.aliases, matched repo.path)` binding. `domain_repo_url` participates in no uniqueness invariant, which is what makes the N:1 shared-governance topology valid.
+
 Cross-repo target fields:
 
 Rationale for implementation target metadata:

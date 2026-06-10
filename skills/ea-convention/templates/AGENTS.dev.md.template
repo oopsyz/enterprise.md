@@ -3,3 +3,4 @@
 Role: dev
 Instruction: Always read `DOMAIN.md` (mandatory entrypoint for this level).
 Guardrail: `DOMAIN.md` is a critical contract file. Preserve template section structure and keep mutable operational detail in linked canonical artifacts.
+Boundary: This repository is implementation-local scope under its owning domain. Work only on artifacts owned by this implementation or repo. Never modify domain-owned or cross-domain artifacts directly; escalate through the authoritative routing or governance artifacts.

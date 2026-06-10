@@ -147,7 +147,7 @@ Example traversal:
 1. Read the [full proposal](enterprise_repo_convention.md).
 2. Decide whether you need Layer A only or a routed conformance profile.
 3. Get starter files from [skills/ea-convention/templates/](skills/ea-convention/templates/) or use the `ea-convention` skill to scaffold them automatically.
-4. Validate your catalog files using the `ea-convention` skill's validator (for example: `python skills/ea-convention/scripts/validate_convention.py --root .`) or run schema checks against the authoritative schemas under `skills/ea-convention/references/`.
+4. Validate your catalog files using the `ea-convention` skill's validator. The default command targets the reference layout (`python skills/ea-convention/scripts/validate_convention.py --root .`); pass explicit catalog paths when your files live elsewhere, for example `--initiatives initiatives.yml --workstreams domain-workstreams.yml`.
 5. Define the bootstrap discovery mechanism if you are adopting the Core or Governed profile (e.g., an `ENTERPRISE_REPO_URL` environment variable, a startup parameter, or a well-known endpoint like `https://config.example.com/enterprise-catalog`).
 6. Replace placeholder values with your organization's data and keep routing data in the canonical YAML catalogs.
 7. See [examples/core/README.md](examples/core/README.md) and [examples/governed/README.md](examples/governed/README.md) for complete working samples.
