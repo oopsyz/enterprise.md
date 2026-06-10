@@ -1,4 +1,5 @@
-version: "0.2"
+spec_name: solution-index
+spec_version: "1.0.0"
 solution_key: <solution-key>
 display_name: <solution-display-name>
 description: <solution-description>
@@ -9,7 +10,7 @@ entrypoints:
   solution_md: SOLUTION.md
   agents_md: AGENTS.md
 domains:
-  - domain_key: <domain-id>
+  - domain_id: <domain-id>
     domain_repo:
       repo_url: https://github.com/<org>/<domain-repo>
       entrypoints:

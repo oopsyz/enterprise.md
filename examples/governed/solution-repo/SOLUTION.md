@@ -36,11 +36,11 @@ domain-workstreams.yml                             <- workstream selector catalo
 
 `WORKSTREAM_ID` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
 
-## SA Container Context
+## Runtime Initiative Context (optional)
 
-When running in an SA container (`OPENARCHITECT_CONTAINER_ROLE=sa`), startup routing can write:
-
-- `.openarchitect/active-initiative.json`
+A routed runtime MAY materialize active initiative context as a machine-readable
+handoff artifact (path and format are implementation-defined; for example
+`.enterprise-md/active-initiative.json`).
 
 ## Scope
 

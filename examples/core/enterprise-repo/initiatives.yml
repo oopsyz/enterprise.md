@@ -1,7 +1,8 @@
 # EA selector catalog (Git-first, no DB required)
 # Keep this file in EA repo at: architecture/portfolio/initiatives.yml
 
-version: "1.0"
+spec_name: initiatives
+spec_version: "1.0.0"
 
 initiatives:
   - initiative_id: init-bss-modernization

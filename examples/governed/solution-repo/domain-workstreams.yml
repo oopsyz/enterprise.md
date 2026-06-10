@@ -3,7 +3,8 @@
 # Governed profile example: `domain_repo_url` is omitted because the
 # authoritative enterprise `domain-registry.yml` resolves `domain_id`.
 
-version: "1.0"
+spec_name: domain-workstreams
+spec_version: "1.0.0"
 workspace_id: null
 initiative_id: init-bss-modernization
 generated_at_utc: "2026-03-01T10:00:00Z"
@@ -40,9 +41,5 @@ workstreams:
       priority: high
       milestone: null
 
-execution:
-  state: not_started
-  processed_workstreams: []
-  skipped_workstreams: []
 
 notes: null

@@ -1,17 +1,26 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/enterprise.md/schemas/domain-implementations.schema.json",
   "title": "domain-implementations.yml",
   "type": "object",
-  "required": ["spec_name", "spec_version", "implementations"],
+  "required": [
+    "spec_name",
+    "spec_version",
+    "implementations"
+  ],
   "properties": {
     "spec_name": {
       "type": "string",
-      "const": "multi-scale-routing"
+      "enum": [
+        "domain-implementations",
+        "multi-scale-routing"
+      ],
+      "description": "Canonical: 'domain-implementations'. 'multi-scale-routing' is a deprecated alias accepted during 1.x."
     },
     "spec_version": {
       "type": "string",
-      "minLength": 1
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Full MAJOR.MINOR.PATCH semantic version."
     },
     "implementations": {
       "type": "array",
@@ -73,7 +82,11 @@
     },
     "implementation": {
       "type": "object",
-      "required": ["implementation_id", "status", "repo"],
+      "required": [
+        "implementation_id",
+        "status",
+        "repo"
+      ],
       "properties": {
         "implementation_id": {
           "$ref": "#/$defs/nonEmptyString"
@@ -99,7 +112,10 @@
           }
         },
         "workstream_id": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "initiative_id": {
           "$ref": "#/$defs/nonEmptyString"

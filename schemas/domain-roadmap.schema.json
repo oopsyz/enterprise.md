@@ -3,7 +3,12 @@
   "$id": "https://example.com/enterprise.md/schemas/domain-roadmap.schema.json",
   "title": "domain-roadmap.yml",
   "type": "object",
-  "required": ["spec_name", "spec_version", "domain_id", "items"],
+  "required": [
+    "spec_name",
+    "spec_version",
+    "domain_id",
+    "items"
+  ],
   "properties": {
     "spec_name": {
       "type": "string",
@@ -11,7 +16,7 @@
     },
     "spec_version": {
       "type": "string",
-      "minLength": 1
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "domain_id": {
       "type": "string",
@@ -31,7 +36,12 @@
     },
     "roadmapItem": {
       "type": "object",
-      "required": ["roadmap_item_id", "workstream_ids", "implementation_ids", "status"],
+      "required": [
+        "roadmap_item_id",
+        "workstream_ids",
+        "implementation_ids",
+        "status"
+      ],
       "properties": {
         "roadmap_item_id": {
           "$ref": "#/$defs/nonEmptyString"
@@ -52,14 +62,22 @@
         },
         "status": {
           "type": "string",
-          "enum": ["planned", "in-progress", "done"]
+          "enum": [
+            "planned",
+            "in-progress",
+            "done"
+          ]
         },
         "name": {
           "$ref": "#/$defs/nonEmptyString"
         },
         "priority": {
           "type": "string",
-          "enum": ["high", "medium", "low"]
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
         },
         "milestone": {
           "$ref": "#/$defs/nonEmptyString"

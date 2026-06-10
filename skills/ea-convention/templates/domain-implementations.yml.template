@@ -1,10 +1,10 @@
 # Domain implementations catalog (YAML canonical)
 # Keep this file in the domain repo as: domain-implementations.yml
-# Validate with: ../references/domain-implementations.schema.json
+# Validate with: schemas/domain-implementations.schema.json (repo root)
 # Authoritative routing source for this domain. Runtime resolvers use this file only.
 # Implementation repos must not replicate or override this catalog.
 
-spec_name: multi-scale-routing
+spec_name: domain-implementations
 spec_version: "1.0.0"
 
 # Schema rules:
@@ -14,7 +14,7 @@ spec_version: "1.0.0"
 #   repo.url          - Optional. When omitted, defaults to the catalog's own repo (monorepo case).
 #                       When present, must be a non-empty canonical URL; null/empty is invalid_schema.
 #   repo.paths        - Optional. List of glob patterns scoping the implementation within the repo.
-#                       Default: ["*"] (whole repo). Must be a non-empty list of non-empty globs.
+#                       Default: ["**"] (whole repo). Gitignore-style: `**` crosses path segments, `*` does not.
 #   repo.aliases      - Optional. Previous canonical URLs retained during a rename grace window.
 #                       Linter must enforce alias sunset and uniqueness across url + aliases.
 #   repo.entrypoint   - Optional. Repo-relative file path to open after reaching the repo.
@@ -32,7 +32,7 @@ spec_version: "1.0.0"
 #
 # Uniqueness invariant:
 #   No two rows may produce overlapping (canonical(repo.url), matched repo.path) bindings.
-#   paths: ["*"] may appear at most once per repo.url and cannot coexist with other rows for that url.
+#   paths: ["**"] may appear at most once per repo.url and cannot coexist with other rows for that url.
 #   repo.aliases participate in the invariant: no other row may overlap on any aliased URL.
 #
 # Failure codes (see spec Section 11):
@@ -45,7 +45,7 @@ implementations:
   - implementation_id: order-api
     status: active
     repo:
-      paths: ["src/order-api/*"]
+      paths: ["src/order-api/**"]
     # traceability (optional)
     workstream_id: <workstream-id>
     owners: [<team>]
@@ -54,7 +54,7 @@ implementations:
   - implementation_id: order-events
     status: active
     repo:
-      paths: ["*"]
+      paths: ["**"]
     # traceability (optional)
     workstream_id: <workstream-id>
     owners: [<team>]
@@ -65,9 +65,9 @@ implementations:
     repo:
       url: https://github.com/<org>/<repo>
       paths:
-        - services/risk/*
-        - batch/risk-jobs/*
-        - deploy/risk/*
+        - services/risk/**
+        - batch/risk-jobs/**
+        - deploy/risk/**
       entrypoint: services/risk/README.md
       git_ref: main
     # traceability (optional)
@@ -79,7 +79,7 @@ implementations:
     status: active
     repo:
       url: https://github.com/keycloak/keycloak
-      paths: ["*"]
+      paths: ["**"]
       entrypoint: README.md
       git_ref: 26.1.0
     # traceability (optional)
@@ -94,4 +94,4 @@ implementations:
       url: https://github.com/<org>/<legacy-repo>
       aliases:
         - https://github.com/<org>/<old-repo-name>
-      paths: ["*"]
+      paths: ["**"]

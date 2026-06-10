@@ -27,8 +27,7 @@ DOMAIN.md                                          <- you are here
 AGENTS.md                                          <- repo-specific agent instructions
 ROADMAP.md                                         <- (optional) DA-owned developer-facing plan
 domain-implementations.yml                         <- canonical implementation catalog (implementation_id routing)
-.openarchitect/
-`-- cascade-state.yml                              <- (optional) governance gates + pinned refs
+governance-state.yml                               <- (optional) governance gates + stage status
 architecture/
 `-- domains/
     `-- <domain_id>/

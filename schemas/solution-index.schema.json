@@ -3,11 +3,16 @@
   "$id": "https://example.com/enterprise.md/schemas/solution-index.schema.json",
   "title": "solution-index.yml",
   "type": "object",
-  "required": ["version", "solution_key", "owners", "entrypoints"],
+  "required": [
+    "solution_key",
+    "owners",
+    "entrypoints"
+  ],
   "properties": {
     "version": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Deprecated alias for spec_name + spec_version; accepted during 1.x. Writers MUST emit spec_name/spec_version."
     },
     "solution_key": {
       "type": "string",
@@ -22,7 +27,9 @@
     },
     "owners": {
       "type": "object",
-      "required": ["solution_architect"],
+      "required": [
+        "solution_architect"
+      ],
       "properties": {
         "solution_architect": {
           "type": "string",
@@ -33,7 +40,9 @@
     },
     "entrypoints": {
       "type": "object",
-      "required": ["solution_md"],
+      "required": [
+        "solution_md"
+      ],
       "properties": {
         "solution_md": {
           "type": "string",
@@ -47,11 +56,46 @@
       "additionalProperties": true
     },
     "domains": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "domain_id"
+        ],
+        "properties": {
+          "domain_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
     },
     "repos": {
       "type": "array"
+    },
+    "spec_name": {
+      "type": "string",
+      "const": "solution-index"
+    },
+    "spec_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Full MAJOR.MINOR.PATCH semantic version."
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "anyOf": [
+    {
+      "required": [
+        "spec_name",
+        "spec_version"
+      ]
+    },
+    {
+      "required": [
+        "version"
+      ]
+    }
+  ]
 }

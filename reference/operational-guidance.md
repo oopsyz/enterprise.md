@@ -17,7 +17,7 @@ Typical CI or lint implementations check:
 
 A thin validator/linter commonly layers these checks in two passes:
 
-1. validate each catalog against the authoritative machine-readable schema under `skills/ea-convention/references/`
+1. validate each catalog against the authoritative machine-readable schema under `schemas/`
 2. apply cross-file, selector-uniqueness, and topology-aware checks that cannot be fully expressed in schema alone
 
 Reference implementation in this repository:
