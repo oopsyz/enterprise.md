@@ -4,6 +4,8 @@
   "title": "solution-index.yml",
   "type": "object",
   "required": [
+    "spec_name",
+    "spec_version",
     "solution_key",
     "owners",
     "entrypoints"
@@ -84,18 +86,5 @@
       "description": "Full MAJOR.MINOR.PATCH semantic version."
     }
   },
-  "additionalProperties": true,
-  "anyOf": [
-    {
-      "required": [
-        "spec_name",
-        "spec_version"
-      ]
-    },
-    {
-      "required": [
-        "version"
-      ]
-    }
-  ]
+  "additionalProperties": true
 }

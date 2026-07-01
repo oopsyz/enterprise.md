@@ -4,11 +4,21 @@
   "title": "domain-workstreams.yml",
   "$comment": "This schema is authoritative for structural validation. Topology-dependent rules such as when initiative_id or domain_repo_url are required are enforced by validators using the surrounding artifact set, per the specification.",
   "type": "object",
-  "required": ["version", "workstreams"],
+  "required": ["spec_name", "spec_version", "workstreams"],
   "properties": {
     "version": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Deprecated alias retained for 1.x read compatibility."
+    },
+    "spec_name": {
+      "type": "string",
+      "const": "domain-workstreams"
+    },
+    "spec_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Full MAJOR.MINOR.PATCH semantic version."
     },
     "workspace_id": {
       "type": ["string", "null"]

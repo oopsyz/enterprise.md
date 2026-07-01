@@ -50,14 +50,18 @@ jobs:
         run: |
           python skills/ea-convention/scripts/validate_convention.py \
             --root . \
+            --schema-dir schemas \
             --initiatives examples/core/enterprise-repo/initiatives.yml \
-            --workstreams examples/core/solution-repo/domain-workstreams.yml
+            --workstreams examples/core/solution-repo/domain-workstreams.yml \
+            --da-root examples/core/domain-repo
 
       - name: Validate governed examples
         run: |
           python skills/ea-convention/scripts/validate_convention.py \
             --root . \
+            --schema-dir schemas \
             --initiatives examples/governed/enterprise-repo/initiatives.yml \
             --domain-registry examples/governed/enterprise-repo/domain-registry.yml \
             --solution-index examples/governed/solution-repo/solution-index.yml \
-            --workstreams examples/governed/solution-repo/domain-workstreams.yml
+            --workstreams examples/governed/solution-repo/domain-workstreams.yml \
+            --da-root examples/governed/domain-repo

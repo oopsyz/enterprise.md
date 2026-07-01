@@ -1,29 +1,22 @@
-version: "0.2"
+spec_name: solution-index
+spec_version: "1.0.0"
 solution_key: bss-modernization
 display_name: BSS Modernization
 description: Modernize legacy BSS stack and retire fragmented point solutions.
 owners:
   solution_architect: bss-architecture-team
-  enterprise_id: ent-acme
 entrypoints:
   solution_md: SOLUTION.md
   agents_md: AGENTS.md
-  cascade_state: .openarchitect/cascade-state.yml
 domains:
-  - domain_key: order
-    domain_repo:
-      repo_url: https://github.com/acme/domain-order
-      entrypoints:
-        domain_md: DOMAIN.md
-        agents_md: AGENTS.md
-        cascade_state: .openarchitect/cascade-state.yml
-  - domain_key: billing
-    domain_repo:
-      repo_url: https://github.com/acme/domain-billing
-      entrypoints:
-        domain_md: DOMAIN.md
-        agents_md: AGENTS.md
-        cascade_state: .openarchitect/cascade-state.yml
+  - domain_id: order
+    domain_repo_url: https://github.com/acme/domain-order
+    domain_entrypoint: DOMAIN.md
+    domain_git_ref: main
+  - domain_id: billing
+    domain_repo_url: https://github.com/acme/domain-billing
+    domain_entrypoint: DOMAIN.md
+    domain_git_ref: main
 repos:
   - repo_key: solution_design
     repo_url: https://github.com/acme/solution-bss
@@ -32,4 +25,3 @@ repos:
     entrypoints:
       solution_md: SOLUTION.md
       agents_md: AGENTS.md
-      cascade_state: .openarchitect/cascade-state.yml

@@ -177,7 +177,7 @@ Domain repository note:
 |       |-- SKILL.md                               # skill definition and operations
 |       |-- scripts/
 |       |   `-- validate_convention.py             # schema + lint validator
-|       |-- references/                            # JSON schemas for canonical artifacts
+|       |-- schemas/                               # JSON schemas for canonical artifacts
 |       `-- templates/
 |           |-- ENTERPRISE.md.template             # enterprise entrypoint
 |           |-- SOLUTION.md.template               # solution entrypoint

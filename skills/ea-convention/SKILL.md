@@ -166,7 +166,7 @@ Package contents — read each from `templates/`:
 - `SOLUTION.md` ← `SOLUTION.md.template` (substitute `<enterprise-repo-url>`, `<solution-key>`)
 - `AGENTS.md` ← `AGENTS.sa.md.template`
 - `CLAUDE.md` ← `CLAUDE.sa.md.template`
-- `solution-index.yml` ← `solution-index.yml.template` (substitute `solution_key`, owners)
+- `solution-index.yml` ← `solution-index.yml.template` (substitute `solution_key` and solution scope details)
 - `architecture/solution/domain-workstreams.yml` ← `domain-workstreams.yml.template` (substitute `initiative_id`, set `workstreams: []`)
 
 After generating:
@@ -258,7 +258,7 @@ Run the bundled validation script against the current repo:
 python "{skill_base_dir}/scripts/validate_convention.py" --root . --repo-url <this-repo-url>
 ```
 
-The script auto-detects its schema directory from `{skill_base_dir}/references/`.
+The script auto-detects its schema directory from `schemas/` in the repo root, with the bundled `references/` layout as a fallback for older checkouts.
 
 **If the repo uses a non-default layout**, supply explicit paths:
 
@@ -279,7 +279,7 @@ All paths are relative to `--root`. Defaults match the reference layout (see Lay
 
 **Schema validation** (requires `jsonschema` — skipped gracefully if not installed):
 
-- Each canonical YAML conforms to its JSON Schema in `references/`
+- Each canonical YAML conforms to its JSON Schema in `schemas/`
 
 **Lint validation** (always runs):
 
@@ -346,7 +346,7 @@ Steps:
    - `sa/SOLUTION.md` ← `SOLUTION.md.template`
    - `sa/AGENTS.md` ← `AGENTS.sa.md.template`
    - `sa/CLAUDE.md` ← `CLAUDE.sa.md.template`
-   - `sa/solution-index.yml` ← `solution-index.yml.template` (substitute `solution_key`, `initiative_id`)
+   - `sa/solution-index.yml` ← `solution-index.yml.template` (substitute `solution_key` and solution scope details)
    - `sa/architecture/solution/domain-workstreams.yml` ← `domain-workstreams.yml.template` (substitute `initiative_id`, set `workstreams: []`)
 7. If **separate repo**: skip scaffolding. Warn that `solution_entrypoint` must exist in the target repo before VALIDATE will pass.
 8. Run the **Post-Scaffold Git Workflow** (applies in both same-repo and separate-repo cases, since `initiatives.yml` was modified).

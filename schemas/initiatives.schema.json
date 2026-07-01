@@ -4,6 +4,8 @@
   "title": "initiatives.yml",
   "type": "object",
   "required": [
+    "spec_name",
+    "spec_version",
     "initiatives"
   ],
   "properties": {
@@ -87,18 +89,5 @@
       "additionalProperties": true
     }
   },
-  "additionalProperties": true,
-  "anyOf": [
-    {
-      "required": [
-        "spec_name",
-        "spec_version"
-      ]
-    },
-    {
-      "required": [
-        "version"
-      ]
-    }
-  ]
+  "additionalProperties": true
 }

@@ -62,18 +62,18 @@ identity is domain-scoped (see
 
 When running in an SA container (`OPENARCHITECT_CONTAINER_ROLE=sa`), startup routing can write:
 
-- `.openarchitect/active-initiative.json`
+- `.enterprise-md/active-initiative.json`
 
 This file is a required initiative context reference for `SOLUTION.md` and should be treated as the machine-readable source for active initiative routing context.
 
-At minimum, `SOLUTION.md` should reference values from `.openarchitect/active-initiative.json` for:
+At minimum, `SOLUTION.md` should reference values from `.enterprise-md/active-initiative.json` for:
 
 - `initiative_id`
 - `solution_repo_url` (SA repo URL)
 - initiative name/description/objectives (when present)
 - selector provenance (when present)
 
-If `.openarchitect/active-initiative.json` is missing (for example outside routed container startup), explicitly state that initiative context could not be resolved from runtime routing metadata.
+If `.enterprise-md/active-initiative.json` is missing (for example outside routed container startup), explicitly state that initiative context could not be resolved from runtime routing metadata.
 
 ## Scope
 

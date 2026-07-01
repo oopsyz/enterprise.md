@@ -23,11 +23,11 @@ Partial-adoption topology support:
   If no catalog artifacts are found at all, validation fails with ERR_NO_CONTEXT
   unless --allow-empty is supplied.
 
-DA layout assumption:
-  The validator assumes one subdirectory per domain under --da-root, each
-  containing domain-implementations.yml. This structure is implied by the spec
-  examples. Flat or otherwise custom DA layouts are not supported by this
-  validator and must be validated manually.
+DA layout:
+  The validator supports either a flat single-domain DA repo with
+  domain-implementations.yml at --da-root, or a nested layout with one
+  subdirectory per domain under --da-root. Custom layouts may still require
+  explicit review.
 
 Exit codes:
     0  clean
@@ -107,10 +107,10 @@ def note(message: str) -> None:
 # --- Schema validation ---
 
 def validate_schema(data: Any, schema_path: Path, artifact_path: Path) -> None:
-    if not HAS_JSONSCHEMA:
-        return
     if not schema_path.exists():
-        warn(f"Schema file not found, skipping schema check", path=artifact_path)
+        err("ERR_SCHEMA_MISSING", f"schema file '{schema_path}' not found", path=artifact_path)
+        return
+    if not HAS_JSONSCHEMA:
         return
     with open(schema_path, encoding="utf-8-sig") as f:
         schema = json.load(f)
@@ -198,8 +198,23 @@ def ensure_unique_ids(
                 path=path)
         else:
             seen[value] = index
-        ids.add(value)
+            ids.add(value)
     return ids
+
+
+def resolve_schema_dir(root: Path, explicit_schema_dir: str | None) -> Path:
+    if explicit_schema_dir:
+        return Path(explicit_schema_dir).resolve()
+
+    repo_schema_dir = root / "schemas"
+    if repo_schema_dir.exists():
+        return repo_schema_dir
+
+    bundled_schema_dir = Path(__file__).parent.parent / "references"
+    if bundled_schema_dir.exists():
+        return bundled_schema_dir.resolve()
+
+    return repo_schema_dir
 
 
 # --- Main validation ---
@@ -403,20 +418,27 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         else:
             note("da/ directory absent — DA layer not present in this repo")
     else:
+        flat_impl_path = da_root / "domain-implementations.yml"
+        flat_roadmap_path = da_root / "domain-roadmap.yml"
         domain_dirs = [d for d in da_root.iterdir() if d.is_dir()]
-        if not domain_dirs:
-            if "da_root" in explicit_paths:
-                warn(
-                    f"'{paths['da_root']}' has no domain subdirectories — "
-                    "DA validation was skipped. If this is a flat or custom layout, "
-                    "the validator does not support it and results may be incomplete."
-                )
-            else:
-                note("da/ exists but contains no domain subdirectories")
-        for domain_dir in sorted(domain_dirs):
-            domain_id = domain_dir.name
-            impl_path = domain_dir / "domain-implementations.yml"
-            roadmap_path = domain_dir / "domain-roadmap.yml"
+
+        if flat_impl_path.exists():
+            domain_targets = [("flat-root", da_root, flat_impl_path, flat_roadmap_path)]
+        else:
+            domain_targets = [
+                (domain_dir.name, domain_dir, domain_dir / "domain-implementations.yml", domain_dir / "domain-roadmap.yml")
+                for domain_dir in sorted(domain_dirs)
+            ]
+            if not domain_targets:
+                if "da_root" in explicit_paths:
+                    warn(
+                        f"'{paths['da_root']}' has no domain subdirectories and no flat domain-implementations.yml — "
+                        "DA validation was skipped."
+                    )
+                else:
+                    note("da/ exists but contains no domain subdirectories")
+
+        for domain_id, domain_dir, impl_path, roadmap_path in domain_targets:
 
             impl_ids: set[str] = set()
             if not impl_path.exists():
@@ -487,9 +509,6 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                     if impl.get("status") in routable_statuses:
                         repo_url = repo.get("url", "")
                         repo_ep = repo.get("entrypoint", "")
-                        if not repo_url:
-                            warn(f"domain '{domain_id}' implementation '{impl.get('implementation_id', '')}' has no repo.url (local path only)",
-                                 path=impl_path)
                         if repo_ep and is_local_path(repo_url, this_repo_url):
                             if not file_exists_local(root, repo_ep):
                                 err("ERR_ENTRYPOINT_MISSING",
@@ -591,7 +610,7 @@ Default paths (reference layout):
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
-    schema_dir = Path(args.schema_dir).resolve() if args.schema_dir else Path(__file__).parent.parent / "references"
+    schema_dir = resolve_schema_dir(root, args.schema_dir)
 
     if not root.exists():
         print(f"ERROR: root directory '{root}' does not exist", file=sys.stderr)

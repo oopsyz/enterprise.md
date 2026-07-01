@@ -44,21 +44,23 @@ Catalogs at a glance:
 
 ```yaml
 # initiatives.yml
-version: "1.0"
+spec_name: initiatives
+spec_version: "1.0.0"
 initiatives:
   - { initiative_id: init-example, solution_repo_url: https://github.com/example/solution-repo, solution_entrypoint: SOLUTION.md, solution_git_ref: main, status: active }
 ```
 
 ```yaml
 # domain-workstreams.yml
-version: "1.0"
+spec_name: domain-workstreams
+spec_version: "1.0.0"
 workstreams:
   - { workstream_id: ws-init-example-order, initiative_id: init-example, domain_id: order, workstream_entrypoint: inputs/workstreams/ws-init-example-order/WORKSTREAM.md, workstream_git_ref: feature/ws-init-example-order, domain_repo_url: https://github.com/example/order-domain-repo, status: active }
 ```
 
 ```yaml
 # domain-implementations.yml
-spec_name: multi-scale-routing
+spec_name: domain-implementations
 spec_version: "1.0.0"
 implementations:
   - { implementation_id: order-api, status: active, repo: { paths: ["src/order-api/*"] } }
@@ -286,7 +288,8 @@ initiatives:
 
 ```yaml
 # solution to domain handoff
-version: "1.0"
+spec_name: domain-workstreams
+spec_version: "1.0.0"
 workstreams:
   - workstream_id: ws-bss-order
     initiative_id: init-bss-modernization
@@ -299,7 +302,7 @@ workstreams:
 
 ```yaml
 # domain to implementation target
-spec_name: multi-scale-routing
+spec_name: domain-implementations
 spec_version: "1.0.0"
 implementations:
   - implementation_id: order-api
@@ -314,12 +317,12 @@ Authorship note: Routing catalogs are typically generated artifacts -- produced 
 
 Catalog headers MUST follow the canonical schema for that catalog type:
 
-1. `initiatives.yml` MUST include `version`.
-2. `domain-workstreams.yml` MUST include `version`.
+1. `initiatives.yml` MUST include `spec_name` and `spec_version`.
+2. `domain-workstreams.yml` MUST include `spec_name` and `spec_version`.
 3. `domain-implementations.yml` MUST include `spec_name` and `spec_version`.
 4. Governed companion artifacts with authoritative schemas in this repository follow the same header discipline:
-   1. `domain-registry.yml` MUST include `version`.
-   2. `solution-index.yml` MUST include `version`.
+   1. `domain-registry.yml` MUST include `spec_name` and `spec_version`.
+   2. `solution-index.yml` MUST include `spec_name` and `spec_version`.
 
 Version rules:
 
@@ -332,7 +335,7 @@ Runtime behavior:
 1. Consumers MUST fail closed on unknown `MAJOR` versions.
 2. Producers MUST provide migration notes when incrementing `MAJOR`.
 
-Authoritative machine-readable schemas for canonical catalog validation are maintained under `skills/ea-convention/references/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog version contract in this section. Topology-dependent conditions from Sections 5.3, 5.5, and 9 remain normative validator rules in addition to standalone schema validation because they depend on the surrounding artifact set.
+Authoritative machine-readable schemas for canonical catalog validation are maintained under `schemas/`. These schemas define structural validation for canonical catalogs and are versioned alongside the catalog header contract in this section. Topology-dependent conditions from Sections 5.3, 5.5, and 9 remain normative validator rules in addition to standalone schema validation because they depend on the surrounding artifact set.
 Appendix A lists the schema file paths, schema identifiers, and intended purpose for each canonical schema without duplicating schema structure in Markdown.
 
 ### 5.3 Minimum Fields
@@ -424,7 +427,7 @@ workstreams:
 #### domain-implementations.yml
 
 ```yaml
-spec_name: multi-scale-routing
+spec_name: domain-implementations
 spec_version: "1.0.0"
 implementations:
   # Monorepo — repo.url omitted (defaults to catalog repo), scoped paths
@@ -473,7 +476,7 @@ implementations:
 Monorepo path-scoping example:
 
 ```yaml
-spec_name: multi-scale-routing
+spec_name: domain-implementations
 spec_version: "1.0.0"
 implementations:
   - implementation_id: order-api
@@ -631,7 +634,7 @@ Migration policy:
 
 Validators for this convention MUST check:
 
-1. structural schema and required-field conformance using the authoritative schemas under `skills/ea-convention/references/`
+1. structural schema and required-field conformance using the authoritative schemas under `schemas/`
 2. topology-dependent conditional conformance from Sections 5.3 and 9 that depends on the surrounding artifact set (for example when `initiative_id` or `domain_repo_url` is required)
 3. selector uniqueness (see Section 5.6)
 4. cross-file reference integrity for all normative references in Section 5.5
@@ -819,10 +822,10 @@ Reference implementation layout, operational mapping patterns, agent context gui
 
 | Schema file | `$id` | Purpose |
 |---|---|---|
-| [skills/ea-convention/references/initiatives.schema.json](skills/ea-convention/references/initiatives.schema.json) | `https://example.com/enterprise.md/schemas/initiatives.schema.json` | Structural validation for enterprise-to-solution routing catalogs |
-| [skills/ea-convention/references/domain-workstreams.schema.json](skills/ea-convention/references/domain-workstreams.schema.json) | `https://example.com/enterprise.md/schemas/domain-workstreams.schema.json` | Structural validation for solution-to-domain workstream routing catalogs |
-| [skills/ea-convention/references/domain-implementations.schema.json](skills/ea-convention/references/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | Structural validation for domain-to-implementation routing catalogs |
-| [skills/ea-convention/references/domain-registry.schema.json](skills/ea-convention/references/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | Structural validation for governed-profile domain registries |
-| [skills/ea-convention/references/solution-index.schema.json](skills/ea-convention/references/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | Structural validation for governed-profile solution manifests |
+| [schemas/initiatives.schema.json](schemas/initiatives.schema.json) | `https://example.com/enterprise.md/schemas/initiatives.schema.json` | Structural validation for enterprise-to-solution routing catalogs |
+| [schemas/domain-workstreams.schema.json](schemas/domain-workstreams.schema.json) | `https://example.com/enterprise.md/schemas/domain-workstreams.schema.json` | Structural validation for solution-to-domain workstream routing catalogs |
+| [schemas/domain-implementations.schema.json](schemas/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | Structural validation for domain-to-implementation routing catalogs |
+| [schemas/domain-registry.schema.json](schemas/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | Structural validation for governed-profile domain registries |
+| [schemas/solution-index.schema.json](schemas/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | Structural validation for governed-profile solution manifests |
 
-The repository also contains [skills/ea-convention/references/domain-roadmap.schema.json](skills/ea-convention/references/domain-roadmap.schema.json) with `$id` `https://example.com/enterprise.md/schemas/domain-roadmap.schema.json`. It is intentionally excluded from the canonical table above because `domain-roadmap.yml` is a proposed extension, not part of the normative catalog set in this specification draft.
+The repository also contains [schemas/domain-roadmap.schema.json](schemas/domain-roadmap.schema.json) with `$id` `https://example.com/enterprise.md/schemas/domain-roadmap.schema.json`. It is intentionally excluded from the canonical table above because `domain-roadmap.yml` is a proposed extension, not part of the normative catalog set in this specification draft.

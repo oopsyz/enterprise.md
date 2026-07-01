@@ -249,7 +249,7 @@ Purpose: Domain architecture entrypoint.
 1. 消费者在遇到未知 `MAJOR` 版本时 MUST 失败即关闭。
 2. 生产者在增加 `MAJOR` 版本时 MUST 提供迁移说明。
 
-用于规范目录校验的权威机器可读 schema 维护在 `skills/ea-convention/references/` 下。这些 schema 定义了规范目录的结构化校验，并与本节中的目录版本契约一同演进。
+用于规范目录校验的权威机器可读 schema 维护在 `schemas/` 下。这些 schema 定义了规范目录的结构化校验，并与本节中的目录版本契约一同演进。
 
 ### 5.3 最小字段集
 
@@ -316,7 +316,7 @@ workstreams:
 #### domain-implementations.yml
 
 ```yaml
-spec_name: multi-scale-routing
+spec_name: domain-implementations
 spec_version: "1.0.0"
 implementations:
   # 单仓示例 —— 省略 repo.url（默认使用目录所在仓库），使用路径限定范围
@@ -499,7 +499,7 @@ implementations:
 
 本约定的校验器 MUST 检查：
 
-1. 使用 `skills/ea-convention/references/` 下权威 schema 进行 schema 与必需字段一致性校验
+1. 使用 `schemas/` 下权威 schema 进行 schema 与必需字段一致性校验
 2. 选择器唯一性（见第 5.6 节）
 3. 第 5.5 节中所有规范引用的跨文件引用完整性
 4. 状态策略一致性

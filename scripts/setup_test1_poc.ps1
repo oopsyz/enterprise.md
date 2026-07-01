@@ -252,15 +252,15 @@ owners:
 entrypoints:
   solution_md: SOLUTION.md
   agents_md: AGENTS.md
-  cascade_state: .openarchitect/cascade-state.yml
+  cascade_state: .enterprise-md/cascade-state.yml
 domains:
-  - domain_key: order-management
+  - domain_id: order-management
     domain_repo:
       repo_url: $RemoteRepoUrl
       entrypoints:
         domain_md: da/DOMAIN.md
         agents_md: da/AGENTS.md
-        cascade_state: .openarchitect/cascade-state.yml
+        cascade_state: .enterprise-md/cascade-state.yml
 repos:
   - repo_key: monorepo
     repo_url: $RemoteRepoUrl
@@ -269,7 +269,7 @@ repos:
     entrypoints:
       solution_md: sa/SOLUTION.md
       agents_md: sa/AGENTS.md
-      cascade_state: .openarchitect/cascade-state.yml
+      cascade_state: .enterprise-md/cascade-state.yml
 "@
 
 Set-Content -Path $saWorkstreams -Encoding UTF8 -Value @"
@@ -370,7 +370,7 @@ Guardrail: `AGENTS.md` and `DOMAIN.md` remain the canonical contract files. Keep
 "@
 
 Set-Content -Path $daImpl -Encoding UTF8 -Value @"
-spec_name: multi-scale-routing
+spec_name: domain-implementations
 spec_version: "1.0.0"
 implementations:
   - implementation_id: order-api

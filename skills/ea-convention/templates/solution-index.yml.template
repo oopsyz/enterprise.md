@@ -1,22 +1,18 @@
-version: "0.2"
+spec_name: solution-index
+spec_version: "1.0.0"
 solution_key: <kebab-case-stable-key>
 display_name: <human-readable name>
 description: <short description>
 owners:
   solution_architect: <name-or-team>
-  enterprise_id: <optional enterprise id or key>
 entrypoints:
   solution_md: SOLUTION.md
   agents_md: AGENTS.md
-  cascade_state: .openarchitect/cascade-state.yml
 domains:
-  - domain_key: <kebab-case-stable-key>
-    domain_repo:
-      repo_url: <git repo url>
-      entrypoints:
-        domain_md: DOMAIN.md
-        agents_md: AGENTS.md
-        cascade_state: .openarchitect/cascade-state.yml
+  - domain_id: <kebab-case-stable-key>
+    domain_repo_url: <git repo url>
+    domain_entrypoint: DOMAIN.md
+    domain_git_ref: main
 repos:
   - repo_key: solution_design
     repo_url: <this repo url>
@@ -25,4 +21,3 @@ repos:
     entrypoints:
       solution_md: SOLUTION.md
       agents_md: AGENTS.md
-      cascade_state: .openarchitect/cascade-state.yml

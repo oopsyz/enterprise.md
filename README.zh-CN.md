@@ -134,7 +134,7 @@ skills/
     SKILL.md                                       -- skill 定义与操作说明
     scripts/
       validate_convention.py                       -- 模式 + lint 验证器
-    references/                                    -- 规范制品的 JSON Schema
+    schemas/                                       -- 规范制品的 JSON Schema
     templates/
       ENTERPRISE.md.template                       -- 企业层入口模板
       SOLUTION.md.template                         -- 解决方案层入口模板

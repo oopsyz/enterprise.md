@@ -1,6 +1,6 @@
 # SA workstream selector catalog (Git-first, no DB required)
 # Keep this file in SA repo at: architecture/solution/domain-workstreams.yml
-# Validate with: ../references/domain-workstreams.schema.json
+# Validate with: schemas/domain-workstreams.schema.json (repo root)
 # This file models many-to-many routing: one initiative can span many domains,
 # and one domain can participate in many initiatives.
 # domain_id values should reference EA registry:
@@ -12,7 +12,8 @@
 # `workstream_entrypoint` may be null before the workstream context exists, but
 # it must be non-null for any routable workstream status.
 
-version: "1.0"
+spec_name: domain-workstreams
+spec_version: "1.0.0"
 workspace_id: <workspace-id-or-null>
 initiative_id: <initiative-id-or-null>
 generated_at_utc: <iso8601>

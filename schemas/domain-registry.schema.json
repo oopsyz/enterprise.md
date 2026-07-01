@@ -3,11 +3,21 @@
   "$id": "https://example.com/enterprise.md/schemas/domain-registry.schema.json",
   "title": "domain-registry.yml",
   "type": "object",
-  "required": ["version", "domains"],
+  "required": ["spec_name", "spec_version", "domains"],
   "properties": {
     "version": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Deprecated alias retained for 1.x read compatibility."
+    },
+    "spec_name": {
+      "type": "string",
+      "const": "domain-registry"
+    },
+    "spec_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Full MAJOR.MINOR.PATCH semantic version."
     },
     "enterprise_id": {
       "type": "string",
