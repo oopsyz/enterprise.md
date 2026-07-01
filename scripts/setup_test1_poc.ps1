@@ -72,7 +72,7 @@ $eaClaude = Join-Path $target "ea/CLAUDE.md"
 $eaInitiatives = Join-Path $target "ea/architecture/portfolio/initiatives.yml"
 $eaRegistry = Join-Path $target "ea/architecture/enterprise/domain-registry.yml"
 
-Set-Content -Path $eaEnterprise -Encoding UTF8 -Value @"
+Set-Content -Path $eaEnterprise -Encoding UTF8 -Value @'
 # ENTERPRISE
 
 Monorepo PoC enterprise entrypoint. Routes initiatives to solution directories inside this repository.
@@ -130,26 +130,27 @@ implementations/
 
 - Active-only routing; fail-closed on non-active status.
 - Resolve solution targets from `ea/architecture/portfolio/initiatives.yml`.
-"@
+'@
 
-Set-Content -Path $eaAgents -Encoding UTF8 -Value @"
+Set-Content -Path $eaAgents -Encoding UTF8 -Value @'
 # AGENTS
 
 Role: ea
 Instruction: Always read `ENTERPRISE.md` (mandatory entrypoint for this level).
-"@
+'@
 
-Set-Content -Path $eaClaude -Encoding UTF8 -Value @"
+Set-Content -Path $eaClaude -Encoding UTF8 -Value @'
 # CLAUDE
 
 Role: ea
 Bootstrap: Read `AGENTS.md` first.
 Instruction: Then read `ENTERPRISE.md` (mandatory entrypoint for this level).
 Guardrail: `AGENTS.md` and `ENTERPRISE.md` remain the canonical contract files. Keep mutable operational detail in linked canonical artifacts, not in `CLAUDE.md`.
-"@
+'@
 
 Set-Content -Path $eaInitiatives -Encoding UTF8 -Value @"
-version: "1.0"
+spec_name: initiatives
+spec_version: "1.0.0"
 initiatives:
   - initiative_id: init-order-modernization
     name: Order Modernization PoC
@@ -161,7 +162,8 @@ initiatives:
 "@
 
 Set-Content -Path $eaRegistry -Encoding UTF8 -Value @"
-version: "1.0"
+spec_name: domain-registry
+spec_version: "1.0.0"
 domains:
   - domain_id: order-management
     name: Order Management
@@ -178,7 +180,7 @@ $saClaude = Join-Path $target "sa/CLAUDE.md"
 $saIndex = Join-Path $target "sa/solution-index.yml"
 $saWorkstreams = Join-Path $target "sa/architecture/solution/domain-workstreams.yml"
 
-Set-Content -Path $saSolution -Encoding UTF8 -Value @"
+Set-Content -Path $saSolution -Encoding UTF8 -Value @'
 # SOLUTION
 
 Monorepo PoC solution entrypoint. Owns the SA baseline and routes domain workstreams to domain directories in this repository.
@@ -223,44 +225,40 @@ architecture/
 
 - Solution key: order-poc
 - Owners: SA: solution-architecture, Domains: order-management
-"@
+'@
 
-Set-Content -Path $saAgents -Encoding UTF8 -Value @"
+Set-Content -Path $saAgents -Encoding UTF8 -Value @'
 # AGENTS
 
 Role: sa
 Instruction: Always read `SOLUTION.md` (mandatory entrypoint for this level).
-"@
+'@
 
-Set-Content -Path $saClaude -Encoding UTF8 -Value @"
+Set-Content -Path $saClaude -Encoding UTF8 -Value @'
 # CLAUDE
 
 Role: sa
 Bootstrap: Read `AGENTS.md` first.
 Instruction: Then read `SOLUTION.md` (mandatory entrypoint for this level).
 Guardrail: `AGENTS.md` and `SOLUTION.md` remain the canonical contract files. Keep mutable operational detail in linked canonical artifacts, not in `CLAUDE.md`.
-"@
+'@
 
 Set-Content -Path $saIndex -Encoding UTF8 -Value @"
-version: "0.2"
+spec_name: solution-index
+spec_version: "1.0.0"
 solution_key: order-poc
 display_name: Order Modernization PoC
 description: Monorepo proof of concept for EA to SA to DA routing.
 owners:
   solution_architect: solution-architecture
-  enterprise_id: test1-monorepo
 entrypoints:
   solution_md: SOLUTION.md
   agents_md: AGENTS.md
-  cascade_state: .enterprise-md/cascade-state.yml
 domains:
   - domain_id: order-management
-    domain_repo:
-      repo_url: $RemoteRepoUrl
-      entrypoints:
-        domain_md: da/DOMAIN.md
-        agents_md: da/AGENTS.md
-        cascade_state: .enterprise-md/cascade-state.yml
+    domain_repo_url: $RemoteRepoUrl
+    domain_entrypoint: da/DOMAIN.md
+    domain_git_ref: main
 repos:
   - repo_key: monorepo
     repo_url: $RemoteRepoUrl
@@ -269,14 +267,14 @@ repos:
     entrypoints:
       solution_md: sa/SOLUTION.md
       agents_md: sa/AGENTS.md
-      cascade_state: .enterprise-md/cascade-state.yml
 "@
 
 Set-Content -Path $saWorkstreams -Encoding UTF8 -Value @"
-version: "1.0"
+spec_name: domain-workstreams
+spec_version: "1.0.0"
 workspace_id: test1-monorepo
 initiative_id: init-order-modernization
-generated_at_utc: 2026-03-14T00:00:00Z
+generated_at_utc: "2026-03-14T00:00:00Z"
 generated_by: codex
 workstreams:
   - workstream_id: ws-init-order-modernization-order-management
@@ -307,7 +305,7 @@ $daAgents = Join-Path $target "da/AGENTS.md"
 $daClaude = Join-Path $target "da/CLAUDE.md"
 $daImpl = Join-Path $target "da/domain-implementations.yml"
 
-Set-Content -Path $daDomain -Encoding UTF8 -Value @"
+Set-Content -Path $daDomain -Encoding UTF8 -Value @'
 # DOMAIN
 
 Monorepo PoC domain entrypoint. Owns domain design baselines and routes to implementation directories in this repository.
@@ -351,23 +349,23 @@ domain-implementations.yml
 
 - Treat selector inputs as authoritative (`implementation_id`).
 - Fail-closed on inactive status by default.
-"@
+'@
 
-Set-Content -Path $daAgents -Encoding UTF8 -Value @"
+Set-Content -Path $daAgents -Encoding UTF8 -Value @'
 # AGENTS
 
 Role: da
 Instruction: Always read `DOMAIN.md` (mandatory entrypoint for this level).
-"@
+'@
 
-Set-Content -Path $daClaude -Encoding UTF8 -Value @"
+Set-Content -Path $daClaude -Encoding UTF8 -Value @'
 # CLAUDE
 
 Role: da
 Bootstrap: Read `AGENTS.md` first.
 Instruction: Then read `DOMAIN.md` (mandatory entrypoint for this level).
 Guardrail: `AGENTS.md` and `DOMAIN.md` remain the canonical contract files. Keep mutable operational detail in linked canonical artifacts, not in `CLAUDE.md`.
-"@
+'@
 
 Set-Content -Path $daImpl -Encoding UTF8 -Value @"
 spec_name: domain-implementations
@@ -390,7 +388,7 @@ implementations:
     owners: [domain-architecture]
 "@
 
-Set-Content -Path (Join-Path $target "README.md") -Encoding UTF8 -Value @"
+Set-Content -Path (Join-Path $target "README.md") -Encoding UTF8 -Value @'
 # test1
 
 Monorepo proof of concept for the enterprise.md routing convention.
@@ -406,7 +404,7 @@ Recommended reading order:
 2. `ea/ENTERPRISE.md`
 3. `sa/SOLUTION.md`
 4. `da/DOMAIN.md`
-"@
+'@
 
 Write-Output "Created monorepo PoC at: $target"
 Get-ChildItem -Recurse -File $target | ForEach-Object { $_.FullName.Substring($target.Length + 1) }

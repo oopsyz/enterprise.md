@@ -1,7 +1,8 @@
 # EA authoritative domain governance map.
 # Keep this file in EA repo at: architecture/enterprise/domain-registry.yml
 
-version: "1.0"
+spec_name: domain-registry
+spec_version: "1.0.0"
 enterprise_id: <enterprise-id>
 
 domains:

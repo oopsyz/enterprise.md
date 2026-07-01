@@ -277,7 +277,8 @@ Catalog intent at a glance:
 
 ```yaml
 # enterprise to solution
-version: "1.0"
+spec_name: initiatives
+spec_version: "1.0.0"
 initiatives:
   - initiative_id: init-bss-modernization
     solution_repo_url: https://github.com/acme/solution-bss
@@ -400,7 +401,8 @@ Some organizations keep a first-party Domain repo as the canonical architecture 
 #### initiatives.yml
 
 ```yaml
-version: "1.0"
+spec_name: initiatives
+spec_version: "1.0.0"
 initiatives:
   - initiative_id: init-example
     solution_repo_url: https://github.com/example/solution-repo
@@ -412,7 +414,8 @@ initiatives:
 #### domain-workstreams.yml
 
 ```yaml
-version: "1.0"
+spec_name: domain-workstreams
+spec_version: "1.0.0"
 workstreams:
   - workstream_id: ws-init-example-order
     initiative_id: init-example

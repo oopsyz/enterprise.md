@@ -65,3 +65,12 @@ jobs:
             --solution-index examples/governed/solution-repo/solution-index.yml \
             --workstreams examples/governed/solution-repo/domain-workstreams.yml \
             --da-root examples/governed/domain-repo
+
+      - name: Check starter pack header contract
+        run: |
+          python scripts/check_catalog_headers.py \
+            packs/ea/architecture/portfolio/initiatives.yml \
+            packs/ea/architecture/enterprise/domain-registry.yml \
+            packs/sa/architecture/solution/domain-workstreams.yml \
+            packs/sa/solution-index.yml \
+            packs/da/domain-implementations.yml

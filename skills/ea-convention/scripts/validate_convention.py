@@ -104,13 +104,47 @@ def note(message: str) -> None:
     print(f"  (skipped: {message})")
 
 
+def as_list(value: Any) -> list:
+    """Return value if it is a list, else an empty list.
+
+    Used to guard iteration sites so a mapping/scalar where a list is expected
+    cannot raise AttributeError. Type errors on these fields are separately
+    reported by ensure_unique_ids or by schema validation."""
+    return value if isinstance(value, list) else []
+
+
+def as_mapping(data: Any, path: Any) -> dict:
+    """Coerce a loaded YAML document to a mapping.
+
+    Records ERR_INVALID_YAML and returns {} when the top level is not a mapping
+    (for example a list or scalar document), so downstream .get() access cannot
+    raise AttributeError and the artifact fails as a controlled validation error.
+    """
+    if data is None:
+        return {}
+    if isinstance(data, dict):
+        return data
+    err("ERR_INVALID_YAML",
+        f"expected a YAML mapping at the top level, got {type(data).__name__}",
+        path=path)
+    return {}
+
+
 # --- Schema validation ---
 
+_schema_skipped_warned = False
+
+
 def validate_schema(data: Any, schema_path: Path, artifact_path: Path) -> None:
+    global _schema_skipped_warned
     if not schema_path.exists():
         err("ERR_SCHEMA_MISSING", f"schema file '{schema_path}' not found", path=artifact_path)
         return
     if not HAS_JSONSCHEMA:
+        if not _schema_skipped_warned:
+            warn("jsonschema is not installed — structural schema validation was "
+                 "skipped (degraded validation, Section 7). Install with: pip install jsonschema")
+            _schema_skipped_warned = True
         return
     with open(schema_path, encoding="utf-8-sig") as f:
         schema = json.load(f)
@@ -188,7 +222,13 @@ def ensure_unique_ids(
 ) -> set[str]:
     seen: dict[str, int] = {}
     ids: set[str] = set()
+    if not isinstance(entries, list):
+        err("ERR_INVALID_YAML", f"expected a list for '{key}' entries", path=path)
+        return ids
     for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            err("ERR_INVALID_YAML", f"entry {index} is not a mapping", path=path)
+            continue
         value = entry.get(key)
         if not isinstance(value, str) or not value:
             continue
@@ -206,15 +246,21 @@ def resolve_schema_dir(root: Path, explicit_schema_dir: str | None) -> Path:
     if explicit_schema_dir:
         return Path(explicit_schema_dir).resolve()
 
-    repo_schema_dir = root / "schemas"
-    if repo_schema_dir.exists():
-        return repo_schema_dir
+    script_dir = Path(__file__).resolve().parent
+    candidates = [
+        # 1. Target repo vendors its own schemas/ (adopter override).
+        root / "schemas",
+        # 2. This tool's own top-level schemas/ (skill checked out inside enterprise.md).
+        script_dir.parent.parent.parent / "schemas",
+        # 3. Legacy bundled layout for older checkouts.
+        script_dir.parent / "references",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
 
-    bundled_schema_dir = Path(__file__).parent.parent / "references"
-    if bundled_schema_dir.exists():
-        return bundled_schema_dir.resolve()
-
-    return repo_schema_dir
+    # Nothing found: return the conventional location so the error names schemas/.
+    return (root / "schemas").resolve()
 
 
 # --- Main validation ---
@@ -243,6 +289,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
     domain_registry_path = root / paths["domain_registry"]
 
     initiative_ids: set[str] = set()
+    has_initiatives = False
     if not initiatives_path.exists():
         if "initiatives" in explicit_paths:
             err("ERR_ENTRYPOINT_MISSING", f"{paths['initiatives']} not found")
@@ -250,11 +297,15 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
             note("initiatives.yml absent — EA layer not present in this repo")
     else:
         catalog_count += 1
-        initiatives_data = load_yaml(initiatives_path)
-        validate_schema(initiatives_data, schema_dir / "initiatives.schema.json", initiatives_path)
-        initiatives_list = (initiatives_data or {}).get("initiatives", [])
+        has_initiatives = True
+        initiatives_raw = load_yaml(initiatives_path)
+        validate_schema(initiatives_raw, schema_dir / "initiatives.schema.json", initiatives_path)
+        initiatives_data = as_mapping(initiatives_raw, initiatives_path)
+        initiatives_list = initiatives_data.get("initiatives", [])
         initiative_ids = ensure_unique_ids(initiatives_list, "initiative_id", initiatives_path)
-        for index, init in enumerate(initiatives_list):
+        for index, init in enumerate(as_list(initiatives_list)):
+            if not isinstance(init, dict):
+                continue  # non-mapping entry already reported by ensure_unique_ids
             sol_url = init.get("solution_repo_url", "")
             sol_ep = init.get("solution_entrypoint", "")
             if sol_ep and is_local_path(sol_url, this_repo_url):
@@ -275,11 +326,14 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
     else:
         catalog_count += 1
         has_domain_registry = True
-        registry_data = load_yaml(domain_registry_path)
-        validate_schema(registry_data, schema_dir / "domain-registry.schema.json", domain_registry_path)
-        domains_list = (registry_data or {}).get("domains", [])
+        registry_raw = load_yaml(domain_registry_path)
+        validate_schema(registry_raw, schema_dir / "domain-registry.schema.json", domain_registry_path)
+        registry_data = as_mapping(registry_raw, domain_registry_path)
+        domains_list = registry_data.get("domains", [])
         domain_ids = ensure_unique_ids(domains_list, "domain_id", domain_registry_path)
-        for index, domain in enumerate(domains_list):
+        for index, domain in enumerate(as_list(domains_list)):
+            if not isinstance(domain, dict):
+                continue  # non-mapping entry already reported by ensure_unique_ids
             domain_id = domain.get("domain_id", "")
             d_url = domain.get("domain_repo_url", "")
             d_ep = domain.get("domain_entrypoint", "")
@@ -308,9 +362,16 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
             note("solution-index.yml absent — SA layer not present in this repo")
     else:
         catalog_count += 1
-        si_data = load_yaml(solution_index_path)
-        validate_schema(si_data, schema_dir / "solution-index.schema.json", solution_index_path)
-        for di, domain in enumerate((si_data or {}).get("domains", [])):
+        si_raw = load_yaml(solution_index_path)
+        validate_schema(si_raw, schema_dir / "solution-index.schema.json", solution_index_path)
+        si_data = as_mapping(si_raw, solution_index_path)
+        si_domains = si_data.get("domains", [])
+        if si_domains and not isinstance(si_domains, list):
+            err("ERR_INVALID_YAML", "expected a list for 'domains'", path=solution_index_path)
+        for di, domain in enumerate(as_list(si_domains)):
+            if not isinstance(domain, dict):
+                err("ERR_INVALID_YAML", f"'domains' entry {di} is not a mapping", path=solution_index_path)
+                continue
             for vfield in ("oda_component", "tmf_apis"):
                 if vfield in domain:
                     warn(f"domains[{di}] contains vertical-specific field '{vfield}' — move to metadata: for industry annotations",
@@ -325,31 +386,34 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
             note("domain-workstreams.yml absent — SA workstream catalog not present in this repo")
     else:
         catalog_count += 1
-        ws_data = load_yaml(workstreams_path)
-        validate_schema(ws_data, schema_dir / "domain-workstreams.schema.json", workstreams_path)
+        ws_raw = load_yaml(workstreams_path)
+        validate_schema(ws_raw, schema_dir / "domain-workstreams.schema.json", workstreams_path)
+        ws_data = as_mapping(ws_raw, workstreams_path)
 
-        ws_file_init_id = (ws_data or {}).get("initiative_id", "")
-        if ws_file_init_id and initiative_ids and ws_file_init_id not in initiative_ids:
+        ws_file_init_id = ws_data.get("initiative_id", "")
+        if ws_file_init_id and has_initiatives and ws_file_init_id not in initiative_ids:
             err("ERR_INITIATIVE_NOT_FOUND",
                 f"workstreams file initiative_id '{ws_file_init_id}' not in initiatives",
                 path=workstreams_path)
 
-        workstreams_list = (ws_data or {}).get("workstreams", [])
+        workstreams_list = ws_data.get("workstreams", [])
         workstream_ids = ensure_unique_ids(workstreams_list, "workstream_id", workstreams_path)
         routable_ws = 0
-        for index, ws in enumerate(workstreams_list):
+        for index, ws in enumerate(as_list(workstreams_list)):
+            if not isinstance(ws, dict):
+                continue  # non-mapping entry already reported by ensure_unique_ids
             ws_init_id = ws.get("initiative_id", "")
-            if initiative_ids and not ws_init_id:
+            if has_initiatives and not ws_init_id:
                 err("ERR_SELECTOR_MISSING",
                     f"workstreams[{index}] requires initiative_id when initiatives.yml is present",
                     path=workstreams_path)
-            if ws_init_id and initiative_ids and ws_init_id not in initiative_ids:
+            if ws_init_id and has_initiatives and ws_init_id not in initiative_ids:
                 err("ERR_INITIATIVE_NOT_FOUND",
                     f"workstreams[{index}] initiative_id '{ws_init_id}' not in initiatives",
                     path=workstreams_path)
 
             ws_dom_id = ws.get("domain_id", "")
-            if ws_dom_id and domain_ids and ws_dom_id not in domain_ids:
+            if ws_dom_id and has_domain_registry and ws_dom_id not in domain_ids:
                 err("ERR_DOMAIN_NOT_FOUND",
                     f"workstreams[{index}] domain_id '{ws_dom_id}' not in domain-registry",
                     path=workstreams_path)
@@ -445,13 +509,17 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 warn(f"domain '{domain_id}' has no domain-implementations.yml")
             else:
                 catalog_count += 1
-                impl_data = load_yaml(impl_path)
-                validate_schema(impl_data, schema_dir / "domain-implementations.schema.json", impl_path)
-                implementations = (impl_data or {}).get("implementations", [])
-                impl_ids = ensure_unique_ids(implementations, "implementation_id", impl_path)
+                impl_raw = load_yaml(impl_path)
+                validate_schema(impl_raw, schema_dir / "domain-implementations.schema.json", impl_path)
+                impl_data = as_mapping(impl_raw, impl_path)
+                implementations_raw = impl_data.get("implementations", [])
+                impl_ids = ensure_unique_ids(implementations_raw, "implementation_id", impl_path)
+                implementations = as_list(implementations_raw)
 
                 # --- replaced_by validation ---
                 for index, impl in enumerate(implementations):
+                    if not isinstance(impl, dict):
+                        continue  # non-mapping entry already reported by ensure_unique_ids
                     replaced_by = impl.get("replaced_by", [])
                     if isinstance(replaced_by, list):
                         for target in replaced_by:
@@ -464,6 +532,8 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 bindings: dict[str, list[tuple[str, int]]] = defaultdict(list)
                 routable_impl = 0
                 for index, impl in enumerate(implementations):
+                    if not isinstance(impl, dict):
+                        continue  # non-mapping entry already reported by ensure_unique_ids
                     if impl.get("status") in routable_statuses:
                         routable_impl += 1
 
@@ -519,17 +589,24 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 roadmap_count = 0
                 if roadmap_path.exists():
                     catalog_count += 1
-                    roadmap_data = load_yaml(roadmap_path)
-                    validate_schema(roadmap_data, schema_dir / "domain-roadmap.schema.json", roadmap_path)
-                    for item in (roadmap_data or {}).get("items", []):
+                    roadmap_raw = load_yaml(roadmap_path)
+                    validate_schema(roadmap_raw, schema_dir / "domain-roadmap.schema.json", roadmap_path)
+                    roadmap_data = as_mapping(roadmap_raw, roadmap_path)
+                    roadmap_items = roadmap_data.get("items", [])
+                    if roadmap_items and not isinstance(roadmap_items, list):
+                        err("ERR_INVALID_YAML", "expected a list for 'items'", path=roadmap_path)
+                    for ri, item in enumerate(as_list(roadmap_items)):
+                        if not isinstance(item, dict):
+                            err("ERR_INVALID_YAML", f"'items' entry {ri} is not a mapping", path=roadmap_path)
+                            continue
                         roadmap_count += 1
                         riid = item.get("roadmap_item_id", "")
-                        for wsid in item.get("workstream_ids", []):
+                        for wsid in as_list(item.get("workstream_ids", [])):
                             if wsid not in workstream_ids:
                                 err("ERR_WORKSTREAM_NOT_FOUND",
                                     f"roadmap item '{riid}' references unknown workstream_id '{wsid}'",
                                     path=roadmap_path)
-                        for iid in item.get("implementation_ids", []):
+                        for iid in as_list(item.get("implementation_ids", [])):
                             if iid not in impl_ids:
                                 err("ERR_IMPLEMENTATION_NOT_FOUND",
                                     f"roadmap item '{riid}' references unknown implementation_id '{iid}'",
@@ -575,8 +652,9 @@ Partial-adoption topology:
   --allow-empty is supplied.
 
 DA layout:
-  The validator assumes one subdirectory per domain under --da-root, each
-  containing domain-implementations.yml. Custom DA layouts are not supported.
+  The validator supports either a flat single-domain DA repo with
+  domain-implementations.yml directly at --da-root, or a nested layout with one
+  subdirectory per domain under --da-root. Custom layouts may need manual review.
 
 Default paths (reference layout):
   --initiatives     ea/architecture/portfolio/initiatives.yml

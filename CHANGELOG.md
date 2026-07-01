@@ -18,10 +18,9 @@ The format is loosely based on Keep a Changelog, with project-level draft/spec r
 
 ### Changed
 
-- unified catalog header contract: all canonical catalogs use `spec_name` + `spec_version` (full MAJOR.MINOR.PATCH); bare `version` and `spec_name: multi-scale-routing` are deprecated read-side aliases for the 1.x line (Section 5.2)
-- `workstream_git_ref` is now optional/nullable pre-materialization; resolvers fall back to the target repository's default branch (Section 5.3)
-- glob semantics defined as gitignore-style; whole-repository default changed from `["*"]` to `["**"]`, and the uniqueness invariant is stated in terms of pattern overlap (Sections 5.3, 11)
-- authoritative JSON schemas moved from `skills/ea-convention/references/` to top-level `schemas/`; the validator auto-detects both locations
+- unified catalog header contract: all canonical catalogs MUST use `spec_name` + `spec_version` (full MAJOR.MINOR.PATCH). `spec_name: multi-scale-routing` is still accepted on read as a deprecated alias for `domain-implementations`; a bare `version` header is deprecated and no longer satisfies the contract — such files MUST be migrated to `spec_name`/`spec_version` (Section 5.2)
+- `repo.paths` scoping is glob-based with a whole-repository default of `["*"]`, and the uniqueness invariant is stated in terms of pattern overlap (Sections 5.3, 11)
+- authoritative JSON schemas moved from `skills/ea-convention/references/` to top-level `schemas/`; the validator auto-detects an adopter repo's vendored `schemas/`, the tool's own top-level `schemas/`, and the legacy `references/` layout
 - validator and skill error vocabulary aligned with spec Section 11 (`ERR_SELECTOR_AMBIGUOUS`, `ERR_REFERENCE_UNRESOLVED`, `ERR_CONFLICT`, ...); removed the warning on omitted `repo.url`, which is a legal monorepo default
 - examples, templates, and packs updated: `solution-index.yml` uses `domain_id` (was `domain_key`), tool-specific `.openarchitect/` paths replaced with convention-neutral artifacts, embedded `execution:` state removed from workstream catalogs (now prohibited by Section 5.1)
 

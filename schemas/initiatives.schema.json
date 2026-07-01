@@ -12,7 +12,7 @@
     "version": {
       "type": "string",
       "minLength": 1,
-      "description": "Deprecated alias for spec_name + spec_version; accepted during 1.x. Writers MUST emit spec_name/spec_version."
+      "description": "Deprecated field. A bare version no longer satisfies the header contract; emit spec_name and spec_version. Retained only so pre-1.x files still parse."
     },
     "initiatives": {
       "type": "array",

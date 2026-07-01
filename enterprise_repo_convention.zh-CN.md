@@ -234,9 +234,12 @@ Purpose: Domain architecture entrypoint.
 
 目录头 MUST 遵循该目录类型的规范 schema：
 
-1. `initiatives.yml` MUST 包含 `version`。
-2. `domain-workstreams.yml` MUST 包含 `version`。
+1. `initiatives.yml` MUST 包含 `spec_name` 和 `spec_version`。
+2. `domain-workstreams.yml` MUST 包含 `spec_name` 和 `spec_version`。
 3. `domain-implementations.yml` MUST 包含 `spec_name` 和 `spec_version`。
+4. 在本仓库中拥有权威 schema 的受治理配套制品遵循相同的目录头规范：
+   1. `domain-registry.yml` MUST 包含 `spec_name` 和 `spec_version`。
+   2. `solution-index.yml` MUST 包含 `spec_name` 和 `spec_version`。
 
 版本规则：
 
@@ -290,7 +293,8 @@ Purpose: Domain architecture entrypoint.
 #### initiatives.yml
 
 ```yaml
-version: "1.0"
+spec_name: initiatives
+spec_version: "1.0.0"
 initiatives:
   - initiative_id: init-example
     solution_repo_url: https://github.com/example/solution-repo
@@ -301,7 +305,8 @@ initiatives:
 #### domain-workstreams.yml
 
 ```yaml
-version: "1.0"
+spec_name: domain-workstreams
+spec_version: "1.0.0"
 workstreams:
   - workstream_id: ws-init-example-order
     initiative_id: init-example

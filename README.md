@@ -172,12 +172,13 @@ Domain repository note:
 |-- GOVERNANCE.md                                  # maintainer decision model and versioning
 |-- releases/                                      # release notes drafts
 |-- .github/                                       # issue templates, PR template, CI, CODEOWNERS
+|-- schemas/                                       # authoritative JSON schemas for canonical artifacts
+|-- packs/                                         # copy-paste starter packs per role (ea/sa/da/dev)
 |-- skills/
 |   `-- ea-convention/                             # ea-convention skill (manage, validate, scaffold)
 |       |-- SKILL.md                               # skill definition and operations
 |       |-- scripts/
 |       |   `-- validate_convention.py             # schema + lint validator
-|       |-- schemas/                               # JSON schemas for canonical artifacts
 |       `-- templates/
 |           |-- ENTERPRISE.md.template             # enterprise entrypoint
 |           |-- SOLUTION.md.template               # solution entrypoint

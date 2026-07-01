@@ -129,12 +129,13 @@ LICENSE                                            -- Apache 2.0 许可证
 AGENTS.md                                          -- 本仓库的 agent 导航说明
 enterprise_repo_convention.md                      -- 英文提案正文
 enterprise_repo_convention.zh-CN.md                -- 中文提案正文
+schemas/                                           -- 规范制品的权威 JSON Schema
+packs/                                             -- 各角色（ea/sa/da/dev）可复制的起始包
 skills/
   ea-convention/                                   -- ea-convention skill（管理、验证、脚手架）
     SKILL.md                                       -- skill 定义与操作说明
     scripts/
       validate_convention.py                       -- 模式 + lint 验证器
-    schemas/                                       -- 规范制品的 JSON Schema
     templates/
       ENTERPRISE.md.template                       -- 企业层入口模板
       SOLUTION.md.template                         -- 解决方案层入口模板

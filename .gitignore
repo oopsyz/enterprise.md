@@ -1,2 +1,6 @@
 .claude/
 enterprise-md-explainer/*
+
+# Python
+__pycache__/
+*.py[cod]

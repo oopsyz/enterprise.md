@@ -9,7 +9,7 @@
     "version": {
       "type": "string",
       "minLength": 1,
-      "description": "Deprecated alias retained for 1.x read compatibility."
+      "description": "Deprecated field. A bare version no longer satisfies the header contract; emit spec_name and spec_version. Retained only so pre-1.x files still parse."
     },
     "spec_name": {
       "type": "string",
