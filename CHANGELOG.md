@@ -14,11 +14,11 @@ The format is loosely based on Keep a Changelog, with project-level draft/spec r
 - documented optional provenance, correlation, and handoff fields (`generated_at_utc`, `generated_by`, `workspace_id`, `workstream_uuid`, `handoff_ref`, display names) (Section 5.3)
 - workstream semantics: demand-unit model, domain-scoped DA identity, registry-authoritative repo resolution (Section 5.8) with a matching `ERR_CONFLICT` precedence rule (Section 10)
 - read/write routing operation classes; `deprecated` is resolvable for read only, with a mandatory `deprecated_target` warning (Sections 5.4, 5.5)
-- extension mechanism and registration of `domain-roadmap.yml` as a non-normative extension (Section 15)
+- registration of `domain-roadmap.yml` as a proposed non-normative extension, excluded from the canonical catalog set (Appendix A)
 
 ### Changed
 
-- unified catalog header contract: all canonical catalogs MUST use `spec_name` + `spec_version` (full MAJOR.MINOR.PATCH). `spec_name: multi-scale-routing` is still accepted on read as a deprecated alias for `domain-implementations`; a bare `version` header is deprecated and no longer satisfies the contract — such files MUST be migrated to `spec_name`/`spec_version` (Section 5.2)
+- unified catalog header contract: all canonical catalogs MUST use `spec_name` + `spec_version` (full MAJOR.MINOR.PATCH). `spec_name: multi-scale-routing` is still accepted on read as a deprecated alias for `domain-implementations`; a bare `version` header is deprecated and no longer satisfies the contract — such files MUST be migrated to `spec_name`/`spec_version` (Section 5.2). Migration note: `spec_version: "1.0.0"` is the first published header contract; bare-`version` files are pre-contract draft artifacts, so this migration is not a `MAJOR` increment (Section 6, header contract lineage)
 - `repo.paths` scoping is glob-based with a whole-repository default of `["*"]`, and the uniqueness invariant is stated in terms of pattern overlap (Sections 5.3, 11)
 - authoritative JSON schemas moved from `skills/ea-convention/references/` to top-level `schemas/`; the validator auto-detects an adopter repo's vendored `schemas/`, the tool's own top-level `schemas/`, and the legacy `references/` layout
 - validator and skill error vocabulary aligned with spec Section 11 (`ERR_SELECTOR_AMBIGUOUS`, `ERR_REFERENCE_UNRESOLVED`, `ERR_CONFLICT`, ...); removed the warning on omitted `repo.url`, which is a legal monorepo default

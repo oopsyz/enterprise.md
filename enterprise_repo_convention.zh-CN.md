@@ -252,7 +252,8 @@ Purpose: Domain architecture entrypoint.
 1. 消费者在遇到未知 `MAJOR` 版本时 MUST 失败即关闭。
 2. 生产者在增加 `MAJOR` 版本时 MUST 提供迁移说明。
 
-用于规范目录校验的权威机器可读 schema 维护在 `schemas/` 下。这些 schema 定义了规范目录的结构化校验，并与本节中的目录版本契约一同演进。
+用于规范目录校验的权威机器可读 schema 维护在 `schemas/` 下。这些 schema 定义了规范目录的结构化校验，并与本节中的目录头契约一同演进。第 5.3、5.5 和 9 节中依赖拓扑的条件仍然是规范性的校验器规则，独立于单独的 schema 校验，因为它们依赖于周边制品集合。
+附录 A 列出了每个规范 schema 的文件路径、schema 标识符和预期用途，而不在 Markdown 中重复 schema 结构。
 
 ### 5.3 最小字段集
 
@@ -500,15 +501,22 @@ implementations:
 2. 读取方 SHOULD 强制使用规范键名，以获得确定性行为。
 3. 旧别名不属于本草案基线范围。
 
+目录头契约沿革：
+
+1. 第 5.2 节中的 `spec_name` + `spec_version` 目录头契约是规范目录的首个发布契约，其初始版本为 `spec_version: "1.0.0"`。
+2. 携带裸 `version` 头的草案制品早于该契约。它们是契约前制品，不是 1.x 线的受支持形式，MUST 迁移到 `spec_name` + `spec_version`。由于此前从未有任何已发布的 `MAJOR` 线接受裸 `version` 作为契约，此迁移不构成第 5.2 节版本规则下的 `MAJOR` 递增。
+3. 在 1.x 线中，`spec_name: multi-scale-routing` 仍是 `domain-implementations` 的已弃用读取端别名。写入方 MUST 输出规范的 `spec_name`。
+
 ## 7. 校验要求
 
 本约定的校验器 MUST 检查：
 
 1. 使用 `schemas/` 下权威 schema 进行 schema 与必需字段一致性校验
-2. 选择器唯一性（见第 5.6 节）
-3. 第 5.5 节中所有规范引用的跨文件引用完整性
-4. 状态策略一致性
-5. 相对于第 5.2 节的目录版本兼容性
+2. 第 5.3 节和第 9 节中依赖周边制品集合的拓扑条件一致性（例如何时要求 `initiative_id` 或 `domain_repo_url`）
+3. 选择器唯一性（见第 5.6 节）
+4. 第 5.5 节中所有规范引用的跨文件引用完整性
+5. 状态策略一致性
+6. 相对于第 5.2 节的目录版本兼容性
 
 当被引用的仓库或版本对校验器可访问时，它 SHOULD 还检查：
 
@@ -673,3 +681,15 @@ layers:
 4. Claude Code 的兼容性通过从 `CLAUDE.md` 桥接到本约定定义的仓库流来实现；本提案并不假定 Claude Code 对 `AGENTS.md` 有原生支持。
 
 参考实现布局、操作映射模式、agent 上下文指导和采用说明，维护在 `reference/` 下的配套文档中。
+
+## 附录 A. 规范 Schema
+
+| Schema 文件 | `$id` | 用途 |
+|---|---|---|
+| [schemas/initiatives.schema.json](schemas/initiatives.schema.json) | `https://example.com/enterprise.md/schemas/initiatives.schema.json` | 企业到解决方案路由目录的结构化校验 |
+| [schemas/domain-workstreams.schema.json](schemas/domain-workstreams.schema.json) | `https://example.com/enterprise.md/schemas/domain-workstreams.schema.json` | 解决方案到领域工作流路由目录的结构化校验 |
+| [schemas/domain-implementations.schema.json](schemas/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | 领域到实现路由目录的结构化校验 |
+| [schemas/domain-registry.schema.json](schemas/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | 受治理档位领域注册表的结构化校验 |
+| [schemas/solution-index.schema.json](schemas/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | 受治理档位解决方案清单的结构化校验 |
+
+本仓库还包含 [schemas/domain-roadmap.schema.json](schemas/domain-roadmap.schema.json)，其 `$id` 为 `https://example.com/enterprise.md/schemas/domain-roadmap.schema.json`。它被有意排除在上面的规范表之外，因为 `domain-roadmap.yml` 是一个提议中的扩展，不属于本规范草案的规范目录集合。

@@ -633,6 +633,12 @@ Migration policy:
 2. Readers SHOULD enforce canonical keys for deterministic behavior.
 3. Legacy aliases are out of scope for this draft baseline.
 
+Header contract lineage:
+
+1. The `spec_name` + `spec_version` header contract in Section 5.2 is the first published header contract for the canonical catalogs. `spec_version: "1.0.0"` is its initial version.
+2. Draft artifacts that carried a bare `version` header predate this contract. They are pre-contract artifacts, not a supported form of the 1.x line, and MUST be migrated to `spec_name` + `spec_version`. Because no earlier `MAJOR` line ever accepted bare `version` as a published contract, this migration is not a `MAJOR` increment under the Section 5.2 version rules.
+3. `spec_name: multi-scale-routing` remains a deprecated read-side alias for `domain-implementations` during the 1.x line. Writers MUST emit the canonical `spec_name`.
+
 ## 7. Validation Requirements
 
 Validators for this convention MUST check:

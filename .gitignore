@@ -1,6 +1,9 @@
 .claude/
 enterprise-md-explainer/*
 
+# Video assets — distribute via release assets, not git history
+*.mp4
+
 # Python
 __pycache__/
 *.py[cod]
