@@ -47,6 +47,9 @@ EXPECTED = {
     "domain-registry.yml":        "domain-registry",
     "solution-index.yml":         "solution-index",
     "domain-roadmap.yml":         "domain-roadmap",
+    "initiative-pipeline.yml":    "initiative-pipeline",
+    "pattern-index.yml":          "pattern-index",
+    "standards-resolution-receipt.yml": "standards-resolution-receipt",
 }
 
 

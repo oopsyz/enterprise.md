@@ -137,6 +137,135 @@ class TestReferentialIntegrity:
         assert repo.run(explicit=("initiatives",)) == 1
         assert "ERR_ENTRYPOINT_MISSING" in errs(validator)
 
+    def test_workstream_rejects_standards_only_target(self, repo, validator,
+                                                      valid_workstreams):
+        repo.write(repo.paths["domain_registry"], (
+            'spec_name: domain-registry\nspec_version: "2.0.0"\n'
+            "domains:\n"
+            "  - domain_id: order\n"
+            "    name: Standards\n"
+            "    owner: ea\n"
+            "    entry_type: standards_provider\n"
+            "    domain_repo_url: https://github.com/acme/standards\n"
+            "    domain_git_ref: main\n"
+            "    status: active\n"
+            "    standards_provider:\n"
+            "      entrypoint: STANDARDS.md\n"
+            "      pattern_index_ref: patterns.yml\n"
+        ))
+        repo.write(repo.paths["workstreams"], valid_workstreams)
+        assert repo.run() == 1
+        assert "ERR_WORKSTREAM_TARGET_NOT_DOMAIN" in errs(validator)
+
+    def test_multiple_active_standards_defaults_fail(self, repo, validator):
+        rows = ""
+        for domain_id in ("standards-a", "standards-b"):
+            rows += (
+                f"  - domain_id: {domain_id}\n"
+                "    name: Standards\n"
+                "    owner: ea\n"
+                "    entry_type: standards_provider\n"
+                "    domain_repo_url: https://github.com/acme/standards\n"
+                "    domain_git_ref: main\n"
+                "    status: active\n"
+                "    standards_provider:\n"
+                "      enterprise_default: true\n"
+                "      entrypoint: STANDARDS.md\n"
+                "      pattern_index_ref: patterns.yml\n"
+            )
+        repo.write(repo.paths["domain_registry"],
+                   'spec_name: domain-registry\nspec_version: "2.0.0"\ndomains:\n' + rows)
+        assert repo.run() == 1
+        assert "ERR_STANDARDS_DEFAULT_AMBIGUOUS" in errs(validator)
+
+    def test_initiative_rejects_in_progress_provider(self, repo, validator):
+        repo.write(repo.paths["initiatives"], (
+            'spec_name: initiatives\nspec_version: "1.1.0"\n'
+            "initiatives:\n"
+            "  - initiative_id: init-a\n"
+            "    solution_repo_url: https://github.com/acme/solution-a\n"
+            "    solution_entrypoint: SOLUTION.md\n"
+            "    solution_git_ref: main\n"
+            "    status: active\n"
+            "    standards_domain_id: standards\n"
+        ))
+        repo.write(repo.paths["domain_registry"], (
+            'spec_name: domain-registry\nspec_version: "2.0.0"\n'
+            "domains:\n"
+            "  - domain_id: standards\n"
+            "    name: Standards\n"
+            "    owner: ea\n"
+            "    entry_type: standards_provider\n"
+            "    domain_repo_url: https://github.com/acme/standards\n"
+            "    domain_git_ref: main\n"
+            "    status: in_progress\n"
+            "    standards_provider:\n"
+            "      entrypoint: STANDARDS.md\n"
+            "      pattern_index_ref: patterns.yml\n"
+        ))
+        assert repo.run() == 1
+        assert "ERR_STANDARDS_DOMAIN_NOT_ELIGIBLE" in errs(validator)
+
+    def test_local_provider_contract_and_pattern_documents_are_checked(
+        self, repo, validator
+    ):
+        repo.write("AGENTS.md", "# AGENTS\n")
+        repo.write("STANDARDS.md", (
+            "# STANDARDS\n\n"
+            "## Purpose\nStandards.\n\n"
+            "## Ownership\nEA.\n\n"
+            "## Pattern Index\n[patterns.yml](patterns.yml)\n"
+            "Approved alternate indexes are recorded in the resolution receipt.\n\n"
+            "## Publication Policy\nApproved content only.\n\n"
+            "## Escalation\nContact EA.\n"
+        ))
+        repo.write("patterns.yml", (
+            'spec_name: pattern-index\nspec_version: "1.0.0"\n'
+            "patterns:\n"
+            "  - pattern_id: missing\n"
+            "    path: patterns/missing.md\n"
+            "    title: Missing\n"
+        ))
+        repo.write(repo.paths["domain_registry"], (
+            'spec_name: domain-registry\nspec_version: "2.0.0"\n'
+            "domains:\n"
+            "  - domain_id: standards\n"
+            "    name: Standards\n"
+            "    owner: ea\n"
+            "    entry_type: standards_provider\n"
+            "    domain_repo_url: https://github.com/acme/enterprise\n"
+            "    domain_git_ref: main\n"
+            "    status: active\n"
+            "    standards_provider:\n"
+            "      enterprise_default: true\n"
+            "      entrypoint: STANDARDS.md\n"
+            "      pattern_index_ref: patterns.yml\n"
+        ))
+        assert repo.run(repo_url="https://github.com/acme/enterprise") == 1
+        assert "ERR_PATTERN_INDEX_INVALID" in errs(validator)
+
+    def test_initiatives_1_1_selection_rejects_registry_1_x(self, repo, validator):
+        repo.write(repo.paths["initiatives"], (
+            'spec_name: initiatives\nspec_version: "1.1.0"\n'
+            "initiatives:\n"
+            "  - initiative_id: init-a\n"
+            "    solution_repo_url: https://github.com/acme/solution-a\n"
+            "    solution_entrypoint: SOLUTION.md\n"
+            "    solution_git_ref: main\n"
+            "    status: active\n"
+            "    standards_domain_id: order\n"
+        ))
+        repo.write(repo.paths["domain_registry"], (
+            'spec_name: domain-registry\nspec_version: "1.0.0"\n'
+            "domains:\n"
+            "  - domain_id: order\n"
+            "    name: Order\n"
+            "    owner: da\n"
+            "    status: active\n"
+        ))
+        assert repo.run() == 1
+        assert "standards selection requires domain-registry 2.x" in errs(validator)
+
 
 class TestHeaderContract:
     def test_bare_version_header_fails_schema(self, repo, validator):
@@ -151,6 +280,20 @@ class TestHeaderContract:
         ))
         assert repo.run() == 1
         assert "spec_name" in errs(validator)
+
+    def test_standards_fields_require_initiatives_1_1(self, repo, validator):
+        repo.write(repo.paths["initiatives"], (
+            'spec_name: initiatives\nspec_version: "1.0.0"\n'
+            "initiatives:\n"
+            "  - initiative_id: init-a\n"
+            "    solution_repo_url: https://github.com/acme/solution-a\n"
+            "    solution_entrypoint: SOLUTION.md\n"
+            "    solution_git_ref: main\n"
+            "    status: active\n"
+            "    standards_domain_id: standards\n"
+        ))
+        assert repo.run() == 1
+        assert "ERR_VERSION_UNSUPPORTED" in errs(validator)
 
 
 class TestDegradedValidation:

@@ -2,14 +2,15 @@
 # Keep this file in EA repo at: architecture/portfolio/initiative-pipeline.yml
 # PM/business/IT maintain this as the full initiative pipeline.
 # Generate selector manifest with:
-#   python <skills_root>/enterprise-architecture/scripts/generate_initiatives_selector.py \
+#   python <skills_root>/ea-convention/scripts/generate_initiatives_selector.py \
 #     --pipeline architecture/portfolio/initiative-pipeline.yml \
 #     --out architecture/portfolio/initiatives.yml
 # Publication gate:
 # - If routing.publish_to_selector=true, solution_repo_url and solution_git_ref must be set.
 # - If solution_repo_url is missing, keep publish_to_selector=false until repo-creation completes.
 
-version: "1.0"
+spec_name: initiative-pipeline
+spec_version: "1.0.0"
 portfolio_cycle: "2026-Q3"
 initiatives:
   - initiative_id: init-bss-modernization
@@ -28,6 +29,8 @@ initiatives:
     roi_band: high
     solution_repo_url: https://github.com/<github-org>/<solution-repo>
     solution_git_ref: main
+    standards_domain_id: architecture-standards
+    pattern_index_ref: portfolios/telco/patterns/index.yml
     routing:
       publish_to_selector: true
       selector_status: active

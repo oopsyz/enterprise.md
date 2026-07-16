@@ -29,6 +29,8 @@ domain-repo/
 - `domain-registry.yml` — enterprise-level domain governance registry
 - `solution-index.yml` — solution scope and index manifest
 - `governance-state.yml` — per-domain governance state with layer statuses
+- `domain-registry.yml` 2.0 standards-provider subtype and default provider
+- `STANDARDS.md` plus a versioned machine-readable pattern index
 
 ## When to Use
 

@@ -9,6 +9,7 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 | [ENTERPRISE.md.template](ENTERPRISE.md.template) | Enterprise | EA portfolio repo entrypoint |
 | [SOLUTION.md.template](SOLUTION.md.template) | Solution | SA baseline repo entrypoint |
 | [DOMAIN.md.template](DOMAIN.md.template) | Domain | DA design repo entrypoint |
+| [STANDARDS.md.template](STANDARDS.md.template) | Enterprise standards | Governed provider entrypoint |
 
 ## AGENTS.md Role Templates
 
@@ -49,8 +50,13 @@ Authoritative machine-readable schemas for the canonical catalogs are maintained
 | [domain-registry.yml.template](domain-registry.yml.template) | Enterprise | C |
 | [solution-index.yml.template](solution-index.yml.template) | Solution | C |
 | [initiative-pipeline.yml.template](initiative-pipeline.yml.template) | Enterprise | C |
+| [pattern-index.yml.template](pattern-index.yml.template) | Enterprise standards | C |
 
 Note: `governance-state.yml` (required for the Governed profile) does not have a starter template. See [examples/governed/domain-repo/governance-state.yml](../../../examples/governed/domain-repo/governance-state.yml) for a working sample.
+
+Generate `initiatives.yml` from the pipeline source with
+`../scripts/generate_initiatives_selector.py`. The generator preserves
+`standards_domain_id` and `pattern_index_ref`.
 
 ## Industry-Specific Templates
 

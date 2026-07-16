@@ -1,0 +1,6 @@
+spec_name: pattern-index
+spec_version: "1.0.0"
+patterns:
+  - pattern_id: strangler-fig
+    path: architecture/patterns/strangler-fig.md
+    title: Strangler Fig Migration

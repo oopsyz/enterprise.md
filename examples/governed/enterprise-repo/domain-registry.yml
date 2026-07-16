@@ -2,13 +2,14 @@
 # Keep this file in EA repo at: architecture/enterprise/domain-registry.yml
 
 spec_name: domain-registry
-spec_version: "1.0.0"
+spec_version: "2.0.0"
 enterprise_id: ent-acme
 
 domains:
   - domain_id: order
     name: Order Management
     owner: order-team
+    entry_type: domain
     domain_repo_url: https://github.com/acme/domain-order
     domain_entrypoint: DOMAIN.md
     domain_git_ref: main
@@ -29,6 +30,7 @@ domains:
   - domain_id: billing
     name: Billing & Invoicing
     owner: billing-team
+    entry_type: domain
     domain_repo_url: https://github.com/acme/domain-billing
     domain_entrypoint: DOMAIN.md
     domain_git_ref: main
@@ -43,3 +45,15 @@ domains:
       principles:
         - Expose canonical billing APIs/events.
       constraints: []
+
+  - domain_id: architecture-standards
+    name: Architecture Standards and Patterns
+    owner: enterprise-architecture
+    entry_type: standards_provider
+    domain_repo_url: https://github.com/acme/enterprise-architecture
+    domain_git_ref: main
+    status: active
+    standards_provider:
+      enterprise_default: true
+      entrypoint: STANDARDS.md
+      pattern_index_ref: architecture/patterns/pattern-index.yml

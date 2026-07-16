@@ -8,11 +8,14 @@ The format is loosely based on Keep a Changelog, with project-level draft/spec r
 
 ### Added
 
+- governed standards-provider routing, versioned pattern indexes, resolution
+  receipts, a runtime resolver, and a standards-field-preserving initiative
+  selector generator
 - optional `repo.entrypoint` and `repo.git_ref` fields for `domain-implementations.yml`
 - reserved interoperable bootstrap defaults: `ENTERPRISE_MD_BOOTSTRAP_URL` environment variable and `/.well-known/enterprise-md.json` discovery endpoint (Section 4)
 - `domain-registry.yml` promoted to the canonical catalog set with `domain_id` selector semantics (Sections 5.1, 9); `solution-index.yml` and `governance-state.yml` named normatively with minimum fields (Section 9)
 - documented optional provenance, correlation, and handoff fields (`generated_at_utc`, `generated_by`, `workspace_id`, `workstream_uuid`, `handoff_ref`, display names) (Section 5.3)
-- workstream semantics: demand-unit model, domain-scoped DA identity, registry-authoritative repo resolution (Section 5.8) with a matching `ERR_CONFLICT` precedence rule (Section 10)
+- workstream semantics: demand-unit model, domain-scoped DA identity, registry-authoritative repo resolution (Section 5.7) with a matching `ERR_CONFLICT` precedence rule (Section 10)
 - read/write routing operation classes; `deprecated` is resolvable for read only, with a mandatory `deprecated_target` warning (Sections 5.4, 5.5)
 - registration of `domain-roadmap.yml` as a proposed non-normative extension, excluded from the canonical catalog set (Appendix A)
 

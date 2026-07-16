@@ -1,6 +1,6 @@
 # Machine Access Contract
 
-This companion document explains the optional machine access contract defined in Section 5.8 of the Multi-Level Repository Navigation and Routing Convention.
+This companion document explains the optional machine access contract defined in Section 5.9 of the Multi-Level Repository Navigation and Routing Convention.
 
 Purpose:
 
@@ -8,7 +8,7 @@ Purpose:
 - enable interoperable resolver behavior across CLI, API, MCP, or other access surfaces
 - keep transport and runtime choices outside the core convention
 
-This document is companion guidance. The normative contract lives in Section 5.8 of the main specification.
+This document is companion guidance. The normative contract lives in Section 5.9 of the main specification.
 
 ## Scope
 
@@ -159,6 +159,6 @@ Prefer direct YAML reads when you want:
 
 ## Bottom Line
 
-Section 5.8 standardizes what a machine access surface must mean.
+Section 5.9 standardizes what a machine access surface must mean.
 
 This companion document explains how different implementations can realize that contract without turning the convention into a CLI or API specification.

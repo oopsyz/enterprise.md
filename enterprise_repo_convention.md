@@ -370,7 +370,7 @@ Rationale for implementation target metadata:
 Some organizations keep a first-party Domain repo as the canonical architecture overlay while adopting third-party or open-source repositories as implementation targets. In that model, repo-only resolution is not sufficient for deterministic agent navigation because the external repository may not implement this convention and may expose multiple plausible entry files. Optional implementation target metadata therefore allows the Domain repo to declare both the exact file an agent should open and, when needed, the revision the architecture was validated against, without requiring any change to the external repository itself.
 
 1. `initiatives.yml` entries MUST include `solution_entrypoint` (for example `SOLUTION.md`) and `solution_git_ref` alongside `solution_repo_url`.
-2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_entrypoint` (for example `DOMAIN.md`) and `domain_git_ref`.
+2. When `domain-registry.yml` entries include `domain_repo_url`, they MUST include `domain_git_ref`. Entries with `entry_type: domain` or `both` MUST also include `domain_entrypoint` (for example `DOMAIN.md`). Standards-only entries instead MUST include `standards_provider.entrypoint` and MUST omit `domain_entrypoint`.
    `solution_git_ref` and `domain_git_ref` identify the concrete repository revision used for deterministic routing and entrypoint validation at those boundaries.
 3. `domain-workstreams.yml` entries MUST include `domain_id`, `workstream_entrypoint`, and `workstream_git_ref`.
    When the enterprise level exists (i.e., `initiatives.yml` is present), entries MUST also include `initiative_id` to link the workstream to its originating initiative. When no enterprise level exists (two-level topology per Section 12.2), `initiative_id` MAY be omitted.
@@ -543,7 +543,7 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 8. When a deprecated entry includes `replaced_by`, the resolver SHOULD surface those successor `implementation_id` values as migration hints. These hints do not override the fail-closed requirement for write routing.
 9. Redirect behavior is explicit only. Implementations MUST NOT infer replacements unless they are declared in the authoritative catalog.
 
-These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.8) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
+These error semantics are normative for all routing behavior, regardless of whether the optional machine access contract (Section 5.9) is implemented. How implementations surface these errors (structured error objects, exceptions, log entries) is implementation-defined; the behavioral requirement to fail closed is not.
 
 ### 5.6 Selector Uniqueness
 
@@ -588,7 +588,85 @@ These error semantics are normative for all routing behavior, regardless of whet
 2. If runtime metadata is derived from `domain-workstreams.yml[].domain_repo_url`, it MUST be interpreted as the domain-owned repository target for that `domain_id`, not as a workstream-scoped runtime identity.
 3. `domain_repo_url` remains the authoritative domain-owned runtime target when Domain Architecture runtime identity is domain-scoped.
 
-### 5.8 Optional Machine Access Contract
+### 5.8 Governed Standards-Provider Routing
+
+`domain-registry.yml` version 2.x MAY register governed standards providers
+without treating standards-only repositories as DA bounded contexts.
+
+#### 5.8.1 Registry subtype and provider contract
+
+1. Every 2.x row MUST declare `entry_type: domain`,
+   `standards_provider`, or `both`.
+2. Workstreams MAY target only `domain` or `both` rows. Standards resolution
+   MAY select only `standards_provider` or `both` rows whose status is
+   `active`; `in_progress` is not routable for standards.
+3. A provider MUST declare `domain_repo_url`, `domain_git_ref`, and a
+   `standards_provider` object containing repository-relative `entrypoint` and
+   `pattern_index_ref` paths. `enterprise_default` is optional and defaults to
+   `false`. At most one active provider MAY be the enterprise default.
+4. A standards-only row MUST omit `domain_entrypoint`. A `both` row MUST also
+   satisfy the complete bounded-domain entrypoint contract.
+5. Provider repositories MUST contain a root `AGENTS.md`. The standards
+   entrypoint is a navigation document and MUST identify purpose, owner,
+   default pattern index, publication policy, approved alternate-index
+   behavior, resolution-receipt behavior, and escalation. `AGENTS.md` remains
+   the repository instruction authority.
+
+#### 5.8.2 Initiative selection and precedence
+
+`initiatives` 1.1.x rows MAY declare `standards_domain_id` and an optional
+repository-relative `pattern_index_ref`.
+
+1. When governed work is initiative-bound, the caller MUST supply that
+   initiative context and MUST NOT suppress or replace it.
+2. Under initiative context, an explicit runtime provider or index override
+   MUST be rejected. The initiative's provider wins; if absent, the single
+   active enterprise default is used. The initiative's index wins; if absent,
+   the selected provider's default index is used.
+3. Without initiative context, an explicit provider MAY be selected. An
+   explicit index is permitted only together with that explicit provider.
+4. Without either initiative or explicit-provider context, the single active
+   enterprise default is selected.
+5. Missing, ambiguous, inactive, unsafe, or incompatible selections fail
+   closed.
+
+#### 5.8.3 Pattern index and resolution receipt
+
+The selected pattern index MUST conform to `pattern-index` 1.x. It contains
+`spec_name`, `spec_version`, and a `patterns` array whose entries have unique
+`pattern_id`, repository-relative `path`, and non-empty `title`. Consumers MUST
+reject unknown major versions, unsafe paths, missing referenced documents, and
+invalid indexes with `ERR_PATTERN_INDEX_INVALID`.
+
+A successful resolver MUST resolve `domain_git_ref` to an immutable commit and
+return a `standards-resolution-receipt` 1.x value containing:
+`initiative_context`, `selection_source`, `index_selection_source`, `standards_domain_id`,
+`domain_repo_url`, `standards_entrypoint`, effective `pattern_index_ref`,
+`resolved_commit_sha`, and `resolved_at`. It MUST also contain `initiative_id`
+whenever `initiative_context` is `true`, including enterprise-default fallback,
+and MUST omit it when `initiative_context` is `false`.
+The resolver owns receipt construction; durable persistence and later content
+attestation are consumer concerns.
+
+#### 5.8.4 Generation and migration
+
+When `initiatives.yml` is generated from a richer portfolio source, every
+supported generator MUST preserve `standards_domain_id` and
+`pattern_index_ref`. The reference generator is
+[`generate_initiatives_selector.py`](skills/ea-convention/scripts/generate_initiatives_selector.py).
+
+To migrate `domain-registry` 1.x to 2.0, change the header to `2.0.0`, add
+`entry_type: domain` to every existing row, validate all workstream targets,
+then add provider rows only after consumers support 2.x. A 1.x consumer MUST
+fail closed on 2.x. A 2.x consumer MAY read 1.x as domain-only migration input,
+but MUST NOT resolve standards from it.
+
+Coordinated initial versions are `domain-registry` 2.0.0, `initiatives` 1.1.0,
+`pattern-index` 1.0.0, and `standards-resolution-receipt` 1.0.0. Static
+validators enforce catalog state; runtime resolvers enforce initiative
+authority, Git resolution, and receipt generation. Unknown majors fail closed.
+
+### 5.9 Optional Machine Access Contract
 
 Implementations MAY expose machine access surfaces over canonical routing catalogs.
 
@@ -753,6 +831,17 @@ Implementations that surface structured routing or validation failures MUST supp
 9. `ERR_OVERLAPPING_PATHS`: two or more `domain-implementations.yml` entries produce overlapping `(repo.url, repo.path)` bindings, violating the uniqueness invariant.
 10. `ERR_NO_CONTEXT`: no catalogs are loaded in the resolver's active context (repo-first cold-start with no Domain repo open).
 11. `ERR_REFERENCE_UNRESOLVED`: a normative intra-repository or cross-repository reference does not resolve to an existing selector target or file.
+12. `ERR_WORKSTREAM_TARGET_NOT_DOMAIN`: a workstream targets a standards-only registry entry.
+13. `ERR_STANDARDS_DOMAIN_NOT_FOUND`: the selected provider ID has no registry row.
+14. `ERR_STANDARDS_DOMAIN_NOT_ELIGIBLE`: the selected row is not an active standards provider.
+15. `ERR_STANDARDS_DEFAULT_AMBIGUOUS`: more than one active enterprise default exists.
+16. `ERR_STANDARDS_ENTRYPOINT_INVALID`: the standards entrypoint is missing, unsafe, or violates its navigation contract.
+17. `ERR_STANDARDS_INSTRUCTIONS_MISSING`: the provider repository lacks root `AGENTS.md`.
+18. `ERR_STANDARDS_OVERRIDE_NOT_AUTHORIZED`: a runtime override was supplied under initiative context.
+19. `ERR_STANDARDS_INITIATIVE_CONTEXT_REQUIRED`: governed work is initiative-bound but the resolver invocation omitted or changed that context.
+20. `ERR_PATTERN_INDEX_MISSING`: no effective pattern index resolves.
+21. `ERR_PATTERN_INDEX_INVALID`: the effective index or a referenced document is unsafe, missing, unsupported, or malformed.
+22. `ERR_VERSION_UNSUPPORTED`: a required artifact uses an unsupported major or an extension field before its defining minor version.
 
 Companion observability guidance, including suggested failure record fields and logging patterns, is maintained in `reference/operational-guidance.md`.
 
@@ -836,5 +925,8 @@ Reference implementation layout, operational mapping patterns, agent context gui
 | [schemas/domain-implementations.schema.json](schemas/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | Structural validation for domain-to-implementation routing catalogs |
 | [schemas/domain-registry.schema.json](schemas/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | Structural validation for governed-profile domain registries |
 | [schemas/solution-index.schema.json](schemas/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | Structural validation for governed-profile solution manifests |
+| [schemas/initiative-pipeline.schema.json](schemas/initiative-pipeline.schema.json) | `https://example.com/enterprise.md/schemas/initiative-pipeline.schema.json` | Portfolio source contract for generated initiative selectors |
+| [schemas/pattern-index.schema.json](schemas/pattern-index.schema.json) | `https://example.com/enterprise.md/schemas/pattern-index.schema.json` | Minimum interoperable standards pattern index |
+| [schemas/standards-resolution-receipt.schema.json](schemas/standards-resolution-receipt.schema.json) | `https://example.com/enterprise.md/schemas/standards-resolution-receipt.schema.json` | Standards resolution provenance receipt |
 
 The repository also contains [schemas/domain-roadmap.schema.json](schemas/domain-roadmap.schema.json) with `$id` `https://example.com/enterprise.md/schemas/domain-roadmap.schema.json`. It is intentionally excluded from the canonical table above because `domain-roadmap.yml` is a proposed extension, not part of the normative catalog set in this specification draft.

@@ -30,6 +30,30 @@
       "description": "Full MAJOR.MINOR.PATCH semantic version."
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "spec_version": {"pattern": "^1\\.0\\."}
+        },
+        "required": ["spec_version"]
+      },
+      "then": {
+        "properties": {
+          "initiatives": {
+            "items": {
+              "not": {
+                "anyOf": [
+                  {"required": ["standards_domain_id"]},
+                  {"required": ["pattern_index_ref"]}
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "nonEmptyString": {
       "type": "string",
@@ -82,11 +106,24 @@
         "owner": {
           "$ref": "#/$defs/nonEmptyString"
         },
+        "standards_domain_id": {
+          "$ref": "#/$defs/nonEmptyString",
+          "description": "Optional governed standards-provider selection. Canonical from initiatives 1.1.0."
+        },
+        "pattern_index_ref": {
+          "$ref": "#/$defs/safeRelativePath",
+          "description": "Optional pattern-index override for the selected standards provider."
+        },
         "metadata": {
           "type": "object"
         }
       },
       "additionalProperties": true
+    },
+    "safeRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
     }
   },
   "additionalProperties": true

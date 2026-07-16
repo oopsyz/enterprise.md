@@ -34,6 +34,14 @@ _header_checker = _load_module(
     "check_catalog_headers",
     REPO_ROOT / "scripts" / "check_catalog_headers.py",
 )
+_standards_resolver = _load_module(
+    "resolve_standards",
+    REPO_ROOT / "skills" / "ea-convention" / "scripts" / "resolve_standards.py",
+)
+_initiatives_generator = _load_module(
+    "generate_initiatives_selector",
+    REPO_ROOT / "skills" / "ea-convention" / "scripts" / "generate_initiatives_selector.py",
+)
 
 
 @pytest.fixture
@@ -51,6 +59,16 @@ def validator():
 @pytest.fixture
 def header_checker():
     return _header_checker
+
+
+@pytest.fixture
+def standards_resolver():
+    return _standards_resolver
+
+
+@pytest.fixture
+def initiatives_generator():
+    return _initiatives_generator
 
 
 @pytest.fixture

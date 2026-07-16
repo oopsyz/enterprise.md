@@ -83,6 +83,12 @@ SCHEMA_BY_BASENAME = {
 }
 
 ROUTABLE_STATUSES = {"active", "in_progress"}
+SUPPORTED_MAJORS = {
+    "initiatives": {1},
+    "domain-registry": {1, 2},
+    "pattern-index": {1},
+    "standards-resolution-receipt": {1},
+}
 
 # --- Error collection ---
 
@@ -190,6 +196,109 @@ def normalize_repo_path(repo_path: str) -> str:
     while path.startswith("./"):
         path = path[2:]
     return path
+
+
+def semver_parts(value: Any) -> tuple[int, int, int] | None:
+    if not isinstance(value, str):
+        return None
+    parts = value.split(".")
+    if len(parts) != 3 or not all(part.isdigit() for part in parts):
+        return None
+    return tuple(int(part) for part in parts)
+
+
+def validate_supported_version(data: dict, path: Path) -> tuple[int, int, int] | None:
+    spec_name = data.get("spec_name")
+    version = semver_parts(data.get("spec_version"))
+    if version and spec_name in SUPPORTED_MAJORS and version[0] not in SUPPORTED_MAJORS[spec_name]:
+        err("ERR_VERSION_UNSUPPORTED",
+            f"{spec_name} major version {version[0]} is not supported",
+            path=path)
+    return version
+
+
+def safe_repo_target(root: Path, relative: Any) -> Path | None:
+    if not isinstance(relative, str) or not relative:
+        return None
+    candidate = (root / relative).resolve()
+    try:
+        candidate.relative_to(root.resolve())
+    except ValueError:
+        return None
+    return candidate
+
+
+def validate_standards_entrypoint(
+    root: Path, entrypoint_ref: Any, pattern_index_ref: Any, artifact_path: Path, label: str
+) -> None:
+    entrypoint_path = safe_repo_target(root, entrypoint_ref)
+    if entrypoint_path is None or not entrypoint_path.is_file():
+        err("ERR_STANDARDS_ENTRYPOINT_INVALID",
+            f"{label} standards entrypoint '{entrypoint_ref}' is missing or unsafe",
+            path=artifact_path)
+        return
+    try:
+        content = entrypoint_path.read_text(encoding="utf-8-sig")
+    except OSError as exc:
+        err("ERR_STANDARDS_ENTRYPOINT_INVALID",
+            f"{label} standards entrypoint cannot be read: {exc}",
+            path=artifact_path)
+        return
+
+    required_headings = (
+        "Purpose", "Ownership", "Pattern Index", "Publication Policy", "Escalation"
+    )
+    lowered_lines = {
+        line.lstrip("#").strip().lower()
+        for line in content.splitlines()
+        if line.lstrip().startswith("#")
+    }
+    missing = [heading for heading in required_headings if heading.lower() not in lowered_lines]
+    if missing:
+        err("ERR_STANDARDS_ENTRYPOINT_INVALID",
+            f"{label} standards entrypoint is missing headings: {', '.join(missing)}",
+            path=artifact_path)
+    if isinstance(pattern_index_ref, str) and pattern_index_ref not in content:
+        err("ERR_STANDARDS_ENTRYPOINT_INVALID",
+            f"{label} standards entrypoint does not link its default pattern index '{pattern_index_ref}'",
+            path=artifact_path)
+    lowered = content.lower()
+    if "receipt" not in lowered or not any(term in lowered for term in ("alternate", "override")):
+        err("ERR_STANDARDS_ENTRYPOINT_INVALID",
+            f"{label} standards entrypoint must explain approved alternate indexes and resolution receipts",
+            path=artifact_path)
+
+
+def validate_pattern_index(
+    root: Path, pattern_index_ref: Any, schema_dir: Path, artifact_path: Path, label: str
+) -> None:
+    index_path = safe_repo_target(root, pattern_index_ref)
+    if index_path is None:
+        err("ERR_PATTERN_INDEX_INVALID",
+            f"{label} pattern index path '{pattern_index_ref}' is unsafe",
+            path=artifact_path)
+        return
+    if not index_path.is_file():
+        err("ERR_PATTERN_INDEX_MISSING",
+            f"{label} pattern index '{pattern_index_ref}' not found",
+            path=artifact_path)
+        return
+
+    index_raw = load_yaml(index_path)
+    validate_schema(index_raw, schema_dir / "pattern-index.schema.json", index_path)
+    index_data = as_mapping(index_raw, index_path)
+    validate_supported_version(index_data, index_path)
+    patterns = index_data.get("patterns", [])
+    ensure_unique_ids(patterns, "pattern_id", index_path)
+    for pattern_index, pattern in enumerate(as_list(patterns)):
+        if not isinstance(pattern, dict):
+            continue
+        document_ref = pattern.get("path")
+        document_path = safe_repo_target(root, document_ref)
+        if document_path is None or not document_path.is_file():
+            err("ERR_PATTERN_INDEX_INVALID",
+                f"patterns[{pattern_index}] document '{document_ref}' is missing or unsafe",
+                path=index_path)
 
 
 def glob_static_prefix(pattern: str) -> str:
@@ -301,6 +410,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         initiatives_raw = load_yaml(initiatives_path)
         validate_schema(initiatives_raw, schema_dir / "initiatives.schema.json", initiatives_path)
         initiatives_data = as_mapping(initiatives_raw, initiatives_path)
+        initiatives_version = validate_supported_version(initiatives_data, initiatives_path)
         initiatives_list = initiatives_data.get("initiatives", [])
         initiative_ids = ensure_unique_ids(initiatives_list, "initiative_id", initiatives_path)
         for index, init in enumerate(as_list(initiatives_list)):
@@ -308,6 +418,11 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 continue  # non-mapping entry already reported by ensure_unique_ids
             sol_url = init.get("solution_repo_url", "")
             sol_ep = init.get("solution_entrypoint", "")
+            if initiatives_version and initiatives_version < (1, 1, 0):
+                if "standards_domain_id" in init or "pattern_index_ref" in init:
+                    err("ERR_VERSION_UNSUPPORTED",
+                        f"initiatives[{index}] standards fields require initiatives spec_version >= 1.1.0",
+                        path=initiatives_path)
             if sol_ep and is_local_path(sol_url, this_repo_url):
                 if not file_exists_local(root, sol_ep):
                     err("ERR_ENTRYPOINT_MISSING",
@@ -316,7 +431,11 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         print(f"  initiatives: {len(initiative_ids)} ({', '.join(sorted(initiative_ids)) or 'none'})")
 
     domain_ids: set[str] = set()
+    domain_entry_types_by_id: dict[str, str] = {}
     domain_repo_urls_by_id: dict[str, str] = {}
+    active_standards_provider_ids: set[str] = set()
+    active_default_providers: list[str] = []
+    registry_version: tuple[int, int, int] | None = None
     has_domain_registry = False
     if not domain_registry_path.exists():
         if "domain_registry" in explicit_paths:
@@ -329,15 +448,33 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
         registry_raw = load_yaml(domain_registry_path)
         validate_schema(registry_raw, schema_dir / "domain-registry.schema.json", domain_registry_path)
         registry_data = as_mapping(registry_raw, domain_registry_path)
+        registry_version = validate_supported_version(registry_data, domain_registry_path)
         domains_list = registry_data.get("domains", [])
         domain_ids = ensure_unique_ids(domains_list, "domain_id", domain_registry_path)
         for index, domain in enumerate(as_list(domains_list)):
             if not isinstance(domain, dict):
                 continue  # non-mapping entry already reported by ensure_unique_ids
             domain_id = domain.get("domain_id", "")
+            entry_type = domain.get("entry_type", "domain")
             d_url = domain.get("domain_repo_url", "")
             d_ep = domain.get("domain_entrypoint", "")
+            standards_provider = domain.get("standards_provider")
             normalized_d_url = normalize_repo_url(d_url)
+            if isinstance(domain_id, str) and domain_id:
+                domain_entry_types_by_id[domain_id] = entry_type
+            if registry_version and registry_version[0] == 1:
+                if "entry_type" in domain or standards_provider is not None:
+                    err("ERR_VERSION_UNSUPPORTED",
+                        f"domains[{index}] standards-provider fields require domain-registry 2.x",
+                        path=domain_registry_path)
+            if entry_type in {"standards_provider", "both"}:
+                if domain.get("status") != "active":
+                    warn(f"standards provider '{domain_id}' is not active and is not routable",
+                         path=domain_registry_path)
+                else:
+                    active_standards_provider_ids.add(domain_id)
+                if isinstance(standards_provider, dict) and standards_provider.get("enterprise_default") is True and domain.get("status") == "active":
+                    active_default_providers.append(domain_id)
             if isinstance(domain_id, str) and domain_id and normalized_d_url:
                 domain_repo_urls_by_id[domain_id] = normalized_d_url
             if d_ep and is_local_path(d_url, this_repo_url):
@@ -345,7 +482,47 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                     err("ERR_ENTRYPOINT_MISSING",
                         f"domains[{index}] domain_entrypoint '{d_ep}' not found",
                         path=domain_registry_path)
+            if isinstance(standards_provider, dict) and is_local_path(d_url, this_repo_url):
+                s_ep = standards_provider.get("entrypoint")
+                p_ref = standards_provider.get("pattern_index_ref")
+                if not file_exists_local(root, "AGENTS.md"):
+                    err("ERR_STANDARDS_INSTRUCTIONS_MISSING",
+                        f"domains[{index}] local standards provider requires root AGENTS.md",
+                        path=domain_registry_path)
+                validate_standards_entrypoint(
+                    root, s_ep, p_ref, domain_registry_path, f"domains[{index}]"
+                )
+                validate_pattern_index(
+                    root, p_ref, schema_dir, domain_registry_path, f"domains[{index}]"
+                )
+        if len(active_default_providers) > 1:
+            err("ERR_STANDARDS_DEFAULT_AMBIGUOUS",
+                f"multiple active enterprise standards defaults: {', '.join(active_default_providers)}",
+                path=domain_registry_path)
         print(f"  domains: {len(domain_ids)} ({', '.join(sorted(domain_ids)) or 'none'})")
+
+    if has_initiatives:
+        for index, init in enumerate(as_list(initiatives_data.get("initiatives", []))):
+            if not isinstance(init, dict):
+                continue
+            standards_id = init.get("standards_domain_id")
+            if standards_id and registry_version and registry_version[0] < 2:
+                err("ERR_VERSION_UNSUPPORTED",
+                    f"initiatives[{index}] standards selection requires domain-registry 2.x",
+                    path=initiatives_path)
+            if standards_id:
+                if not has_domain_registry or standards_id not in domain_ids:
+                    err("ERR_STANDARDS_DOMAIN_NOT_FOUND",
+                        f"initiatives[{index}] standards_domain_id '{standards_id}' not found",
+                        path=initiatives_path)
+                elif standards_id not in active_standards_provider_ids:
+                    err("ERR_STANDARDS_DOMAIN_NOT_ELIGIBLE",
+                        f"initiatives[{index}] standards_domain_id '{standards_id}' is not an active standards provider",
+                        path=initiatives_path)
+            if "pattern_index_ref" in init and not standards_id and not active_default_providers:
+                err("ERR_PATTERN_INDEX_MISSING",
+                    f"initiatives[{index}] pattern_index_ref has no selected provider or enterprise default",
+                    path=initiatives_path)
 
     # -------------------------
     # 2. SOLUTION LAYER
@@ -416,6 +593,10 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
             if ws_dom_id and has_domain_registry and ws_dom_id not in domain_ids:
                 err("ERR_DOMAIN_NOT_FOUND",
                     f"workstreams[{index}] domain_id '{ws_dom_id}' not in domain-registry",
+                    path=workstreams_path)
+            elif ws_dom_id and has_domain_registry and domain_entry_types_by_id.get(ws_dom_id) == "standards_provider":
+                err("ERR_WORKSTREAM_TARGET_NOT_DOMAIN",
+                    f"workstreams[{index}] targets standards-only registry entry '{ws_dom_id}'",
                     path=workstreams_path)
 
             status = ws.get("status")

@@ -30,6 +30,36 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "spec_version": {
+            "pattern": "^2\\."
+          }
+        },
+        "required": ["spec_version"]
+      },
+      "then": {
+        "properties": {
+          "domains": {
+            "items": {
+              "$ref": "#/$defs/domainV2"
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "domains": {
+            "items": {
+              "$ref": "#/$defs/domainV1"
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "nonEmptyString": {
       "type": "string",
@@ -61,6 +91,28 @@
         }
       },
       "additionalProperties": true
+    },
+    "safeRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "standardsProvider": {
+      "type": "object",
+      "required": ["entrypoint", "pattern_index_ref"],
+      "properties": {
+        "enterprise_default": {
+          "type": "boolean",
+          "default": false
+        },
+        "entrypoint": {
+          "$ref": "#/$defs/safeRelativePath"
+        },
+        "pattern_index_ref": {
+          "$ref": "#/$defs/safeRelativePath"
+        }
+      },
+      "additionalProperties": false
     },
     "domain": {
       "type": "object",
@@ -143,17 +195,78 @@
           "type": "object"
         }
       },
+      "additionalProperties": true
+    },
+    "domainV1": {
       "allOf": [
         {
+          "$ref": "#/$defs/domain"
+        },
+        {
+          "not": {
+            "anyOf": [
+              {"required": ["entry_type"]},
+              {"required": ["standards_provider"]}
+            ]
+          }
+        },
+        {
+          "if": {"required": ["domain_repo_url"]},
+          "then": {"required": ["domain_entrypoint", "domain_git_ref"]}
+        }
+      ]
+    },
+    "domainV2": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/domain"
+        },
+        {
+          "required": ["entry_type"],
+          "properties": {
+            "entry_type": {
+              "enum": ["domain", "standards_provider", "both"]
+            },
+            "standards_provider": {
+              "$ref": "#/$defs/standardsProvider"
+            }
+          }
+        },
+        {
           "if": {
-            "required": ["domain_repo_url"]
+            "properties": {"entry_type": {"const": "domain"}},
+            "required": ["entry_type"]
           },
           "then": {
-            "required": ["domain_entrypoint", "domain_git_ref"]
+            "not": {"required": ["standards_provider"]},
+            "allOf": [
+              {
+                "if": {"required": ["domain_repo_url"]},
+                "then": {"required": ["domain_entrypoint", "domain_git_ref"]}
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {"entry_type": {"const": "standards_provider"}},
+            "required": ["entry_type"]
+          },
+          "then": {
+            "required": ["domain_repo_url", "domain_git_ref", "standards_provider"],
+            "not": {"required": ["domain_entrypoint"]}
+          }
+        },
+        {
+          "if": {
+            "properties": {"entry_type": {"const": "both"}},
+            "required": ["entry_type"]
+          },
+          "then": {
+            "required": ["domain_repo_url", "domain_entrypoint", "domain_git_ref", "standards_provider"]
           }
         }
-      ],
-      "additionalProperties": true
+      ]
     }
   },
   "additionalProperties": true

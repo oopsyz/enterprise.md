@@ -5,12 +5,13 @@
 # Telco rule: one TMF ODA component maps to one domain entry.
 
 spec_name: domain-registry
-spec_version: "1.0.0"
+spec_version: "2.0.0"
 enterprise_id: ent-example
 domains:
   - domain_id: tmfc001
     name: TMFC001-ProductCatalogManagement
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc001
@@ -29,6 +30,7 @@ domains:
   - domain_id: tmfc002
     name: TMFC002-ProductOrderCaptureAndValidation
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc002
@@ -47,6 +49,7 @@ domains:
   - domain_id: tmfc003
     name: TMFC003-ProductOrderDeliveryOrchestrationAndManagement
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc003
@@ -65,6 +68,7 @@ domains:
   - domain_id: tmfc005
     name: TMFC005-ProductInventory
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc005
@@ -83,6 +87,7 @@ domains:
   - domain_id: tmfc006
     name: TMFC006-ServiceCatalogManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc006
@@ -101,6 +106,7 @@ domains:
   - domain_id: tmfc007
     name: TMFC007-ServiceOrderManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc007
@@ -119,6 +125,7 @@ domains:
   - domain_id: tmfc008
     name: TMFC008-ServiceInventory
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc008
@@ -137,6 +144,7 @@ domains:
   - domain_id: tmfc009
     name: TMFC009-ServiceQualificationManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc009
@@ -155,6 +163,7 @@ domains:
   - domain_id: tmfc010
     name: TMFC010-ResourceCatalogManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc010
@@ -173,6 +182,7 @@ domains:
   - domain_id: tmfc011
     name: TMFC011-ResourceOrderManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc011
@@ -191,6 +201,7 @@ domains:
   - domain_id: tmfc012
     name: TMFC012-ResourceInventory
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc012
@@ -209,6 +220,7 @@ domains:
   - domain_id: tmfc014
     name: TMFC014-LocationManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc014
@@ -227,6 +239,7 @@ domains:
   - domain_id: tmfc020
     name: TMFC020-DigitalIdentityManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc020
@@ -245,6 +258,7 @@ domains:
   - domain_id: tmfc022
     name: TMFC022-PartyPrivacyManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc022
@@ -263,6 +277,7 @@ domains:
   - domain_id: tmfc023
     name: TMFC023-PartyInteractionManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc023
@@ -281,6 +296,7 @@ domains:
   - domain_id: tmfc024
     name: TMFC024-BillingAccountManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc024
@@ -299,6 +315,7 @@ domains:
   - domain_id: tmfc027
     name: TMFC027-ProductConfigurator
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc027
@@ -317,6 +334,7 @@ domains:
   - domain_id: tmfc028
     name: TMFC028-PartyManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc028
@@ -335,6 +353,7 @@ domains:
   - domain_id: tmfc029
     name: TMFC029-PaymentManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc029
@@ -353,6 +372,7 @@ domains:
   - domain_id: tmfc030
     name: TMFC030-BillGenerationManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc030
@@ -371,6 +391,7 @@ domains:
   - domain_id: tmfc031
     name: TMFC031-BillCalculation
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc031
@@ -389,6 +410,7 @@ domains:
   - domain_id: tmfc035
     name: TMFC035-PermissionsManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc035
@@ -407,6 +429,7 @@ domains:
   - domain_id: tmfc036
     name: TMFC036-LeadAndOpportunityManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc036
@@ -425,6 +448,7 @@ domains:
   - domain_id: tmfc037
     name: TMFC037-ServicePerformanceManagement
     owner: domain-arch-intelligence-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc037
@@ -443,6 +467,7 @@ domains:
   - domain_id: tmfc038
     name: TMFC038-ResourcePerformanceManagement
     owner: domain-arch-intelligence-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc038
@@ -461,6 +486,7 @@ domains:
   - domain_id: tmfc039
     name: TMFC039-AgreementManagement
     owner: domain-arch-party-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc039
@@ -479,6 +505,7 @@ domains:
   - domain_id: tmfc040
     name: TMFC040-ProductUsageManagement
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc040
@@ -497,6 +524,7 @@ domains:
   - domain_id: tmfc041
     name: TMFC041-AnomalyManagement
     owner: domain-arch-intelligence-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc041
@@ -515,6 +543,7 @@ domains:
   - domain_id: tmfc043
     name: TMFC043-FaultManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc043
@@ -533,6 +562,7 @@ domains:
   - domain_id: tmfc046
     name: TMFC046-WorkforceManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc046
@@ -551,6 +581,7 @@ domains:
   - domain_id: tmfc050
     name: TMFC050-ProductRecommendationManagement
     owner: domain-arch-intelligence-management
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc050
@@ -569,6 +600,7 @@ domains:
   - domain_id: tmfc054
     name: TMFC054-ProductTestManagement
     owner: domain-arch-core-commerce
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc054
@@ -587,6 +619,7 @@ domains:
   - domain_id: tmfc055
     name: TMFC055-ServiceTestManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc055
@@ -605,6 +638,7 @@ domains:
   - domain_id: tmfc061
     name: TMFC061-WorkOrderManagement
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc061
@@ -623,6 +657,7 @@ domains:
   - domain_id: tmfc062
     name: TMFC062-ResourceConfigurationandActivation
     owner: domain-arch-production
+    entry_type: domain
     status: active
     capabilities:
       - capability_id: cap-tmfc062

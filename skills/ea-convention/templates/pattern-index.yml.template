@@ -1,0 +1,6 @@
+spec_name: pattern-index
+spec_version: "1.0.0"
+patterns:
+  - pattern_id: <pattern-id>
+    path: <pattern-document-path>
+    title: <pattern-title>

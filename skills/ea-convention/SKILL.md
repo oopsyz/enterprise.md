@@ -37,6 +37,8 @@ files when creating convention artifacts — never use ad-hoc content.
 | `CLAUDE.dev.md.template` | DEV CLAUDE.md |
 | `initiatives.yml.template` | EA initiatives selector |
 | `domain-registry.yml.template` | EA domain registry |
+| `STANDARDS.md.template` | Standards-provider entrypoint |
+| `pattern-index.yml.template` | Standards-provider machine index |
 | `solution-index.yml.template` | SA solution index |
 | `domain-workstreams.yml.template` | SA workstream selector |
 | `domain-implementations.yml.template` | DA implementation selector |
@@ -78,6 +80,17 @@ INITIATIVE_ID
     → domain-workstreams.yml → workstream_entrypoint
       → domain-implementations.yml → repo.url + repo.paths + repo.entrypoint
 ```
+
+### Standards-Provider Routing
+
+- `domain-registry` 2.x uses `entry_type: domain|standards_provider|both`.
+- Initiative-bound work rejects provider/index overrides; initiative-free work
+  may select a provider explicitly.
+- Use `scripts/resolve_standards.py` to validate a provider checkout and emit a
+  versioned resolution receipt.
+- Use `scripts/generate_initiatives_selector.py` when publishing
+  `initiatives.yml` from `initiative-pipeline.yml`; it preserves
+  `standards_domain_id` and `pattern_index_ref`.
 
 **Policy:** fail closed on non-routable statuses. By default, `status: active` and `status: in_progress` entries are routable; use the validator's `--active-only` option to restrict routing to `active`.
 

@@ -3,7 +3,7 @@
 # Validate with: schemas/initiatives.schema.json (repo root)
 # Reference this file from ENTERPRISE.md so SA container routing is deterministic.
 # Recommended: generate this file from architecture/portfolio/initiative-pipeline.yml
-# using <skills_root>/enterprise-architecture/scripts/generate_initiatives_selector.py.
+# using <skills_root>/ea-convention/scripts/generate_initiatives_selector.py.
 #
 # Operational rule:
 # - This catalog may retain historical initiatives for traceability (for example `completed`/`archived`).
@@ -12,7 +12,7 @@
 # - Include `solution_entrypoint` and `solution_git_ref` so agents know exactly which file and revision to read in the solution repo.
 
 spec_name: initiatives
-spec_version: "1.0.0"
+spec_version: "1.1.0"
 
 initiatives:
   - initiative_id: init-bss-modernization
@@ -22,6 +22,8 @@ initiatives:
     solution_git_ref: main
     status: active
     owner: sa-team-a
+    standards_domain_id: architecture-standards
+    pattern_index_ref: portfolios/telco/patterns/index.yml
     metadata:
       priority: high
       target_release: "2026-Q3"

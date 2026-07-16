@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/pattern-index.schema.json",
+  "title": "pattern-index",
+  "type": "object",
+  "required": ["spec_name", "spec_version", "patterns"],
+  "properties": {
+    "spec_name": {"const": "pattern-index"},
+    "spec_version": {"type": "string", "pattern": "^1\\.\\d+\\.\\d+$"},
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pattern_id", "path", "title"],
+        "properties": {
+          "pattern_id": {"type": "string", "minLength": 1},
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          },
+          "title": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

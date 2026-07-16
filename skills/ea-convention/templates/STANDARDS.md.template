@@ -1,0 +1,27 @@
+# STANDARDS
+
+## Purpose
+
+Governed architecture standards and reusable patterns for `<enterprise-id>`.
+
+## Ownership
+
+Owner: `<standards-owner>`
+
+Repository instructions are defined by the root `AGENTS.md`.
+
+## Pattern Index
+
+Default machine-readable index: [pattern-index.yml](<pattern-index-ref>)
+
+An initiative may select an approved alternate index. Initiative-bound work
+rejects caller-supplied provider or index overrides. The resolution receipt
+records the effective index.
+
+## Publication Policy
+
+Only approved and version-controlled standards are published in the index.
+
+## Escalation
+
+Contact `<standards-owner>` for disputed, missing, or conflicting guidance.

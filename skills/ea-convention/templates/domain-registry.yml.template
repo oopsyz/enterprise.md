@@ -6,12 +6,13 @@
 # so agents know which file and revision to read.
 
 spec_name: domain-registry
-spec_version: "1.0.0"
+spec_version: "2.0.0"
 enterprise_id: ent-example
 domains:
   - domain_id: om
     name: Order Management
     owner: domain-arch-om
+    entry_type: domain
     domain_repo_url: https://github.com/<github-org>/<domain-repo-order>
     domain_entrypoint: DOMAIN.md # Read this file in the target domain repo
     domain_git_ref: main
@@ -39,6 +40,7 @@ domains:
   - domain_id: catalog
     name: Product Catalog
     owner: domain-arch-catalog
+    entry_type: domain
     domain_repo_url: https://github.com/<github-org>/<domain-repo-catalog>
     domain_entrypoint: DOMAIN.md # Read this file in the target domain repo
     domain_git_ref: main
@@ -46,3 +48,29 @@ domains:
     capabilities:
       - capability_id: cap-product-definition
         name: Manage product and offer definitions
+
+  # Standalone enterprise standards provider (not a DA bounded context).
+  - domain_id: architecture-standards
+    name: Architecture Standards and Patterns
+    owner: enterprise-architecture
+    entry_type: standards_provider
+    domain_repo_url: https://github.com/<github-org>/<standards-repo>
+    domain_git_ref: main
+    status: active
+    standards_provider:
+      enterprise_default: true
+      entrypoint: STANDARDS.md
+      pattern_index_ref: architecture/patterns/pattern-index.yml
+
+  # Bounded domain that also publishes governed standards.
+  - domain_id: shared-platform
+    name: Shared Platform
+    owner: domain-arch-platform
+    entry_type: both
+    domain_repo_url: https://github.com/<github-org>/<shared-platform-repo>
+    domain_entrypoint: DOMAIN.md
+    domain_git_ref: main
+    status: active
+    standards_provider:
+      entrypoint: STANDARDS.md
+      pattern_index_ref: architecture/patterns/pattern-index.yml

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/standards-resolution-receipt.schema.json",
+  "title": "standards-resolution-receipt",
+  "type": "object",
+  "required": [
+    "spec_name",
+    "spec_version",
+    "initiative_context",
+    "selection_source",
+    "index_selection_source",
+    "standards_domain_id",
+    "domain_repo_url",
+    "standards_entrypoint",
+    "pattern_index_ref",
+    "resolved_commit_sha",
+    "resolved_at"
+  ],
+  "properties": {
+    "spec_name": {"const": "standards-resolution-receipt"},
+    "spec_version": {"type": "string", "pattern": "^1\\.\\d+\\.\\d+$"},
+    "initiative_context": {"type": "boolean"},
+    "selection_source": {"enum": ["explicit", "initiative", "default"]},
+    "initiative_id": {"type": "string", "minLength": 1},
+    "index_selection_source": {"enum": ["explicit", "initiative", "provider_default"]},
+    "standards_domain_id": {"type": "string", "minLength": 1},
+    "domain_repo_url": {"type": "string", "format": "uri", "minLength": 1},
+    "standards_entrypoint": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "pattern_index_ref": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "resolved_commit_sha": {"type": "string", "pattern": "^[0-9a-fA-F]{40,64}$"},
+    "resolved_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"initiative_context": {"const": true}},
+        "required": ["initiative_context"]
+      },
+      "then": {"required": ["initiative_id"]},
+      "else": {"not": {"required": ["initiative_id"]}}
+    },
+    {
+      "if": {
+        "properties": {"selection_source": {"const": "initiative"}},
+        "required": ["selection_source"]
+      },
+      "then": {
+        "properties": {"initiative_context": {"const": true}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"index_selection_source": {"const": "initiative"}},
+        "required": ["index_selection_source"]
+      },
+      "then": {
+        "properties": {"initiative_context": {"const": true}}
+      }
+    }
+  ],
+  "additionalProperties": false
+}

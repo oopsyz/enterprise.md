@@ -2,13 +2,14 @@
 # Keep this file in EA repo at: architecture/enterprise/domain-registry.yml
 
 spec_name: domain-registry
-spec_version: "1.0.0"
+spec_version: "2.0.0"
 enterprise_id: <enterprise-id>
 
 domains:
   - domain_id: <domain-id>
     name: <domain-name>
     owner: <domain-owner>
+    entry_type: domain
     domain_repo_url: https://github.com/<org>/<domain-repo>
     domain_entrypoint: DOMAIN.md
     domain_git_ref: main

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/initiative-pipeline.schema.json",
+  "title": "initiative-pipeline.yml",
+  "type": "object",
+  "required": ["spec_name", "spec_version", "initiatives"],
+  "properties": {
+    "spec_name": {"const": "initiative-pipeline"},
+    "spec_version": {"type": "string", "pattern": "^1\\.\\d+\\.\\d+$"},
+    "portfolio_cycle": {"type": "string", "minLength": 1},
+    "initiatives": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/initiative"}
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "safeRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "initiative": {
+      "type": "object",
+      "required": ["initiative_id", "routing"],
+      "properties": {
+        "initiative_id": {"$ref": "#/$defs/nonEmptyString"},
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "solution_repo_url": {"type": "string", "format": "uri", "minLength": 1},
+        "solution_entrypoint": {"$ref": "#/$defs/safeRelativePath"},
+        "solution_git_ref": {"$ref": "#/$defs/nonEmptyString"},
+        "it_owner": {"$ref": "#/$defs/nonEmptyString"},
+        "standards_domain_id": {"$ref": "#/$defs/nonEmptyString"},
+        "pattern_index_ref": {"$ref": "#/$defs/safeRelativePath"},
+        "routing": {
+          "type": "object",
+          "required": ["publish_to_selector", "selector_status"],
+          "properties": {
+            "publish_to_selector": {"type": "boolean"},
+            "selector_status": {"$ref": "#/$defs/nonEmptyString"}
+          },
+          "additionalProperties": true
+        },
+        "metadata": {"type": "object"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

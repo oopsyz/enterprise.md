@@ -100,7 +100,7 @@ Short form:
 
 1. All `Core` requirements are satisfied.
 2. A domain governance registry exists, for example `domain-registry.yml`.
-3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint` and `domain_git_ref`.
+3. Domain and `both` registry entries use `domain_entrypoint`; standards-only entries use `standards_provider.entrypoint`. Repository targets include `domain_git_ref`.
 4. A solution scope or index manifest exists, for example `solution-index.yml`.
 5. A governance state artifact exists with `spec_name`, `spec_version`, and `layers`.
 
@@ -122,6 +122,7 @@ Canonical catalogs and selectors:
 | `initiatives.yml` | Enterprise | `initiative_id` | solution repository + `solution_entrypoint` + `solution_git_ref` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + workstream context + repo target |
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
+| `domain-registry.yml` 2.x | Enterprise | `domain_id` | governed domain and/or standards-provider target |
 
 Default routable statuses are `active` and `in_progress`.
 
@@ -178,7 +179,9 @@ Domain repository note:
 |   `-- ea-convention/                             # ea-convention skill (manage, validate, scaffold)
 |       |-- SKILL.md                               # skill definition and operations
 |       |-- scripts/
-|       |   `-- validate_convention.py             # schema + lint validator
+|       |   |-- validate_convention.py             # schema + lint validator
+|       |   |-- resolve_standards.py               # governed standards resolver
+|       |   `-- generate_initiatives_selector.py   # portfolio-to-selector generator
 |       `-- templates/
 |           |-- ENTERPRISE.md.template             # enterprise entrypoint
 |           |-- SOLUTION.md.template               # solution entrypoint
