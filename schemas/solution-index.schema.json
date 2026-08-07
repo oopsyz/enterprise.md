@@ -73,6 +73,20 @@
         "additionalProperties": true
       }
     },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["platform_id"],
+        "properties": {
+          "platform_id": {"type": "string", "minLength": 1},
+          "platform_repo_url": {"type": "string", "format": "uri", "minLength": 1},
+          "platform_entrypoint": {"type": "string", "minLength": 1},
+          "platform_git_ref": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    },
     "repos": {
       "type": "array"
     },

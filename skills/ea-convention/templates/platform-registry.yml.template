@@ -1,0 +1,19 @@
+# EA authoritative Platform governance map.
+# Keep in the Enterprise repo at: architecture/enterprise/platform-registry.yml
+# A repository coordinate is a location, not Platform identity.
+
+spec_name: platform-registry
+spec_version: "1.0.0"
+enterprise_id: <enterprise-id>
+platforms:
+  - platform_id: <platform-id>
+    name: <platform-display-name>
+    owner: <platform-owner-or-team>
+    platform_repo_url: <https://github.com/org/platform-repo>
+    platform_entrypoint: PLATFORM.md
+    platform_git_ref: main
+    status: active
+    capabilities:
+      - capability_id: <platform-capability-id>
+        name: <platform-capability-name>
+    metadata: {}

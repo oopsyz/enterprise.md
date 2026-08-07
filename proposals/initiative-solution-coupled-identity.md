@@ -1,6 +1,6 @@
 # Proposal: Coupled Initiative and Solution Architecture Identity
 
-**Proposal version:** 0.13.0
+**Proposal version:** 0.14.0
 **Status:** Accepted; convention handoff slice implemented in this change
 **Date:** 2026-08-07
 **Target owner:** `enterprise.md`, the canonical owner of the Multi-Level
@@ -109,8 +109,9 @@ that Initiative's `initiative_id`.
   and how deployed platforms communicate
 - **Owner:** Platform Engineering, Integration Platform Engineering, SRE, or an
   explicitly delegated operational architecture authority
-- **Identifier:** a future stable `platform_id`; its exact catalog and
-  entrypoint contract are outside this proposal
+- **Identifier:** stable `platform_id`; its catalog and entrypoint contract are
+  defined by the separately versioned
+  [Platform repository routing proposal](platform-repository-routing.md)
 - **Lifecycle:** long-lived and independent of any one Initiative
 - **Relationship to Initiatives:** receives zero or more Initiative-scoped
   platform workstreams
@@ -137,7 +138,7 @@ ownership.
 - **Semantic authority:** the providing Domain or component owns the stable API,
   event, or schema contract identified by `interface_id`
 - **Operational authority:** Platform/SRE owns the deployed realization of that
-  contract, identified by a future stable `connection_id`
+  contract, identified by a stable `connection_id`
 - **Runtime content:** endpoints, broker or gateway, queue or topic, protocol,
   network path, security controls, capacity, resilience, observability, and
   operational dependencies
@@ -165,8 +166,9 @@ primary operating model.
 - **Identifier:** `workstream_id`
 - **Cardinality:** one Initiative has many workstreams; one Domain or Platform
   receives many workstreams over time
-- **Current contract limitation:** `domain-workstreams.yml` represents only the
-  Domain target case; Platform routing requires a separately versioned proposal
+- **Contract boundary:** Domain and Platform targets use separate catalogs and
+  handoff schemas; Platform routing is defined by the separately versioned
+  [Platform repository routing proposal](platform-repository-routing.md)
 
 ## Normative Cardinality
 
@@ -248,14 +250,11 @@ initiative_id
 
 No `initiatives` schema change is required to express the cardinality.
 
-The current downstream routing contract is not symmetrical: it specifies
-Solution-to-Domain and Domain-to-Implementation routing, but has no explicit
-Platform/SRE entrypoint, registry, workstream target, durable production
-baseline, or Platform-to-Implementation route. This is an adjacent convention
-gap, not a reason to introduce `solution_id`. Resolving it requires a separate
-versioned proposal covering whether Platform is represented through a parallel
-`PLATFORM.md` authority, which operational artifacts it owns, and how
-workstream routing selects Domain versus Platform targets.
+The downstream routing contract is now symmetrical through the separately
+versioned [Platform repository routing proposal](platform-repository-routing.md):
+`PLATFORM.md`, `platform-registry.yml`, `platform-workstreams.yml`, and
+`platform-implementations.yml` define the durable Platform path without
+introducing `solution_id` or disguising Platform as Domain.
 
 ## External Rationale: Orange and TM Forum ODA
 
@@ -433,10 +432,10 @@ and opaque POC identifiers therefore remain compatible. The companion artifact
 is optional for existing Workstreams and becomes mandatory only under a future
 conformance profile or major catalog version.
 
-The existing `domain-workstreams.yml` remains the minimal routing catalog
-rather than becoming a mutable execution database. A future Platform routing
-contract may define an equivalent Platform handoff or generalize both under a
-separately versioned architecture-change contract.
+The existing `domain-workstreams.yml` remains the Domain routing catalog rather
+than becoming a mutable execution database. Platform routing and its equivalent
+handoff use the separate contracts defined by
+[platform-repository-routing.md](platform-repository-routing.md).
 
 Recommended shape:
 
@@ -869,8 +868,8 @@ No migration may invent an independent `solution_id`.
    the authoritative Initiative route.
 7. Examples distinguish the historical Initiative-scoped Solution context from
    accepted architecture elements reused as active enterprise state.
-8. Platform/SRE routing and durable production-baseline ownership remain
-   explicitly deferred to a separate versioned proposal rather than being
+8. Platform/SRE routing and durable production-baseline ownership are defined
+   by the separate versioned Platform repository proposal and MUST NOT be
    disguised as Domain routing.
 9. Integration is modeled as a first-class relationship with separately owned
    semantic contracts and production runtime connections, not as another

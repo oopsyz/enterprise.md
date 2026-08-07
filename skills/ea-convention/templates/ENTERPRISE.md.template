@@ -31,6 +31,7 @@ architecture/
 |   `-- initiatives.yml                   <- selector catalog (INITIATIVE_ID routing)
 `-- enterprise/
     |-- domain-registry.yml               <- domain governance registry
+    |-- platform-registry.yml             <- Platform governance registry
     |-- target-architecture.md            <- (optional)
     |-- capability-map.yml                <- (optional)
     |-- portfolio-assessment.yml          <- (optional)
@@ -42,6 +43,7 @@ architecture/
 - `architecture/portfolio/initiative-pipeline.yml` (portfolio lifecycle source)
 - `architecture/portfolio/initiatives.yml` (runtime routing selector)
 - `architecture/enterprise/domain-registry.yml` (enterprise domain governance)
+- `architecture/enterprise/platform-registry.yml` (Platform governance, when present)
 - `architecture/enterprise/*.yml` (target architecture/capability/governance detail)
 
 ## Routing

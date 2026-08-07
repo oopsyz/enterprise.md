@@ -2,19 +2,20 @@
 name: ea-convention
 description: >
   Use this skill when the user wants to manage, validate, or navigate the
-  ea/sa/da/dev enterprise convention artifacts. Triggers include: adding an
-  initiative, domain, workstream, implementation, or roadmap item; validating
+  ea/sa/domain/platform/dev enterprise convention artifacts. Triggers include: adding an
+  initiative, domain, platform, workstream, implementation, or roadmap item; validating
   referential integrity; tracing a routing chain; or reviewing the status of
   any layer. Keywords: initiative, domain, workstream, implementation, roadmap,
-  ea, sa, da, domain-registry, domain-workstreams, domain-implementations,
+  ea, sa, da, platform, domain-registry, platform-registry,
+  domain-workstreams, platform-workstreams, domain-implementations, platform-implementations,
   domain-roadmap, convention, routing, referential integrity.
 ---
 
 # Enterprise Convention Skill
 
-Manages the three-layer enterprise convention: **EA** (Enterprise Architecture) →
-**SA** (Solution Architecture) → **DA** (Domain Architecture), with **dev** as
-an execution role under DA where coding agents operate.
+Manages the enterprise convention: **EA** (Enterprise Architecture) to **SA**
+(Solution Architecture) to durable **Domain** and **Platform** ownership
+boundaries, with implementation execution below those authorities.
 
 ## Template Files
 
@@ -26,22 +27,29 @@ files when creating convention artifacts — never use ad-hoc content.
 | `ENTERPRISE.md.template` | EA entrypoint |
 | `SOLUTION.md.template` | SA entrypoint |
 | `DOMAIN.md.template` | DA domain entrypoint |
+| `PLATFORM.md.template` | Platform/SRE entrypoint |
 | `AGENTS.ea.md.template` | EA AGENTS.md |
 | `AGENTS.sa.md.template` | SA AGENTS.md |
 | `AGENTS.da.md.template` | DA AGENTS.md |
 | `AGENTS.dev.md.template` | DEV AGENTS.md |
+| `AGENTS.platform.md.template` | Platform AGENTS.md |
 | `CLAUDE.ea.md.template` | EA CLAUDE.md |
 | `CLAUDE.sa.md.template` | SA CLAUDE.md |
 | `CLAUDE.da.md.template` | DA CLAUDE.md |
 | `CLAUDE.dev.md.template` | DEV CLAUDE.md |
+| `CLAUDE.platform.md.template` | Platform CLAUDE.md |
 | `initiatives.yml.template` | EA initiatives selector |
 | `domain-registry.yml.template` | EA domain registry |
+| `platform-registry.yml.template` | EA Platform registry |
 | `STANDARDS.md.template` | Standards-provider entrypoint |
 | `pattern-index.yml.template` | Standards-provider machine index |
 | `solution-index.yml.template` | SA solution index |
 | `domain-workstreams.yml.template` | SA workstream selector |
 | `domain-change-handoff.yml.template` | Optional canonical SA-to-Domain requested-change contract |
 | `domain-implementations.yml.template` | DA implementation selector |
+| `platform-workstreams.yml.template` | SA-to-Platform workstream selector |
+| `platform-change-handoff.yml.template` | Optional canonical SA-to-Platform requested-change contract |
+| `platform-implementations.yml.template` | Platform implementation selector |
 
 When using a template, read the file and substitute placeholder values (e.g.
 `<enterprise-repo-url>`, `<solution-key>`, `<workspace-id-or-null>`) with real
@@ -60,9 +68,12 @@ templates before writing.
 | --- | --- |
 | Initiatives selector | `ea/architecture/portfolio/initiatives.yml` |
 | Domain registry | `ea/architecture/enterprise/domain-registry.yml` |
+| Platform registry | `ea/architecture/enterprise/platform-registry.yml` |
 | Solution index | `sa/solution-index.yml` |
 | Workstream selector | `sa/architecture/solution/domain-workstreams.yml` |
+| Platform workstream selector | `sa/architecture/solution/platform-workstreams.yml` |
 | DA domain root | `da/{domain}/` |
+| Platform root | `platform/{platform}/` |
 
 ## Convention Overview
 
@@ -71,14 +82,17 @@ templates before writing.
 | EA | `ENTERPRISE.md` | `initiatives.yml`, `domain-registry.yml` |
 | SA | `SOLUTION.md` | `solution-index.yml`, `domain-workstreams.yml` |
 | DA | `DOMAIN.md` | `domain-implementations.yml` |
+| Platform | `PLATFORM.md` | `platform-implementations.yml` |
 
 ### Routing Chain
 
 ```text
 INITIATIVE_ID
-  → initiatives.yml → solution_entrypoint
-    → domain-workstreams.yml → workstream_entrypoint
-      → domain-implementations.yml → repo.url + repo.paths + repo.entrypoint
+  -> initiatives.yml -> solution_entrypoint
+    +-> domain-workstreams.yml -> domain_id -> DOMAIN.md
+    |    `-> domain-implementations.yml -> implementation target
+    `-> platform-workstreams.yml -> platform_id -> PLATFORM.md
+         `-> platform-implementations.yml -> implementation target
 ```
 
 ### Standards-Provider Routing
@@ -110,6 +124,21 @@ INITIATIVE_ID
   repository-relative path, full commit, and SHA-256 digest; it is portable
   requested-change content, never runtime progress or an OA work-item identity.
 
+### Platform Semantics
+
+- Platform is a durable peer of Domain downstream of SA, not a disguised Domain.
+- Integration is covered operationally by Platform; there is no separate
+  Integration architecture level or mandatory Integration repository.
+- `platform_id` is the stable ownership identity. Platform workstreams are
+  Initiative demand units and do not create independent Platform runtimes.
+- The providing Domain/component owns semantic `interface_id` contracts;
+  Platform owns deployed `connection_id` realizations and operability.
+- `platform-registry.yml` is authoritative for `platform_repo_url` when present.
+- Platform `workstream_entrypoint` (`WORKSTREAM.md`) is independent from
+  `platform_entrypoint` (`PLATFORM.md`) and may resolve at a different Git ref.
+- Typed Platform handoffs use `platform-change-handoff`; do not change the
+  Domain handoff's target kind.
+
 ### Three-Artifact Domain Chain (proposed)
 
 > `domain-roadmap.yml` is a **proposed convention extension** not yet ratified
@@ -134,6 +163,13 @@ INITIATIVE_ID
 - `domain-roadmap.yml[].implementation_ids[]` → each must exist in `domain-implementations.yml[].implementation_id`
 - `domain-registry.yml[].domain_entrypoint` → must be a real file path
 - `initiatives.yml[].solution_entrypoint` → must be a real file path
+- `platform-workstreams.yml[].initiative_id` -> must exist in `initiatives.yml`
+- `platform-workstreams.yml[].platform_id` -> must exist in `platform-registry.yml`
+- `platform-registry.yml[].platform_entrypoint` -> must be a real file path
+- Platform `change_handoff_ref` exact Git bytes must validate against
+  `platform-change-handoff.schema.json` and agree on stable IDs.
+- `workstream_id` must be unique across Domain and Platform workstream catalogs
+  in one Solution context.
 
 ---
 
@@ -166,6 +202,7 @@ First ask: which layer does this repo serve?
 
 - `sa` — solution repo (orchestrates a business scenario across domains)
 - `da` — domain implementation repo (realizes a specific domain capability)
+- `platform` — durable Platform and operational integration architecture repo
 - `dev` — coding-level repo where agents implement changes (execution role under `da`)
 
 The primary output is a **bootstrap package** — a local folder containing the
@@ -222,6 +259,26 @@ After generating:
 2. Run the **Post-Scaffold Git Workflow** (handles both pushing to the target repo and the manual-copy fallback).
 
 > `domain-roadmap.yml` is **not** included by default — it is a proposed extension. Use ADD ROADMAP ITEM (under Proposed Extensions) if the domain architect wants to adopt it.
+
+---
+
+#### ONBOARD: PLATFORM
+
+Generates a bootstrap package at `.convention-bootstrap/platform/{platform_id}/`.
+
+Required inputs: `repo_url` and a `platform_id` present in
+`platform-registry.yml`.
+
+Package contents, always read from templates:
+
+- `PLATFORM.md` from `PLATFORM.md.template`
+- `AGENTS.md` from `AGENTS.platform.md.template`
+- `CLAUDE.md` from `CLAUDE.platform.md.template`
+- `platform-implementations.yml` from
+  `platform-implementations.yml.template` with an empty implementations array
+
+Update the registry row with `platform_repo_url`, `platform_entrypoint:
+PLATFORM.md`, and `platform_git_ref`, then run the Post-Scaffold Git Workflow.
 
 ---
 
@@ -292,9 +349,12 @@ python "{skill_base_dir}/scripts/validate_convention.py" \
   --repo-url <this-repo-url> \
   --initiatives <path/to/initiatives.yml> \
   --domain-registry <path/to/domain-registry.yml> \
+  --platform-registry <path/to/platform-registry.yml> \
   --solution-index <path/to/solution-index.yml> \
   --workstreams <path/to/domain-workstreams.yml> \
-  --da-root <path/to/da-root>
+  --platform-workstreams <path/to/platform-workstreams.yml> \
+  --da-root <path/to/da-root> \
+  --platform-root <path/to/platform-root>
 ```
 
 All paths are relative to `--root`. Defaults match the reference layout (see Layout Assumption above).
@@ -310,9 +370,11 @@ All paths are relative to `--root`. Defaults match the reference layout (see Lay
 **Lint validation** (always runs):
 
 - `initiative_id`, `domain_id`, `workstream_id`, `implementation_id` uniqueness
+- `platform_id` uniqueness and cross-catalog `workstream_id` uniqueness
 - `domain-workstreams.yml[].initiative_id` → exists in `initiatives.yml`
 - `domain-workstreams.yml[].domain_id` → exists in `domain-registry.yml`
 - All local entrypoint paths exist on disk
+- Platform registry agreement, handoff integrity, and implementation binding uniqueness
 - `domain-roadmap.yml` referential integrity if present (proposed extension — validated but not required)
 - Warns on inactive workstreams and implementations missing `repo.url`
 
@@ -329,7 +391,9 @@ Steps:
 1. Read `ea/architecture/portfolio/initiatives.yml` — find matching `initiative_id`, check `status: active`, output `solution_entrypoint`.
 2. Read `sa/architecture/solution/domain-workstreams.yml` — list all workstreams where `initiative_id` matches, show `domain_id`, `status`, `workstream_entrypoint`.
 3. For each active workstream, read `da/{domain_id}/domain-implementations.yml` — list active implementations with `repo.url` and `repo.entrypoint`.
-4. Display the full chain as a readable trace.
+4. Read `platform-workstreams.yml` when present and trace matching entries by
+   `platform_id` through `platform/{platform_id}/platform-implementations.yml`.
+5. Display both downstream branches as one readable trace.
 
 ---
 
@@ -344,7 +408,9 @@ Steps:
 3. Read `sa/architecture/solution/domain-workstreams.yml` — list workstreams grouped by `domain_id` with `status`.
 4. For each domain, read `da/{domain}/domain-implementations.yml` — count active implementations.
 5. If `da/{domain}/domain-roadmap.yml` exists — count roadmap items.
-6. Display as a layered summary table.
+6. Read Platform registry, workstreams, and implementation catalogs when
+   present; group by `platform_id` and count routable implementations.
+7. Display as a layered summary table.
 
 ---
 
@@ -408,6 +474,42 @@ Steps:
 8. Run the **Post-Scaffold Git Workflow** (applies in both cases, since `domain-registry.yml` was modified).
 
 ---
+
+### ADD PLATFORM
+
+Add a stable Platform authority to
+`ea/architecture/enterprise/platform-registry.yml`.
+
+Required fields: `platform_id`, `name`, `owner`, `status`,
+`platform_repo_url`, `platform_entrypoint`, and `platform_git_ref`.
+
+1. Confirm `platform_id` is unique.
+2. Append an entry based on `platform-registry.yml.template`.
+3. If the Platform is in the same repo, scaffold `platform/{platform_id}/`
+   using `PLATFORM.md`, Platform AGENTS/CLAUDE, and
+   `platform-implementations.yml` templates.
+4. If it is separate, require the target entrypoint before routed validation
+   can pass.
+5. Run validation and the Post-Scaffold Git Workflow.
+
+### ADD PLATFORM WORKSTREAM
+
+Add an Initiative demand unit to
+`sa/architecture/solution/platform-workstreams.yml`.
+
+Required fields: `workstream_id`, `workstream_uuid`, `initiative_id`,
+`platform_id`, `name`, `workstream_entrypoint`, `workstream_git_ref`,
+`platform_repo_url` when no registry is available, and `status`.
+
+1. Confirm `workstream_id` is unique across both Domain and Platform
+   workstream catalogs.
+2. Confirm `initiative_id` and `platform_id` resolve through their authoritative
+   catalogs when present.
+3. Append an entry based on `platform-workstreams.yml.template`.
+4. When a canonical handoff is requested, use
+   `platform-change-handoff.yml.template`, commit it in the target Platform
+   repository, and record exact commit and digest in `change_handoff_ref`.
+5. Run validation and the Post-Scaffold Git Workflow.
 
 ### ADD WORKSTREAM
 
@@ -509,6 +611,15 @@ Steps:
 
 ---
 
+### ADD PLATFORM IMPLEMENTATION
+
+Add an implementation target to
+`platform/{platform_id}/platform-implementations.yml`. Use the same repository
+binding, lifecycle, entrypoint/ref, replacement, and non-overlap rules as ADD
+IMPLEMENTATION, but preserve Platform ownership and do not write a Domain
+catalog. Scaffold implementation-local files only when requested, then run
+validation and the Post-Scaffold Git Workflow.
+
 ## Post-Scaffold Git Workflow
 
 After any operation that creates or modifies convention artifacts, **offer to
@@ -518,10 +629,12 @@ This workflow applies to two categories of operation:
 
 - **Scaffolding operations** (create new files): INIT, ONBOARD, ADD INITIATIVE
   with same-repo SA scaffolding, ADD DOMAIN with same-repo DA scaffolding,
-  ADD IMPLEMENTATION with monorepo scaffolding or bootstrap package.
+  ADD PLATFORM with same-repo Platform scaffolding, ADD IMPLEMENTATION, and
+  ADD PLATFORM IMPLEMENTATION with monorepo scaffolding or bootstrap package.
 - **YAML-only operations** (modify existing files): ADD INITIATIVE
   (separate-repo), ADD DOMAIN (separate-repo), ADD WORKSTREAM,
-  ADD IMPLEMENTATION case 1 (existing project), ADD ROADMAP ITEM.
+  ADD PLATFORM (separate-repo), ADD PLATFORM WORKSTREAM,
+  ADD IMPLEMENTATION case 1, ADD PLATFORM IMPLEMENTATION case 1, ADD ROADMAP ITEM.
 
 Present this as an opt-in prompt, matching the operation type:
 
@@ -543,7 +656,9 @@ If the user accepts:
      - ONBOARD DEV: `convention/onboard-dev-{domain_id}-{implementation_id}`
      - ADD INITIATIVE: `convention/add-initiative-{initiative_id}`
      - ADD DOMAIN: `convention/add-domain-{domain_id}`
+     - ADD PLATFORM: `convention/add-platform-{platform_id}`
      - ADD WORKSTREAM: `convention/add-workstream-{workstream_id}`
+     - ADD PLATFORM WORKSTREAM: `convention/add-platform-workstream-{workstream_id}`
      - ADD IMPLEMENTATION: `convention/add-impl-{domain_id}-{implementation_id}`
      - ADD ROADMAP ITEM: `convention/add-roadmap-{domain_id}-{roadmap_item_id}`
 2. **Stage only the files created or modified** by the operation — do not use
@@ -640,6 +755,7 @@ If the user declines, skip silently — do not re-prompt.
 | ------ | --------- |
 | `ERR_INITIATIVE_NOT_FOUND` | `initiative_id` does not exist in `initiatives.yml` |
 | `ERR_DOMAIN_NOT_FOUND` | `domain_id` does not exist in `domain-registry.yml` |
+| `ERR_PLATFORM_NOT_FOUND` | `platform_id` does not exist in `platform-registry.yml` |
 | `ERR_WORKSTREAM_NOT_FOUND` | `workstream_id` does not exist in `domain-workstreams.yml` |
 | `ERR_IMPLEMENTATION_NOT_FOUND` | `implementation_id` does not exist in `domain-implementations.yml` |
 | `ERR_SELECTOR_AMBIGUOUS` | ID already exists in the target artifact |

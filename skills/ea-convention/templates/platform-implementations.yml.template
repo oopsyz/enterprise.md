@@ -1,0 +1,14 @@
+# Platform-owned implementation routing catalog.
+
+spec_name: platform-implementations
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: <platform-implementation-id>
+    status: active
+    repo:
+      url: <https://github.com/org/platform-implementation-repo>
+      paths: ["**"]
+      entrypoint: <README.md>
+      git_ref: <branch-tag-or-commit-ref>
+    workstream_id: <workstream-id>
+    owners: [<platform-owner-or-team>]

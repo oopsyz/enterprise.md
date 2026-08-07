@@ -1,0 +1,14 @@
+spec_name: platform-workstreams
+spec_version: "1.0.0"
+initiative_id: init-bss-modernization
+workstreams:
+  - workstream_id: ws-init-bss-modernization-integration-messaging
+    initiative_id: init-bss-modernization
+    platform_id: integration-messaging
+    platform_name: Integration Messaging
+    name: BSS Modernization x Integration Messaging
+    workstream_entrypoint: inputs/workstreams/ws-init-bss-modernization-integration-messaging/WORKSTREAM.md
+    workstream_git_ref: feature/bss-modernization
+    platform_repo_url: https://github.com/acme/platform-integration
+    status: active
+    owner: platform-engineering

@@ -2,7 +2,8 @@
 
 Status: Draft
 Audience: standards/community contributors, platform/tool builders, enterprise architecture teams
-Scope: Multi-repository human and agent collaboration across enterprise, solution, domain, and implementation execution contexts
+Scope: Multi-repository human and agent collaboration across enterprise,
+solution, domain, platform, and implementation execution contexts
 
 ## 1. Problem
 
@@ -23,7 +24,7 @@ This proposal is the solution to the problem in Section 1: it keeps repo-local g
 
 This proposal applies progressive disclosure at every scale instead of piling everything into one repository and one file:
 
-1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, `domain-workstreams.yml`, `domain-implementations.yml`) disclose the next stable target and, when needed, the exact workstream context to open. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
+1. **Repository level** (Layer B, when present): routing catalogs (`initiatives.yml`, Domain routing catalogs, and Platform routing catalogs) disclose the next stable target and, when needed, the exact workstream context to open. Resolution is deterministic -- you either resolve the selector or fail closed (see Section 5.5).
 2. **File level** (Layer A): entrypoints disclose *what matters* in that repo. They are maps, not encyclopedias.
 3. **Artifact level**: linked catalogs and design files disclose *the detail* -- only when you follow the link.
 
@@ -35,7 +36,7 @@ To implement this principle, the proposal defines two independent layers (adopta
    1. Purpose: human/agent navigation and context discovery.
    2. Tooling dependency: none.
 2. **Layer B: Routing Catalog Specification (optional)**
-   1. Purpose: deterministic machine routing between levels (for example Enterprise repo to Solution repo to Domain repo).
+   1. Purpose: deterministic machine routing between levels (for example Enterprise repo to Solution repo and then to Domain or Platform repos).
    2. Tooling dependency: a tool-capable consumer is required, such as an agent, script, IDE integration, or orchestration runtime.
 
 An organization can adopt Layer A without Layer B, but conformance profiles start at routed adoption.
@@ -66,6 +67,14 @@ implementations:
   - { implementation_id: order-api, status: active, repo: { paths: ["src/order-api/*"] } }
 ```
 
+```yaml
+# platform-workstreams.yml
+spec_name: platform-workstreams
+spec_version: "1.0.0"
+workstreams:
+  - { workstream_id: ws-init-example-messaging, initiative_id: init-example, platform_id: integration-messaging, workstream_entrypoint: inputs/workstreams/ws-init-example-messaging/WORKSTREAM.md, workstream_git_ref: feature/ws-init-example-messaging, platform_repo_url: https://github.com/example/integration-platform-repo, status: active }
+```
+
 ```mermaid
 flowchart LR
     subgraph ER["Enterprise repo"]
@@ -85,9 +94,19 @@ flowchart LR
         (architecture, ADRs, roadmaps)"]:::artifact
         SRoute["domain-workstreams.yml
         (select domain workstream)"]:::routing
+        SPRoute["platform-workstreams.yml
+        (select Platform workstream)"]:::routing
 
         SEntry -->|"links to"| SLocal
         SEntry -->|"need a domain?"| SRoute
+        SEntry -->|"need a Platform?"| SPRoute
+    end
+
+    subgraph PR["Platform repo"]
+        PEntry["PLATFORM.md"]:::entry
+        PLocal["Platform baselines, connection definitions,
+        guardrails, and runbook navigation"]:::artifact
+        PEntry -->|"links to"| PLocal
     end
 
     subgraph DR["Domain repo"]
@@ -100,6 +119,7 @@ flowchart LR
 
     ERoute -->|"open repo"| SEntry
     SRoute -->|"open workstream context"| DEntry
+    SPRoute -->|"open workstream context"| PEntry
 
     classDef routing fill:#e8f4f8,stroke:#4a9aba;
     classDef entry fill:#f0f8e8,stroke:#6aaa4a;
@@ -114,23 +134,27 @@ flowchart LR
 2. `ENTERPRISE.md` (enterprise-level entrypoint).
 3. `SOLUTION.md` (solution-level entrypoint).
 4. `DOMAIN.md` (domain-level entrypoint).
+5. `PLATFORM.md` (Platform-level entrypoint).
 
-This convention defines three architecture levels (`ENTERPRISE.md`, `SOLUTION.md`, `DOMAIN.md`) plus an implementation execution role (`dev`). `dev` is not a fourth architecture level and does not introduce a `DEV.md` entrypoint or a separate top-level routing catalog.
+This convention defines Enterprise and Solution levels followed by two durable
+downstream ownership views: Domain and Platform. Platform covers operational
+integration architecture; Integration is not another level. `dev` remains an
+implementation execution role and does not introduce `DEV.md`.
 
 ### 3.2 Entrypoint Rules
 
 1. `AGENTS.md` remains the repo-local behavior contract.
 2. The level entrypoint for a repository SHOULD exist when that level is present.
 3. Entrypoints SHOULD stay concise and link to canonical machine artifacts instead of duplicating mutable data. This is especially important when catalogs are generated -- the entrypoint links to the artifact; it does not replicate it.
-4. Upstream entrypoint links MUST be deterministic and level-explicit: `SOLUTION.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists; `DOMAIN.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists. `DOMAIN.md` MUST NOT require `SOLUTION.md` links for upstream navigation because solution-to-domain associations are many-to-many and can change over time; those associations belong in routing catalogs and handoff artifacts, not in Markdown ancestry.
-5. When routing catalogs exist, downstream target information MUST be maintained in the canonical YAML catalogs (`initiatives.yml`, `domain-workstreams.yml`, `domain-implementations.yml`). Entrypoints MAY include lightweight navigation links, but SHOULD avoid duplicating exhaustive downstream mappings to prevent drift.
+4. Upstream entrypoint links MUST be deterministic and level-explicit: `SOLUTION.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists; `DOMAIN.md` and `PLATFORM.md` MUST include an `ENTERPRISE.md` link when the enterprise level exists. Neither downstream entrypoint requires `SOLUTION.md` as a parent because Initiative associations are many-to-many and belong in routing catalogs and handoffs.
+5. When routing catalogs exist, downstream target information MUST be maintained in the canonical YAML catalogs. Entrypoints MAY include lightweight navigation links, but SHOULD avoid duplicating exhaustive downstream mappings to prevent drift.
 6. If no upstream level exists, the Parent section MUST state `Not applicable`.
-7. Agents MUST start with `AGENTS.md`. `AGENTS.md` MUST instruct agents to always read the repository's level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`) for architectural context and navigation. The canonical instruction form is: `Always read <LEVEL>.md`.
+7. Agents MUST start with `AGENTS.md`. `AGENTS.md` MUST instruct agents to always read the repository's level entrypoint (`ENTERPRISE.md`, `SOLUTION.md`, `DOMAIN.md`, or `PLATFORM.md`) for architectural context and navigation. The canonical instruction form is: `Always read <LEVEL>.md`.
 
 Implementation references:
 
-1. AGENTS handoff templates: [AGENTS.ea.md.template](skills/ea-convention/templates/AGENTS.ea.md.template), [AGENTS.sa.md.template](skills/ea-convention/templates/AGENTS.sa.md.template), [AGENTS.da.md.template](skills/ea-convention/templates/AGENTS.da.md.template)
-2. Level entrypoint templates: [ENTERPRISE.md.template](skills/ea-convention/templates/ENTERPRISE.md.template), [SOLUTION.md.template](skills/ea-convention/templates/SOLUTION.md.template), [DOMAIN.md.template](skills/ea-convention/templates/DOMAIN.md.template)
+1. AGENTS handoff templates: [AGENTS.ea.md.template](skills/ea-convention/templates/AGENTS.ea.md.template), [AGENTS.sa.md.template](skills/ea-convention/templates/AGENTS.sa.md.template), [AGENTS.da.md.template](skills/ea-convention/templates/AGENTS.da.md.template), [AGENTS.platform.md.template](skills/ea-convention/templates/AGENTS.platform.md.template)
+2. Level entrypoint templates: [ENTERPRISE.md.template](skills/ea-convention/templates/ENTERPRISE.md.template), [SOLUTION.md.template](skills/ea-convention/templates/SOLUTION.md.template), [DOMAIN.md.template](skills/ea-convention/templates/DOMAIN.md.template), [PLATFORM.md.template](skills/ea-convention/templates/PLATFORM.md.template)
 3. Core profile overview: [examples/core/README.md](examples/core/README.md)
 4. Governed profile overview: [examples/governed/README.md](examples/governed/README.md)
 5. Representative core artifacts: [examples/core/enterprise-repo/ENTERPRISE.md](examples/core/enterprise-repo/ENTERPRISE.md), [examples/core/enterprise-repo/initiatives.yml](examples/core/enterprise-repo/initiatives.yml), [examples/core/solution-repo/SOLUTION.md](examples/core/solution-repo/SOLUTION.md), [examples/core/solution-repo/domain-workstreams.yml](examples/core/solution-repo/domain-workstreams.yml), [examples/core/domain-repo/DOMAIN.md](examples/core/domain-repo/DOMAIN.md), [examples/core/domain-repo/domain-implementations.yml](examples/core/domain-repo/domain-implementations.yml)
@@ -168,7 +192,18 @@ The repository model implies four common working roles:
 1. `ea`: enterprise architecture. Owns cross-solution portfolio navigation, enterprise-level routing semantics, and enterprise governance artifacts.
 2. `sa`: solution architecture. Owns solution-level decomposition, workstream routing, and solution-scoped coordination across domains.
 3. `da`: domain architecture. Owns domain boundaries, domain design baselines, and the authoritative mapping from `implementation_id` to implementation targets.
-4. `dev`: implementation execution role operating within the scope defined by `da`. `dev` consumes domain context and implementation targets but does not define a new architecture layer.
+4. `dev`: implementation execution role operating within the scope defined by
+   the owning Domain or Platform authority. It consumes the corresponding
+   architecture context and implementation target but does not define a new
+   architecture level.
+5. `platform`: Platform Architecture, Platform Engineering, Integration Platform Engineering, or SRE authority. Owns durable technical Platform baselines, operated runtime connections, operational guardrails, and Platform-to-implementation routing.
+
+Integration ownership rule:
+
+1. Solution Architecture designs the end-to-end interaction under the Initiative.
+2. The providing Domain or component owns the semantic API, event, or schema contract identified by `interface_id`.
+3. Platform owns the deployed and operated realization identified by `connection_id`, including brokers, gateways, endpoints, queues/topics, network paths, security, capacity, resilience, observability, and support procedures.
+4. A repository operated by Integration Platform Engineering is a Platform repository. This convention does not define `INTEGRATION.md` or a separate Integration routing hierarchy.
 
 Bounded-context contract:
 
@@ -179,15 +214,32 @@ Bounded-context contract:
 
 Normative `dev` semantics:
 
-1. `dev` is subordinate to `da` for architectural context. The canonical upstream architecture contract for `dev` is `DOMAIN.md`, the authoritative `domain-implementations.yml`, and any domain-owned artifacts explicitly linked from that domain context.
-2. The ownership boundary is defined by artifacts, not by the specific human, agent, or tool performing the work. `da` owns the design contract artifacts, including domain interfaces, schemas, and implementation specifications. `dev` owns implementation-local artifacts such as working code, tests, build files, service-local documentation, and repo-local `AGENTS.md` behavior in the implementation repository.
-3. `da` ownership remains authoritative for domain-level artifacts such as `DOMAIN.md`, `domain-implementations.yml`, and domain design baselines. `dev` MUST NOT treat implementation-local documentation as an override of those domain artifacts.
-4. `dev` traversal is read-down, execute-locally. A `dev` actor MAY consume upstream architectural artifacts for implementation context, but MUST NOT write back into `da`-owned artifacts as part of normal implementation flow. If coding work reveals a gap, ambiguity, or defect in a `da` artifact, that condition MUST be escalated to the owning architectural layer rather than patched in place by `dev`.
-5. `dev` does not add a new mandatory catalog. Domain-to-implementation traversal remains the boundary between architecture and execution.
-6. `dev` does not consume `sa` artifacts directly by default. Direct consumption of `sa`-owned artifacts is allowed only when the relevant `da` artifact explicitly links or delegates to those upstream artifacts as part of the domain contract.
-7. The explicit `da` link or delegation mechanism is implementation-defined, but MUST be represented by an authoritative reference in a `da`-owned artifact. Acceptable mechanisms include a stable Markdown link from `DOMAIN.md` or a canonical field in a domain-owned YAML artifact. Implicit knowledge, chat history, or tool-specific workspace state is not sufficient.
+1. `dev` is subordinate to the architecture authority that selected its
+   implementation target. The upstream contract is `DOMAIN.md` plus
+   `domain-implementations.yml`, or `PLATFORM.md` plus
+   `platform-implementations.yml`, and the artifacts linked from that context.
+2. The ownership boundary is defined by artifacts, not by the specific human,
+   agent, or tool performing the work. Domain or Platform owns the architecture
+   baseline and implementation specification; `dev` owns implementation-local
+   code, configuration, tests, build/deployment files, service documentation,
+   and repo-local `AGENTS.md` behavior.
+3. The owning architecture artifacts remain authoritative. Implementation-local
+   documentation MUST NOT override Domain or Platform baselines.
+4. `dev` traversal is read-down, execute-locally. It MAY consume upstream
+   architecture context but MUST escalate gaps or defects to the owning layer
+   rather than silently patch architecture-owned artifacts.
+5. `dev` adds no mandatory catalog. The applicable Domain-to-implementation or
+   Platform-to-implementation catalog is the architecture/execution boundary.
+6. `dev` does not consume `sa` artifacts directly by default. Direct use is
+   allowed only when the owning Domain or Platform artifact explicitly links or
+   delegates to the SA artifact.
+7. Delegation MUST be an authoritative reference in an owner-controlled
+   artifact, such as `DOMAIN.md`, `PLATFORM.md`, or an associated canonical YAML
+   artifact. Chat history and tool-specific workspace state are insufficient.
 8. These `dev` rules are tool-agnostic. Any coding agent or implementation actor operating at this layer, including tools such as Codex, Cursor, Copilot, or equivalent systems, is subject to the same traversal and ownership constraints.
-9. If one team performs both `da` and `dev`, the repository MAY collapse the roles operationally, but the ownership boundary between domain-level artifacts and implementation-local artifacts SHOULD still be made explicit. Common mechanisms include separate directories, CODEOWNERS/file ownership rules, or an ownership table in the relevant entrypoint.
+9. If one team performs both architecture ownership and implementation, the
+   repository MAY collapse roles operationally, but the boundary between
+   architecture-level and implementation-local artifacts SHOULD remain explicit.
 
 ### 3.5 Minimal Entrypoint Examples
 
@@ -244,6 +296,25 @@ Purpose: Domain architecture entrypoint.
 - domain-implementations.yml
 ```
 
+#### PLATFORM.md (minimal)
+
+```markdown
+# PLATFORM
+
+Purpose: Durable Platform and operational integration architecture entrypoint.
+
+## Read First
+1. This file — Platform context and navigation
+
+## Parent
+- [ENTERPRISE](https://github.com/example/ea-repo/blob/main/ENTERPRISE.md)
+
+## Canonical Artifacts
+- platform-implementations.yml
+- architecture/platforms/<platform_id>/platform-design.yml
+- architecture/platforms/<platform_id>/connection-catalog.yml
+```
+
 ## 4. Bootstrap Discovery (Core for Routed Profiles)
 
 For routed profiles (Core/Governed), implementations MUST provide at least one deterministic bootstrap mechanism that resolves the topmost level present in the organization:
@@ -266,11 +337,17 @@ This standard defines file names and semantics, not fixed directories.
 | `initiatives.yml` | Enterprise | `initiative_id` | `solution_repo_url` + `solution_entrypoint` + `solution_git_ref` |
 | `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
+| `platform-workstreams.yml` | Solution | `workstream_id` | Platform workstream context (see Section 5.3) |
+| `platform-implementations.yml` | Platform | `implementation_id` | repo location + optional entrypoint/ref |
 
 `domain-change-handoff.yml` is an optional canonical companion artifact rather
 than a routing catalog. It carries the portable, immutable requested-change
 contract for one Solution-to-Domain Workstream when a catalog row declares a
 typed `change_handoff_ref`.
+
+`platform-change-handoff.yml` is the corresponding optional companion for one
+Solution-to-Platform Workstream. `platform-registry.yml` is the governed
+Enterprise catalog for stable `platform_id` resolution.
 
 Catalog resolution is defined per boundary. This specification does not guarantee automatic selector propagation across boundaries; the caller must possess or obtain the selector for the next boundary independently. Implementations MAY define handoff mechanisms that carry selectors across boundaries, but such mechanisms are implementation-specific.
 
@@ -278,7 +355,7 @@ Format rules:
 
 1. YAML is the canonical format for all catalogs in this proposal.
 2. Canonical routing catalogs MUST NOT embed mutable orchestration or execution
-   progress. In particular, `domain-workstreams.yml` MUST NOT contain a
+   progress. In particular, Domain and Platform workstream catalogs MUST NOT contain a
    top-level `execution` field. Runtimes MUST record progress, processed or
    skipped workstreams, and similar operational state in separate runtime-owned
    state artifacts or receipts.
@@ -322,6 +399,20 @@ implementations:
       paths: ["src/order-api/*"]
 ```
 
+```yaml
+# solution to Platform handoff
+spec_name: platform-workstreams
+spec_version: "1.0.0"
+workstreams:
+  - workstream_id: ws-bss-integration-messaging
+    initiative_id: init-bss-modernization
+    platform_id: integration-messaging
+    workstream_entrypoint: inputs/workstreams/ws-bss-integration-messaging/WORKSTREAM.md
+    workstream_git_ref: feature/ws-bss-integration-messaging
+    platform_repo_url: https://github.com/acme/platform-integration
+    status: active
+```
+
 Authorship note: Routing catalogs are typically generated artifacts -- produced by an intake pipeline that filters a richer source (for example `initiative-pipeline.yml`) and writes the selector manifest. Because they are generated, they must remain separate from the human-authored entrypoint (`ENTERPRISE.md`). Inlining them into the entrypoint would either make the entrypoint a generated file (conflicting with its role as a stable navigation guide) or introduce a hand-maintained duplicate that drifts from the pipeline source.
 
 ### 5.2 Versioning Contract
@@ -331,11 +422,17 @@ Catalog headers MUST follow the canonical schema for that catalog type:
 1. `initiatives.yml` MUST include `spec_name` and `spec_version`.
 2. `domain-workstreams.yml` MUST include `spec_name` and `spec_version`.
 3. `domain-implementations.yml` MUST include `spec_name` and `spec_version`.
-4. Governed companion artifacts with authoritative schemas in this repository follow the same header discipline:
+4. `platform-workstreams.yml` and `platform-implementations.yml` MUST include
+   `spec_name` and `spec_version` when those boundaries are present.
+5. Governed companion artifacts with authoritative schemas in this repository follow the same header discipline:
    1. `domain-registry.yml` MUST include `spec_name` and `spec_version`.
    2. `solution-index.yml` MUST include `spec_name` and `spec_version`.
    3. `domain-change-handoff.yml`, when present, MUST include
       `spec_name: domain-change-handoff` and `spec_version`.
+   4. `platform-registry.yml`, when present, MUST include
+      `spec_name: platform-registry` and `spec_version`.
+   5. `platform-change-handoff.yml`, when present, MUST include
+      `spec_name: platform-change-handoff` and `spec_version`.
 
 Version rules:
 
@@ -353,18 +450,26 @@ Appendix A lists the schema file paths, schema identifiers, and intended purpose
 
 ### 5.3 Minimum Fields
 
-#### Two repository-URL fields, two layers
+#### Architecture-owner and implementation repository URLs
 
-The convention carries a repository URL at two different layers, and they resolve different things. They are commonly *not* the same repository, so they are described together here before the per-field rules below.
+The convention distinguishes durable architecture governance homes from
+implementation targets. They commonly resolve to different repositories.
 
 | Field | Catalog | Layer | Points at | What lives there |
 | --- | --- | --- | --- | --- |
 | `domain_repo_url` | `domain-registry.yml` (governed profile); also `domain-workstreams.yml` for self-sufficient routing | Enterprise governance / solution-to-domain boundary | The domain's governance home | `DOMAIN.md`, `AGENTS.md`, the bounded-context contract and domain design baselines |
+| `platform_repo_url` | `platform-registry.yml` (governed profile); also `platform-workstreams.yml` for self-sufficient routing | Enterprise governance / solution-to-Platform boundary | The Platform governance home | `PLATFORM.md`, `AGENTS.md`, Platform baselines, connection definitions, guardrails, and runbook navigation |
 | `repo.url` | `domain-implementations.yml` | Domain to implementation | An implementation (code) target | agent/skill/service code, tests, build files |
+| `repo.url` | `platform-implementations.yml` | Platform to implementation | A Platform implementation target | Platform code/configuration, tests, deployment assets, and implementation-local documentation |
 
 `domain_repo_url` answers *"where is this domain governed?"* `repo.url` answers *"where is a given component of this domain implemented?"* A domain is governed in one place but MAY be implemented across several repositories, so the two URLs frequently diverge.
 
 `domain_repo_url` is authoritative in `domain-registry.yml` but MAY also appear in `domain-workstreams.yml` to provide self-sufficient solution-to-domain routing when no authoritative registry is available (see Sections 5.3 item 4 and 5.7.2). When both are present, the registry value is authoritative and any `domain-workstreams.yml` copy MUST match it. The cardinalities below describe `domain_repo_url` in its authoritative registry role.
+
+`platform_repo_url` follows the same precedence: `platform-registry.yml` is
+authoritative when present; a copy in `platform-workstreams.yml` supplies
+self-sufficient routing when the registry is unavailable and MUST agree when
+both values exist.
 
 Cardinalities:
 
@@ -374,6 +479,12 @@ Cardinalities:
 4. **The same `repo.url` MAY repeat across implementations** when, and only when, their `repo.paths` do not overlap (the monorepo case). This is bounded by the uniqueness invariant in Section 5.3 item 9: every `(canonical(repo.url), matched path)` pair maps to exactly one `implementation_id`, where the set `{repo.url} ∪ repo.aliases` participates in the invariant. Distinct canonical URL/alias/path binding sets do not collide.
 
 Note: the `domain-implementations.yml` uniqueness invariants are built from `implementation_id` and the `(canonical(repo.url) ∪ repo.aliases, matched repo.path)` binding. `domain_repo_url` participates in no uniqueness invariant, which is what makes the N:1 shared-governance topology valid.
+
+Platform topology follows the same cardinality without sharing identity with
+Domain: each `platform_id` has at most one declared governance home, multiple
+Platform identities MAY share a repository through distinct entrypoints, and
+one Platform MAY route to many implementation targets. Platform implementation
+bindings obey the same non-overlap invariant.
 
 Cross-repo target fields:
 
@@ -417,6 +528,30 @@ Some organizations keep a first-party Domain repo as the canonical architecture 
     2. `initiative_id`: originating initiative. When present, MUST be consistent with the corresponding `domain-workstreams.yml` and `initiatives.yml` entries.
     3. `owners`: list of team or individual owners.
     4. `metadata`: free-form extension map for industry- or organisation-specific annotations.
+
+Platform minimum fields mirror the corresponding Domain boundary without
+reusing Domain identity:
+
+1. `platform-registry.yml` entries MUST include `platform_id`, `name`, `owner`,
+   and `status`. When `platform_repo_url` is present, `platform_entrypoint` and
+   `platform_git_ref` are required.
+2. `platform-workstreams.yml` entries MUST include `workstream_id`,
+   `platform_id`, `workstream_entrypoint`, `workstream_git_ref`, and `status`.
+   `initiative_id` is required when `initiatives.yml` is present.
+3. A Platform workstream MUST include `platform_repo_url` unless an
+   authoritative `platform-registry.yml` is available. When both provide a URL,
+   they MUST match.
+4. `workstream_entrypoint` MAY be null before materialization but MUST be
+   non-null for routable statuses. It identifies the Workstream-specific
+   navigation artifact and is independent of `platform_entrypoint`.
+5. Optional `change_handoff_ref` has the same immutable reference shape as the
+   Domain companion but MUST resolve to `platform-change-handoff.yml` in the
+   target Platform repository. Legacy `handoff_ref` remains opaque.
+6. `platform-implementations.yml` uses the same `implementation_id`, lifecycle,
+   `repo`, traceability, and non-overlapping repository-binding rules as
+   `domain-implementations.yml`.
+7. A `workstream_id` MUST be unique across the active Domain and Platform
+   workstream catalogs in the same Solution context.
 
 #### initiatives.yml
 
@@ -465,8 +600,70 @@ Domain target, a pinned V2 Solution design artifact, a requested delta using
 stable requirement or architecture-element identifiers, and at least one
 stable acceptance criterion. `baseline_state: existing` requires a pinned
 baseline reference. `baseline_state: not_materialized` prohibits that
-reference and requires a non-empty reason. Platform handoffs are outside this
-1.0 contract and MUST NOT be represented by changing `target.kind`.
+reference and requires a non-empty reason. A Platform target uses the separate
+`platform-change-handoff` 1.x contract; consumers MUST NOT change
+`domain-change-handoff.target.kind` to bypass the ownership boundary.
+
+#### platform-registry.yml
+
+```yaml
+spec_name: platform-registry
+spec_version: "1.0.0"
+platforms:
+  - platform_id: integration-messaging
+    name: Integration Messaging
+    owner: platform-engineering
+    platform_repo_url: https://github.com/example/platform-integration
+    platform_entrypoint: PLATFORM.md
+    platform_git_ref: main
+    status: active
+```
+
+#### platform-workstreams.yml
+
+```yaml
+spec_name: platform-workstreams
+spec_version: "1.0.0"
+workstreams:
+  - workstream_id: ws-init-example-integration-messaging
+    initiative_id: init-example
+    platform_id: integration-messaging
+    workstream_entrypoint: inputs/workstreams/ws-init-example-integration-messaging/WORKSTREAM.md
+    workstream_git_ref: feature/ws-init-example-integration-messaging
+    platform_repo_url: https://github.com/example/platform-integration
+    change_handoff_ref:
+      ref_version: v1
+      artifact_path: inputs/workstreams/ws-init-example-integration-messaging/platform-change-handoff.yml
+      commit_sha: 0123456789abcdef0123456789abcdef01234567
+      digest: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    status: active
+```
+
+#### platform-change-handoff.yml
+
+The optional SA-owned handoff targets exactly one `platform_id` and binds a
+pinned Solution design, target baseline state, requested delta, and stable
+acceptance criteria. Architecture-element deltas MAY reference `interface_id`
+and `connection_id`; doing so does not transfer semantic interface ownership
+from the authoritative Domain or component. Runtime progress, deployment
+state, gates, incidents, and operability evidence are excluded. Its
+authoritative structure is
+[`schemas/platform-change-handoff.schema.json`](schemas/platform-change-handoff.schema.json).
+
+#### platform-implementations.yml
+
+```yaml
+spec_name: platform-implementations
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: jms-broker
+    status: active
+    repo:
+      url: https://github.com/example/integration-platform
+      paths: ["deploy/jms/*"]
+      entrypoint: deploy/jms/README.md
+      git_ref: main
+```
 
 #### domain-implementations.yml
 
@@ -578,10 +775,12 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
 5. At minimum, the following references MUST resolve when the corresponding artifacts are present and available to the resolver or validator:
    1. `domain-workstreams.yml[].initiative_id` -> `initiatives.yml[].initiative_id`
    2. `domain-workstreams.yml[].domain_id` -> `domain-registry.yml[].domain_id`
-   3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision when the corresponding entrypoint field is non-null. The applicable revision field is `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as appropriate.
-   4. When `change_handoff_ref` is present, the exact Git bytes at its full
-      commit MUST match its digest and the `domain-change-handoff` schema. The
-      handoff `workstream_id`, `initiative_id`, and target `domain_id` MUST
+   3. `platform-workstreams.yml[].initiative_id` -> `initiatives.yml[].initiative_id`
+   4. `platform-workstreams.yml[].platform_id` -> `platform-registry.yml[].platform_id`
+   5. `solution_entrypoint` / `domain_entrypoint` / `platform_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision when the corresponding entrypoint field is non-null. The applicable revision field is `solution_git_ref`, `domain_git_ref`, `platform_git_ref`, `workstream_git_ref`, or `repo.git_ref` as appropriate.
+   6. When `change_handoff_ref` is present, the exact Git bytes at its full
+      commit MUST match its digest and the target-specific Domain or Platform
+      handoff schema. The handoff `workstream_id`, `initiative_id`, and target ID MUST
       equal the catalog row; acceptance `criterion_id` values MUST be unique.
       Requirement and architecture-element identifiers MUST resolve against
       the pinned Solution context before the handoff authorizes downstream
@@ -599,9 +798,14 @@ These error semantics are normative for all routing behavior, regardless of whet
 
 1. Each selector field MUST be independently unique within a catalog.
 2. When a catalog defines `implementation_id` in `domain-implementations.yml`, each value MUST be unique within that catalog.
-3. Implementations MUST fail closed on duplicate selector values.
+3. `implementation_id` values in `platform-implementations.yml` MUST likewise
+   be unique within that catalog.
+4. `workstream_id` MUST be unique across Domain and Platform workstream
+   catalogs in one Solution context so the selector identifies exactly one
+   target kind.
+5. Implementations MUST fail closed on duplicate selector values.
 
-### 5.7 DA Runtime Identity and Workstream Semantics
+### 5.7 Durable-Owner Runtime Identity and Workstream Semantics
 
 #### 5.7.1 Domain-Workstream Relationship
 
@@ -637,6 +841,29 @@ These error semantics are normative for all routing behavior, regardless of whet
 1. Implementations SHOULD avoid overloaded generic runtime metadata fields such as `repo_url` on domain-scoped Domain Architecture rows unless their meaning is explicitly documented.
 2. If runtime metadata is derived from `domain-workstreams.yml[].domain_repo_url`, it MUST be interpreted as the domain-owned repository target for that `domain_id`, not as a workstream-scoped runtime identity.
 3. `domain_repo_url` remains the authoritative domain-owned runtime target when Domain Architecture runtime identity is domain-scoped.
+
+#### 5.7.6 Platform Workstream and Ownership Semantics
+
+1. Platform is a durable architecture ownership boundary parallel to Domain
+   downstream of Solution Architecture; it is not an implementation role under
+   Domain.
+2. `platform_id` is the stable Platform authority identity. Repository URL,
+   team name, branch, path, and runtime-session identity do not replace it.
+3. A Platform workstream carries one Initiative's demand to exactly one
+   `platform_id`. Multiple Initiatives MAY target the same Platform over time;
+   workstreams do not create new Platform ownership boundaries or runtimes.
+4. `platform_repo_url` identifies the governance home. The Enterprise registry
+   is authoritative when present; the workstream copy supplies self-sufficient
+   routing otherwise and MUST agree when both exist.
+5. `workstream_entrypoint` identifies Workstream-specific navigation at
+   `workstream_git_ref`; `platform_entrypoint` identifies `PLATFORM.md` at
+   `platform_git_ref`. Consumers MUST NOT require their paths or refs to match.
+6. Platform owns operational integration architecture and `connection_id`
+   realization. The providing Domain or component retains semantic ownership
+   of the referenced `interface_id` contract.
+7. Platform-owned Git artifacts record the durable design baseline and
+   navigation to operational evidence; routing catalogs MUST NOT become runtime
+   deployment, telemetry, or incident state stores.
 
 ### 5.8 Governed Standards-Provider Routing
 
@@ -772,7 +999,7 @@ Header contract lineage:
 Validators for this convention MUST check:
 
 1. structural schema and required-field conformance using the authoritative schemas under `schemas/`
-2. topology-dependent conditional conformance from Sections 5.3 and 9 that depends on the surrounding artifact set (for example when `initiative_id` or `domain_repo_url` is required)
+2. topology-dependent conditional conformance from Sections 5.3 and 9 that depends on the surrounding artifact set (for example when `initiative_id`, `domain_repo_url`, or `platform_repo_url` is required)
 3. selector uniqueness (see Section 5.6)
 4. cross-file reference integrity for all normative references in Section 5.5
 5. status-policy compliance
@@ -783,7 +1010,7 @@ Validators for this convention MUST check:
 When the referenced repository or revision is accessible to the validator, it SHOULD also check:
 
 1. referenced repository URLs are reachable with validator identity (or provider API equivalent)
-2. referenced entrypoint paths exist in the target repository/revision declared by `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as applicable
+2. referenced entrypoint paths exist in the target repository/revision declared by `solution_git_ref`, `domain_git_ref`, `platform_git_ref`, `workstream_git_ref`, or `repo.git_ref` as applicable
 3. referenced `change_handoff_ref` bytes exist at the declared immutable
    commit; a routing runtime MUST perform this check before dispatch even when
    an offline catalog validator could not access the remote repository
@@ -798,11 +1025,16 @@ Companion operational guidance, including CI realization patterns and observabil
 | `ENTERPRISE.md` | EA | enterprise context entrypoint |
 | `SOLUTION.md` | SA | solution context entrypoint |
 | `DOMAIN.md` | DA | domain context entrypoint |
+| `PLATFORM.md` | Platform Architecture / Platform Engineering / SRE | durable Platform and operational integration context entrypoint |
 | `initiatives.yml` | EA/PMO | enterprise->solution routing |
 | `domain-workstreams.yml` | SA | solution->domain routing |
 | `domain-change-handoff.yml` | SA | portable requested-change contract for one Domain-targeted Workstream |
 | `domain-implementations.yml` | DA | domain->implementation routing |
-| implementation repo local artifacts | Dev | implementation execution within DA-defined target scope |
+| `platform-registry.yml` | EA / Platform governance | stable `platform_id` to Platform governance-home routing |
+| `platform-workstreams.yml` | SA | solution->Platform routing |
+| `platform-change-handoff.yml` | SA | portable requested-change contract for one Platform-targeted Workstream |
+| `platform-implementations.yml` | Platform Architecture / Platform Engineering / SRE | Platform->implementation routing |
+| implementation repo local artifacts | Dev / implementation owner | implementation execution within Domain- or Platform-defined target scope |
 | governance state artifact | governance + level owners | stage gates and progress |
 
 Override rule:
@@ -822,6 +1054,10 @@ Checklist:
 3. `initiatives.yml` exists when both enterprise and solution levels exist.
 4. `domain-workstreams.yml` exists when both solution and domain levels exist.
 5. `domain-implementations.yml` exists when selector-driven domain-to-implementation routing is in scope.
+6. `platform-workstreams.yml` exists when both Solution and Platform levels
+   exist.
+7. `platform-implementations.yml` exists when selector-driven
+   Platform-to-implementation routing is in scope.
 
 A two-level organization (for example Solution + Domain only) satisfies the Core profile with `domain-workstreams.yml` for solution->domain workstream routing. It requires `domain-implementations.yml` only when selector-driven domain->implementation routing is in scope. Catalogs for absent boundaries are not required.
 
@@ -830,6 +1066,8 @@ Core profile resolution rule:
 1. `domain-workstreams.yml` MUST be self-sufficient for runtime resolution when no authoritative `domain-registry.yml` is available.
 2. In that case, each workstream entry MUST include `domain_repo_url`.
 3. When an authoritative `domain-registry.yml` is available at runtime, `domain_repo_url` MAY be omitted and `domain_id` is resolved through the registry.
+4. Platform routing follows the same rule using `platform-workstreams.yml`,
+   `platform_repo_url`, `platform_id`, and `platform-registry.yml`.
 
 ### Governed Profile
 
@@ -838,8 +1076,11 @@ Checklist:
 1. Core profile requirements are satisfied.
 2. A domain governance registry exists, for example `domain-registry.yml`.
 3. When a domain registry entry includes `domain_repo_url`, it also includes `domain_entrypoint` and `domain_git_ref`.
-4. A solution scope or index manifest exists, for example `solution-index.yml`.
-5. A governance state artifact exists with minimum fields `spec_name`, `spec_version`, and `layers`.
+4. When governed Platform routing is present, `platform-registry.yml` exists
+   and each repository-backed row includes `platform_entrypoint` and
+   `platform_git_ref`.
+5. A solution scope or index manifest exists, for example `solution-index.yml`.
+6. A governance state artifact exists with minimum fields `spec_name`, `spec_version`, and `layers`.
 
 Governance layer status values are separate from the routing status vocabulary in Section 5.4. Allowed governance layer statuses: `not_started`, `in_progress`, `proposed`, `approved`, `blocked`, `rejected`.
 
@@ -857,6 +1098,8 @@ layers:
     status: in_progress
   domain_architecture:
     status: not_started
+  platform_architecture:
+    status: not_started
 ```
 
 ## 10. Conflict Resolution and Precedence
@@ -865,7 +1108,7 @@ Precedence by concern:
 
 1. Agent behavior/security constraints: `AGENTS.md` wins.
 2. Routing and target resolution: routing catalogs win.
-3. Narrative/context descriptions: level entrypoint (`ENTERPRISE.md`/`SOLUTION.md`/`DOMAIN.md`) wins.
+3. Narrative/context descriptions: level entrypoint (`ENTERPRISE.md`/`SOLUTION.md`/`DOMAIN.md`/`PLATFORM.md`) wins.
 
 If two artifacts conflict within the same concern domain:
 
@@ -884,8 +1127,8 @@ Implementations that surface structured routing or validation failures MUST supp
 6. `ERR_PARENT_LINK_MISSING`
 7. `ERR_CONFLICT`
 8. `ERR_INVALID_SCHEMA`: catalog entry has structural errors (for example null or empty `repo.url` when the key is present, empty `repo.paths` list).
-9. `ERR_OVERLAPPING_PATHS`: two or more `domain-implementations.yml` entries produce overlapping `(repo.url, repo.path)` bindings, violating the uniqueness invariant.
-10. `ERR_NO_CONTEXT`: no catalogs are loaded in the resolver's active context (repo-first cold-start with no Domain repo open).
+9. `ERR_OVERLAPPING_PATHS`: two or more Domain or Platform implementation entries produce overlapping `(repo.url, repo.path)` bindings, violating the uniqueness invariant.
+10. `ERR_NO_CONTEXT`: no catalogs are loaded in the resolver's active context (repo-first cold-start with no architecture-owner repo open).
 11. `ERR_REFERENCE_UNRESOLVED`: a normative intra-repository or cross-repository reference does not resolve to an existing selector target or file.
 12. `ERR_WORKSTREAM_TARGET_NOT_DOMAIN`: a workstream targets a standards-only registry entry.
 13. `ERR_STANDARDS_DOMAIN_NOT_FOUND`: the selected provider ID has no registry row.
@@ -898,6 +1141,7 @@ Implementations that surface structured routing or validation failures MUST supp
 20. `ERR_PATTERN_INDEX_MISSING`: no effective pattern index resolves.
 21. `ERR_PATTERN_INDEX_INVALID`: the effective index or a referenced document is unsafe, missing, unsupported, or malformed.
 22. `ERR_VERSION_UNSUPPORTED`: a required artifact uses an unsupported major or an extension field before its defining minor version.
+23. `ERR_PLATFORM_NOT_FOUND`: a Platform selector has no matching row in the authoritative `platform-registry.yml`.
 
 Companion observability guidance, including suggested failure record fields and logging patterns, is maintained in `reference/operational-guidance.md`.
 
@@ -918,6 +1162,16 @@ Companion observability guidance, including suggested failure record fields and 
 ### 12.3 Three-Level (Enterprise + Solution + Domain)
 
 1. Use full Layer A + Layer B for deterministic per-boundary routing at all three level boundaries.
+2. If the operating model also has Platform ownership, add the parallel
+   `platform-registry.yml` and `platform-workstreams.yml` route rather than
+   treating Platform as a Domain.
+
+### 12.4 Two-Level (Solution + Platform)
+
+1. Use `SOLUTION.md` and `PLATFORM.md`.
+2. Use `platform-workstreams.yml` for Solution-to-Platform demand routing.
+3. `ENTERPRISE.md`, `initiatives.yml`, and `platform-registry.yml` are optional.
+4. Without the registry, each workstream must carry `platform_repo_url`.
 
 ## 13. Discovery and Traversal
 
@@ -931,6 +1185,17 @@ Top-down per-boundary routing sequence (each step requires the caller to possess
    3. when both are available, `domain-registry.yml` remains authoritative and any duplicated `domain_repo_url` in `domain-workstreams.yml` MUST match it
 4. `implementation_id` -> `domain-implementations.yml` -> repo location + optional `repo.entrypoint` + optional `repo.git_ref` (when selector-driven domain->implementation routing boundary exists)
 
+Parallel Platform sequence:
+
+1. `workstream_id` -> `platform-workstreams.yml` -> `platform_id` +
+   `workstream_entrypoint` + `workstream_git_ref`.
+2. Resolve `platform_repo_url` from the workstream or authoritative
+   `platform-registry.yml`; if both exist they MUST match.
+3. Open the Workstream navigation independently from `PLATFORM.md`, then
+   re-anchor on the target repository's `AGENTS.md` and `PLATFORM.md`.
+4. `implementation_id` -> `platform-implementations.yml` -> implementation
+   repository, path, and optional entrypoint/ref.
+
 Context mapping patterns:
 
 1. Anti-corruption layer: when one domain consumes another through translation, the translating boundary SHOULD be declared in domain-owned artifacts rather than inferred from code structure.
@@ -943,16 +1208,27 @@ AI-first usage:
 1. Tool-capable agents SHOULD start with `AGENTS.md`, then open the applicable level entrypoint, then use the canonical selector catalog for the next boundary.
 2. For cross-level work, prompts and automation SHOULD name selectors and expected routing steps explicitly, for example: `Resolve initiative init-bss-modernization through initiatives.yml, then open the target SOLUTION.md.`
 3. Domain-scoped execution SHOULD begin from `DOMAIN.md` and `domain-implementations.yml`, not from monorepo-wide search or guessed repository ownership.
-4. This pattern reduces context-window waste because the agent opens the smallest authoritative artifact set needed for the current boundary instead of searching across unrelated repositories.
-5. After crossing into a target implementation repository, the agent MUST re-anchor on that repository's local `AGENTS.md` before taking implementation-local actions.
+4. Platform-scoped execution SHOULD begin from `PLATFORM.md` and
+   `platform-implementations.yml`; SRE-facing navigation SHOULD use
+   `platform_id` and `connection_id`, not Initiative or Domain names.
+5. This pattern reduces context-window waste because the agent opens the smallest authoritative artifact set needed for the current boundary instead of searching across unrelated repositories.
+6. After crossing into a target implementation repository, the agent MUST re-anchor on that repository's local `AGENTS.md` before taking implementation-local actions.
 
 Developer traversal semantics:
 
-1. `dev` startup is anchored at the domain layer: `AGENTS.md` -> `DOMAIN.md` -> `domain-implementations.yml` -> target implementation repository and optional `repo.entrypoint`/`repo.git_ref`.
+1. `dev` startup is anchored at the selecting architecture authority:
+   `AGENTS.md` -> `DOMAIN.md` -> `domain-implementations.yml`, or `AGENTS.md`
+   -> `PLATFORM.md` -> `platform-implementations.yml`, then the target
+   implementation repository and optional `repo.entrypoint`/`repo.git_ref`.
 2. After the target implementation repository is opened, that repository's local `AGENTS.md` becomes the active repo-local behavior contract.
-3. `dev` MAY read additional `da`-linked design contract artifacts such as interfaces, schemas, and implementation specifications before or during implementation. `sa` artifacts are in scope only when explicitly linked or delegated through the authoritative domain context.
-4. `dev` traversal does not bypass `da` semantics. If an implementation repository lacks sufficient architecture context, the resolver SHOULD return to `DOMAIN.md` and the associated domain artifacts rather than infer intent from repository names or code structure alone.
-5. `dev` MUST NOT treat reverse traversal as implicit write authority into upstream artifacts. Reverse traversal from implementation back to architecture is for traceability, context recovery, and escalation: `implementation_id` -> `domain-implementations.yml` -> `DOMAIN.md` -> upstream layers when needed.
+3. `dev` MAY read additional owner-linked design artifacts before or during
+   implementation. SA artifacts are in scope only when explicitly linked or
+   delegated through the authoritative Domain or Platform context.
+4. If the implementation repository lacks sufficient architecture context, the
+   resolver SHOULD return to the selecting `DOMAIN.md` or `PLATFORM.md` and its
+   associated artifacts rather than infer intent from names or code structure.
+5. Reverse traversal is for traceability, context recovery, and escalation; it
+   does not grant write authority into upstream architecture artifacts.
 
 Bottom-up discovery:
 
@@ -960,6 +1236,9 @@ Bottom-up discovery:
 2. If the enterprise level is absent, `DOMAIN.md` MAY have `Parent: Not applicable`; solution associations are still recovered from `domain-workstreams.yml` or equivalent handoff artifacts rather than Markdown parent links.
 3. Solution agent reads `SOLUTION.md` parent link to `ENTERPRISE.md` when the enterprise level exists.
 4. Agents MAY use shared IDs (`initiative_id`, `workstream_id`, `domain_id`) for partial lineage reconstruction when those IDs are present in catalog entries. End-to-end lineage from implementation artifact to business initiative is not guaranteed by the core catalog minimum fields (see Section 5.3).
+5. Platform agents use the equivalent `platform_id`, `workstream_id`,
+   `interface_id`, and `connection_id` references. Integration relationships do
+   not create Markdown ancestry between Domain and Platform repositories.
 
 ## 14. Compatibility with agents.md
 
@@ -981,6 +1260,10 @@ Reference implementation layout, operational mapping patterns, agent context gui
 | [schemas/domain-change-handoff.schema.json](schemas/domain-change-handoff.schema.json) | `https://example.com/enterprise.md/schemas/domain-change-handoff.schema.json` | Portable immutable Solution-to-Domain requested-change contract |
 | [schemas/domain-implementations.schema.json](schemas/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | Structural validation for domain-to-implementation routing catalogs |
 | [schemas/domain-registry.schema.json](schemas/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | Structural validation for governed-profile domain registries |
+| [schemas/platform-registry.schema.json](schemas/platform-registry.schema.json) | `https://example.com/enterprise.md/schemas/platform-registry.schema.json` | Structural validation for governed Platform registries |
+| [schemas/platform-workstreams.schema.json](schemas/platform-workstreams.schema.json) | `https://example.com/enterprise.md/schemas/platform-workstreams.schema.json` | Structural validation for Solution-to-Platform workstream routing |
+| [schemas/platform-change-handoff.schema.json](schemas/platform-change-handoff.schema.json) | `https://example.com/enterprise.md/schemas/platform-change-handoff.schema.json` | Portable immutable Solution-to-Platform requested-change contract |
+| [schemas/platform-implementations.schema.json](schemas/platform-implementations.schema.json) | `https://example.com/enterprise.md/schemas/platform-implementations.schema.json` | Structural validation for Platform-to-implementation routing |
 | [schemas/solution-index.schema.json](schemas/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | Structural validation for governed-profile solution manifests |
 | [schemas/initiative-pipeline.schema.json](schemas/initiative-pipeline.schema.json) | `https://example.com/enterprise.md/schemas/initiative-pipeline.schema.json` | Portfolio source contract for generated initiative selectors |
 | [schemas/pattern-index.schema.json](schemas/pattern-index.schema.json) | `https://example.com/enterprise.md/schemas/pattern-index.schema.json` | Minimum interoperable standards pattern index |

@@ -25,11 +25,15 @@ SOLUTION.md                                        <- you are here
 AGENTS.md                                          <- repo-specific agent instructions
 solution-index.yml                                 <- machine-authoritative scope manifest
 domain-workstreams.yml                             <- workstream selector catalog (WORKSTREAM_ID routing)
+platform-workstreams.yml                           <- Platform demand routing
+platform-workstreams.yml                           <- Platform demand routing
 ```
 
 ## Canonical Artifacts
 
 - [domain-workstreams.yml](domain-workstreams.yml)
+- [platform-workstreams.yml](platform-workstreams.yml)
+- [platform-workstreams.yml](platform-workstreams.yml)
 - [solution-index.yml](solution-index.yml)
 
 ## Routing

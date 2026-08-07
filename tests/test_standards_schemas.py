@@ -199,6 +199,90 @@ def test_workstreams_schema_preserves_legacy_handoff_and_types_change_handoff(sc
     assert validate(schema_dir, "domain-workstreams.schema.json", value) == []
 
 
+def valid_platform_change_handoff():
+    return {
+        "spec_name": "platform-change-handoff",
+        "spec_version": "1.0.0",
+        "workstream_id": "ws-init-a-integration-messaging",
+        "initiative_id": "init-a",
+        "solution_design_ref": valid_artifact_ref(),
+        "target": {
+            "kind": "platform",
+            "platform_id": "integration-messaging",
+            "baseline_state": "not_materialized",
+            "baseline_absence_reason": "No accepted Platform baseline exists yet.",
+        },
+        "requested_delta": {
+            "architecture_elements": {
+                "use": ["ifc-order-submitted-v1"],
+                "add": ["conn-order-jms-production"],
+            }
+        },
+        "acceptance_criteria": [{
+            "criterion_id": "ac-jms-001",
+            "statement": "The JMS connection meets the accepted resilience budget.",
+        }],
+    }
+
+
+def test_platform_contract_schemas_accept_a_complete_route(schema_dir):
+    registry = {
+        "spec_name": "platform-registry",
+        "spec_version": "1.0.0",
+        "platforms": [{
+            "platform_id": "integration-messaging",
+            "name": "Integration Messaging",
+            "owner": "platform-engineering",
+            "platform_repo_url": "https://github.com/acme/platform-integration",
+            "platform_entrypoint": "PLATFORM.md",
+            "platform_git_ref": "main",
+            "status": "active",
+        }],
+    }
+    workstreams = {
+        "spec_name": "platform-workstreams",
+        "spec_version": "1.0.0",
+        "workstreams": [{
+            "workstream_id": "ws-init-a-integration-messaging",
+            "initiative_id": "init-a",
+            "platform_id": "integration-messaging",
+            "workstream_entrypoint": "inputs/workstreams/ws-init-a-integration-messaging/WORKSTREAM.md",
+            "workstream_git_ref": "main",
+            "status": "active",
+        }],
+    }
+    implementations = {
+        "spec_name": "platform-implementations",
+        "spec_version": "1.0.0",
+        "implementations": [{
+            "implementation_id": "jms-broker",
+            "status": "active",
+            "repo": {"url": "https://github.com/acme/jms", "paths": ["**"]},
+        }],
+    }
+    assert validate(schema_dir, "platform-registry.schema.json", registry) == []
+    assert validate(schema_dir, "platform-workstreams.schema.json", workstreams) == []
+    assert validate(schema_dir, "platform-implementations.schema.json", implementations) == []
+    assert validate(schema_dir, "platform-change-handoff.schema.json", valid_platform_change_handoff()) == []
+
+
+def test_platform_change_handoff_rejects_domain_target(schema_dir):
+    value = valid_platform_change_handoff()
+    value["target"] = {
+        "kind": "domain",
+        "domain_id": "order",
+        "baseline_state": "not_materialized",
+        "baseline_absence_reason": "Wrong ownership boundary.",
+    }
+    assert validate(schema_dir, "platform-change-handoff.schema.json", value)
+
+
+def test_platform_change_handoff_rejects_empty_delta(schema_dir):
+    value = valid_platform_change_handoff()
+    value["requested_delta"] = {"architecture_elements": {"change": []}}
+    assert validate(schema_dir, "platform-change-handoff.schema.json", value)
+
+
 def test_receipt_requires_initiative_id_for_initiative_selection(schema_dir):
     value = {
         "spec_name": "standards-resolution-receipt",

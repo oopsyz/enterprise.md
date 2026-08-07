@@ -25,12 +25,16 @@ ENTERPRISE.md                             <- you are here
 AGENTS.md                                 <- repo-specific agent instructions
 initiatives.yml                           <- selector catalog (INITIATIVE_ID routing)
 domain-registry.yml                       <- domain governance registry
+platform-registry.yml                     <- Platform governance registry
+platform-registry.yml                     <- Platform governance registry
 ```
 
 ## Canonical Artifacts
 
 - [initiatives.yml](initiatives.yml)
 - [domain-registry.yml](domain-registry.yml)
+- [platform-registry.yml](platform-registry.yml)
+- [platform-registry.yml](platform-registry.yml)
 
 ## Routing
 

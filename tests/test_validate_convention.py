@@ -22,9 +22,14 @@ def warns(validator) -> str:
     return "\n".join(validator.warnings)
 
 
-def commit_handoff(repo, handoff: dict) -> tuple[str, str, str]:
-    artifact_path = "inputs/workstreams/ws-init-a-order/domain-change-handoff.yml"
-    repo.write("inputs/workstreams/ws-init-a-order/WORKSTREAM.md", "# Workstream\n")
+def commit_handoff(
+    repo,
+    handoff: dict,
+    *,
+    artifact_path: str = "inputs/workstreams/ws-init-a-order/domain-change-handoff.yml",
+) -> tuple[str, str, str]:
+    workstream_dir = str(Path(artifact_path).parent)
+    repo.write(f"{workstream_dir}/WORKSTREAM.md", "# Workstream\n")
     repo.write(artifact_path, json.dumps(handoff, indent=2) + "\n")
     commands = (
         ["git", "init", "-q"],
@@ -108,6 +113,42 @@ def workstream_catalog(artifact_path: str, commit_sha: str, digest: str, *, lega
     )
 
 
+def platform_handoff_document(*, platform_id: str = "integration-messaging") -> dict:
+    value = handoff_document()
+    value["spec_name"] = "platform-change-handoff"
+    value["workstream_id"] = "ws-init-a-integration-messaging"
+    value["target"] = {
+        "kind": "platform",
+        "platform_id": platform_id,
+        "baseline_state": "not_materialized",
+        "baseline_absence_reason": "No accepted Platform baseline exists yet.",
+    }
+    value["requested_delta"] = {
+        "architecture_elements": {
+            "use": ["ifc-order-submitted-v1"],
+            "add": ["conn-order-jms-production"],
+        }
+    }
+    return value
+
+
+def platform_workstream_catalog(artifact_path: str, commit_sha: str, digest: str) -> str:
+    return (
+        'spec_name: platform-workstreams\nspec_version: "1.0.0"\n'
+        "workstreams:\n"
+        "  - workstream_id: ws-init-a-integration-messaging\n"
+        "    initiative_id: init-a\n"
+        "    platform_id: integration-messaging\n"
+        "    workstream_entrypoint: inputs/workstreams/ws-init-a-integration-messaging/WORKSTREAM.md\n"
+        "    workstream_git_ref: feature/ws-init-a-integration-messaging\n"
+        "    platform_repo_url: https://github.com/acme/platform-integration\n"
+        "    change_handoff_ref:\n"
+        "      ref_version: v1\n"
+        f"      artifact_path: {artifact_path}\n"
+        f"      commit_sha: {commit_sha}\n"
+        f"      digest: {digest}\n"
+        "    status: active\n"
+    )
 class TestHappyPath:
     def test_full_core_topology_is_clean(self, repo, validator,
                                          valid_initiatives, valid_workstreams,
@@ -406,6 +447,96 @@ class TestDomainChangeHandoff:
         )
         assert repo.run(repo_url="https://github.com/acme/other") == 0, errs(validator)
         assert "remote Git artifact was not available" in warns(validator)
+
+
+class TestPlatformConvention:
+    def test_full_platform_route_is_clean(self, repo, validator, valid_initiatives):
+        repo.write(repo.paths["initiatives"], valid_initiatives)
+        repo.write(repo.paths["platform_registry"], (
+            'spec_name: platform-registry\nspec_version: "1.0.0"\n'
+            "platforms:\n"
+            "  - platform_id: integration-messaging\n"
+            "    name: Integration Messaging\n"
+            "    owner: platform-engineering\n"
+            "    platform_repo_url: https://github.com/acme/platform-integration\n"
+            "    platform_entrypoint: PLATFORM.md\n"
+            "    platform_git_ref: main\n"
+            "    status: active\n"
+        ))
+        repo.write(repo.paths["platform_workstreams"], (
+            'spec_name: platform-workstreams\nspec_version: "1.0.0"\n'
+            "workstreams:\n"
+            "  - workstream_id: ws-init-a-integration-messaging\n"
+            "    initiative_id: init-a\n"
+            "    platform_id: integration-messaging\n"
+            "    workstream_entrypoint: inputs/workstreams/ws-init-a-integration-messaging/WORKSTREAM.md\n"
+            "    workstream_git_ref: feature/ws-init-a-integration-messaging\n"
+            "    status: active\n"
+        ))
+        repo.write("platform/integration-messaging/platform-implementations.yml", (
+            'spec_name: platform-implementations\nspec_version: "1.0.0"\n'
+            "implementations:\n"
+            "  - implementation_id: jms-broker\n"
+            "    status: active\n"
+            "    repo:\n"
+            "      url: https://github.com/acme/jms-platform\n"
+            "      paths: ['**']\n"
+        ))
+        assert repo.run() == 0, errs(validator)
+
+    def test_platform_registry_is_authoritative_for_repo_url(self, repo, validator):
+        repo.write(repo.paths["platform_registry"], (
+            'spec_name: platform-registry\nspec_version: "1.0.0"\n'
+            "platforms:\n"
+            "  - platform_id: integration-messaging\n"
+            "    name: Integration Messaging\n"
+            "    owner: platform-engineering\n"
+            "    platform_repo_url: https://github.com/acme/platform-a\n"
+            "    platform_entrypoint: PLATFORM.md\n"
+            "    platform_git_ref: main\n"
+            "    status: active\n"
+        ))
+        repo.write(repo.paths["platform_workstreams"], (
+            'spec_name: platform-workstreams\nspec_version: "1.0.0"\n'
+            "workstreams:\n"
+            "  - workstream_id: ws-init-a-integration-messaging\n"
+            "    platform_id: integration-messaging\n"
+            "    workstream_entrypoint: WORKSTREAM.md\n"
+            "    workstream_git_ref: main\n"
+            "    platform_repo_url: https://github.com/acme/platform-b\n"
+            "    status: active\n"
+        ))
+        assert repo.run() == 1
+        assert "ERR_CONFLICT" in errs(validator)
+
+    def test_workstream_id_is_unique_across_domain_and_platform_routes(
+        self, repo, validator, valid_workstreams
+    ):
+        repo.write(repo.paths["workstreams"], valid_workstreams)
+        repo.write(repo.paths["platform_workstreams"], (
+            'spec_name: platform-workstreams\nspec_version: "1.0.0"\n'
+            "workstreams:\n"
+            "  - workstream_id: ws-init-a-order\n"
+            "    platform_id: integration-messaging\n"
+            "    workstream_entrypoint: WORKSTREAM.md\n"
+            "    workstream_git_ref: main\n"
+            "    platform_repo_url: https://github.com/acme/platform-integration\n"
+            "    status: active\n"
+        ))
+        assert repo.run() == 1
+        assert "appears in both Domain and Platform" in errs(validator)
+
+    def test_local_platform_change_handoff_is_verified(self, repo, validator):
+        artifact_path, commit_sha, digest = commit_handoff(
+            repo,
+            platform_handoff_document(),
+            artifact_path="inputs/workstreams/ws-init-a-integration-messaging/platform-change-handoff.yml",
+        )
+        repo.write(
+            repo.paths["platform_workstreams"],
+            platform_workstream_catalog(artifact_path, commit_sha, digest),
+        )
+        assert repo.run(repo_url="https://github.com/acme/platform-integration") == 0, errs(validator)
 
 
 class TestHeaderContract:

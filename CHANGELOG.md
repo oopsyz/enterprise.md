@@ -8,6 +8,13 @@ The format is loosely based on Keep a Changelog, with project-level draft/spec r
 
 ### Added
 
+- Platform as a durable repository and architecture ownership boundary parallel
+  to Domain downstream of Solution, covering operational integration through
+  `PLATFORM.md`, stable `platform_id`, `interface_id` references, and operated
+  `connection_id` realizations
+- canonical `platform-registry`, `platform-workstreams`,
+  `platform-change-handoff`, and `platform-implementations` 1.0 schemas,
+  templates, examples, role pack, and validator support
 - optional canonical `domain-change-handoff` 1.0 artifact and typed
   `change_handoff_ref` for immutable SA-to-Domain Workstream change content;
   legacy `handoff_ref` remains opaque and unchanged
@@ -24,6 +31,11 @@ The format is loosely based on Keep a Changelog, with project-level draft/spec r
 
 ### Changed
 
+- `solution-index` advances to 1.1.0 with optional Platform scope references;
+  existing Domain-only topologies remain conformant and need no placeholder
+  Platform artifacts
+- routing and conformance rules now branch from Solution to Domain and/or
+  Platform; Platform targets must not be represented through Domain catalogs
 - unified catalog header contract: all canonical catalogs MUST use `spec_name` + `spec_version` (full MAJOR.MINOR.PATCH). `spec_name: multi-scale-routing` is still accepted on read as a deprecated alias for `domain-implementations`; a bare `version` header is deprecated and no longer satisfies the contract — such files MUST be migrated to `spec_name`/`spec_version` (Section 5.2). Migration note: `spec_version: "1.0.0"` is the first published header contract; bare-`version` files are pre-contract draft artifacts, so this migration is not a `MAJOR` increment (Section 6, header contract lineage)
 - `repo.paths` scoping is glob-based with a whole-repository default of `["*"]`, and the uniqueness invariant is stated in terms of pattern overlap (Sections 5.3, 11)
 - authoritative JSON schemas moved from `skills/ea-convention/references/` to top-level `schemas/`; the validator auto-detects an adopter repo's vendored `schemas/`, the tool's own top-level `schemas/`, and the legacy `references/` layout

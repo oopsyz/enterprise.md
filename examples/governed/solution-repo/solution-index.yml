@@ -1,5 +1,5 @@
 spec_name: solution-index
-spec_version: "1.0.0"
+spec_version: "1.1.0"
 solution_key: bss-modernization
 display_name: BSS Modernization
 description: Modernize legacy BSS stack and retire fragmented point solutions.
@@ -17,6 +17,11 @@ domains:
     domain_repo_url: https://github.com/acme/domain-billing
     domain_entrypoint: DOMAIN.md
     domain_git_ref: main
+platforms:
+  - platform_id: integration-messaging
+    platform_repo_url: https://github.com/acme/platform-integration
+    platform_entrypoint: PLATFORM.md
+    platform_git_ref: main
 repos:
   - repo_key: solution_design
     repo_url: https://github.com/acme/solution-bss

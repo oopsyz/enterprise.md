@@ -1,0 +1,14 @@
+spec_name: platform-registry
+spec_version: "1.0.0"
+enterprise_id: acme
+platforms:
+  - platform_id: integration-messaging
+    name: Integration Messaging
+    owner: platform-engineering
+    platform_repo_url: https://github.com/acme/platform-integration
+    platform_entrypoint: PLATFORM.md
+    platform_git_ref: main
+    status: active
+    capabilities:
+      - capability_id: cap-asynchronous-messaging
+        name: Operate resilient asynchronous messaging

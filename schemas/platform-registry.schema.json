@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/platform-registry.schema.json",
+  "title": "platform-registry.yml",
+  "type": "object",
+  "required": ["spec_name", "spec_version", "platforms"],
+  "properties": {
+    "spec_name": {"const": "platform-registry"},
+    "spec_version": {"type": "string", "pattern": "^1\\.\\d+\\.\\d+$"},
+    "enterprise_id": {"type": "string", "minLength": 1},
+    "platforms": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/platform"}
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "status": {
+      "type": "string",
+      "enum": ["active", "approved", "ready", "in_progress", "paused", "completed", "archived", "deprecated", "inactive"]
+    },
+    "capability": {
+      "type": "object",
+      "required": ["capability_id", "name"],
+      "properties": {
+        "capability_id": {"$ref": "#/$defs/nonEmptyString"},
+        "name": {"$ref": "#/$defs/nonEmptyString"}
+      },
+      "additionalProperties": true
+    },
+    "platform": {
+      "type": "object",
+      "required": ["platform_id", "name", "owner", "status"],
+      "properties": {
+        "platform_id": {"$ref": "#/$defs/nonEmptyString"},
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "owner": {"$ref": "#/$defs/nonEmptyString"},
+        "platform_repo_url": {"type": "string", "format": "uri", "minLength": 1},
+        "platform_entrypoint": {"$ref": "#/$defs/nonEmptyString"},
+        "platform_git_ref": {"$ref": "#/$defs/nonEmptyString"},
+        "status": {"$ref": "#/$defs/status"},
+        "capabilities": {"type": "array", "items": {"$ref": "#/$defs/capability"}},
+        "metadata": {"type": "object"}
+      },
+      "allOf": [
+        {
+          "if": {"required": ["platform_repo_url"]},
+          "then": {"required": ["platform_entrypoint", "platform_git_ref"]}
+        }
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

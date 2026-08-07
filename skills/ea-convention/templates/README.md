@@ -9,6 +9,7 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 | [ENTERPRISE.md.template](ENTERPRISE.md.template) | Enterprise | EA portfolio repo entrypoint |
 | [SOLUTION.md.template](SOLUTION.md.template) | Solution | SA baseline repo entrypoint |
 | [DOMAIN.md.template](DOMAIN.md.template) | Domain | DA design repo entrypoint |
+| [PLATFORM.md.template](PLATFORM.md.template) | Platform | Platform/SRE and operational integration entrypoint |
 | [STANDARDS.md.template](STANDARDS.md.template) | Enterprise standards | Governed provider entrypoint |
 
 ## AGENTS.md Role Templates
@@ -19,6 +20,7 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 | [AGENTS.sa.md.template](AGENTS.sa.md.template) | SA | Solution architect agent instructions |
 | [AGENTS.da.md.template](AGENTS.da.md.template) | DA | Domain architect agent instructions |
 | [AGENTS.dev.md.template](AGENTS.dev.md.template) | Dev | Developer agent instructions |
+| [AGENTS.platform.md.template](AGENTS.platform.md.template) | Platform | Platform architecture and SRE instructions |
 
 ## CLAUDE.md Bridge Templates
 
@@ -28,6 +30,7 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 | [CLAUDE.sa.md.template](CLAUDE.sa.md.template) | SA | Claude Code bridge into `AGENTS.md` and `SOLUTION.md` |
 | [CLAUDE.da.md.template](CLAUDE.da.md.template) | DA | Claude Code bridge into `AGENTS.md` and `DOMAIN.md` |
 | [CLAUDE.dev.md.template](CLAUDE.dev.md.template) | Dev | Claude Code bridge into `AGENTS.md` and `DOMAIN.md` |
+| [CLAUDE.platform.md.template](CLAUDE.platform.md.template) | Platform | Claude Code bridge into `AGENTS.md` and `PLATFORM.md` |
 
 ## Routing Catalog Templates
 
@@ -36,6 +39,8 @@ Starter templates for adopting the Multi-Level Repository Navigation and Routing
 | [initiatives.yml.template](initiatives.yml.template) | Enterprise | `initiative_id` | B+ |
 | [domain-workstreams.yml.template](domain-workstreams.yml.template) | Solution | `workstream_id` | B+ |
 | [domain-implementations.yml.template](domain-implementations.yml.template) | Domain | `implementation_id` | B+ (when selector-driven domain->implementation boundary exists) |
+| [platform-workstreams.yml.template](platform-workstreams.yml.template) | Solution | `workstream_id` | B+ (when Solution->Platform boundary exists) |
+| [platform-implementations.yml.template](platform-implementations.yml.template) | Platform | `implementation_id` | B+ (when selector-driven Platform->implementation boundary exists) |
 
 Format note: YAML is canonical for routing catalogs.
 
@@ -48,6 +53,7 @@ Authoritative machine-readable schemas for the canonical catalogs are maintained
 | Template | Level | Profile |
 |---|---|---|
 | [domain-registry.yml.template](domain-registry.yml.template) | Enterprise | C |
+| [platform-registry.yml.template](platform-registry.yml.template) | Enterprise | C when governed Platform routing exists |
 | [solution-index.yml.template](solution-index.yml.template) | Solution | C |
 | [initiative-pipeline.yml.template](initiative-pipeline.yml.template) | Enterprise | C |
 | [pattern-index.yml.template](pattern-index.yml.template) | Enterprise standards | C |

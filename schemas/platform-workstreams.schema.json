@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/enterprise.md/schemas/platform-workstreams.schema.json",
+  "title": "platform-workstreams.yml",
+  "$comment": "Topology-dependent registry and initiative rules require surrounding artifacts and are enforced by the convention validator.",
+  "type": "object",
+  "required": ["spec_name", "spec_version", "workstreams"],
+  "properties": {
+    "spec_name": {"const": "platform-workstreams"},
+    "spec_version": {"type": "string", "pattern": "^1\\.\\d+\\.\\d+$"},
+    "workspace_id": {"type": ["string", "null"]},
+    "initiative_id": {"type": ["string", "null"]},
+    "generated_at_utc": {"type": "string", "format": "date-time"},
+    "generated_by": {"type": "string", "minLength": 1},
+    "workstreams": {"type": "array", "items": {"$ref": "#/$defs/workstream"}},
+    "notes": {"type": ["string", "null"]}
+  },
+  "not": {"required": ["execution"]},
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "status": {
+      "type": "string",
+      "enum": ["active", "approved", "ready", "in_progress", "paused", "completed", "archived", "deprecated", "inactive"]
+    },
+    "changeHandoffRef": {
+      "type": "object",
+      "required": ["ref_version", "artifact_path", "commit_sha", "digest"],
+      "properties": {
+        "ref_version": {"const": "v1"},
+        "artifact_path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+        "commit_sha": {"type": "string", "pattern": "^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$"},
+        "digest": {"type": "string", "pattern": "^sha256:[0-9a-fA-F]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "workstream": {
+      "type": "object",
+      "required": ["workstream_id", "platform_id", "workstream_entrypoint", "workstream_git_ref", "status"],
+      "properties": {
+        "workstream_id": {"$ref": "#/$defs/nonEmptyString"},
+        "workstream_uuid": {"type": "string", "format": "uuid"},
+        "initiative_id": {"$ref": "#/$defs/nonEmptyString"},
+        "platform_id": {"$ref": "#/$defs/nonEmptyString"},
+        "platform_name": {"$ref": "#/$defs/nonEmptyString"},
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "workstream_entrypoint": {"type": ["string", "null"]},
+        "workstream_git_ref": {"$ref": "#/$defs/nonEmptyString"},
+        "platform_repo_url": {"type": ["string", "null"], "format": "uri", "minLength": 1},
+        "workstream_path": {"type": ["string", "null"]},
+        "handoff_ref": {"type": ["string", "null"]},
+        "change_handoff_ref": {"$ref": "#/$defs/changeHandoffRef"},
+        "status": {"$ref": "#/$defs/status"},
+        "owner": {"$ref": "#/$defs/nonEmptyString"},
+        "metadata": {"type": "object"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"enum": ["active", "in_progress"]}}, "required": ["status"]},
+          "then": {"required": ["workstream_entrypoint"], "properties": {"workstream_entrypoint": {"$ref": "#/$defs/nonEmptyString"}}}
+        }
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

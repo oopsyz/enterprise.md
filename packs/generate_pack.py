@@ -5,7 +5,7 @@ generate_pack.py — Generate an enterprise.md role pack into a target directory
 Usage:
     python generate_pack.py <pack> <target-dir>
 
-Pack types: ea, sa, da, dev
+Pack types: ea, sa, da, platform, dev
 
 Examples:
     python generate_pack.py ea ~/repos/my-enterprise-repo
@@ -77,6 +77,18 @@ PACKS = {
         "label": "Developer (Dev)",
         "questions": [
             ("implementation-id", "Implementation ID for this repo (from domain-implementations.yml)"),
+        ],
+        "derived": lambda a: {},
+    },
+    "platform": {
+        "label": "Platform Architect / Platform Engineering / SRE",
+        "questions": [
+            ("org", "GitHub org name"),
+            ("platform-id", "Platform ID (stable, kebab-case)"),
+            ("enterprise-repo-url", "Enterprise repo URL (full git URL)"),
+            ("platform-implementation-id", "Initial Platform implementation ID"),
+            ("repo", "Platform implementation repo name"),
+            ("team", "Owning Platform/SRE team"),
         ],
         "derived": lambda a: {},
     },

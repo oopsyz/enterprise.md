@@ -1,0 +1,83 @@
+# PLATFORM
+
+Platform architecture repository entrypoint. Owns the durable production and
+operational integration baseline for one or more governed `platform_id` values.
+
+## Read First
+
+1. This file - Platform context and navigation
+
+## Parent
+
+- [ENTERPRISE](<enterprise-repo-url>/blob/main/ENTERPRISE.md)
+
+If enterprise level is absent in your organization, replace with `Not applicable`.
+
+## Critical File Contract
+
+- Keep required section headings from this template.
+- Keep this file concise: identity, routing semantics, and links.
+- Put mutable runtime state and telemetry in runtime-owned systems, not here.
+- If a required section has no content, keep it and write `Not applicable`.
+
+## Knowledge Store Layout
+
+```text
+PLATFORM.md                                        <- you are here
+AGENTS.md                                          <- repo-specific instructions
+platform-implementations.yml                       <- implementation routing
+architecture/
+`-- platforms/
+    `-- <platform_id>/
+        |-- platform-design.yml                    <- durable platform baseline
+        |-- connection-catalog.yml                 <- connection_id definitions
+        |-- operational-guardrails.yml             <- resilience/security/SLOs
+        `-- runbooks/                               <- support navigation
+inputs/
+`-- workstreams/
+    `-- <WORKSTREAM_ID>/
+        |-- WORKSTREAM.md                          <- workstream navigation
+        `-- platform-change-handoff.yml            <- optional requested change
+```
+
+## Canonical Artifacts
+
+- `platform-implementations.yml` (`implementation_id` routing)
+- `architecture/platforms/<platform_id>/platform-design.yml`
+- `architecture/platforms/<platform_id>/connection-catalog.yml`
+- operational guardrails and runbook references owned by Platform/SRE
+
+## Routing
+
+`implementation_id` -> `platform-implementations.yml` -> `repo.url` +
+`repo.paths` + optional `repo.entrypoint` + optional `repo.git_ref`
+
+## Platform Identity
+
+The ownership identity is `platform_id`. Inbound `workstream_id` values are
+Initiative demand units attached to this durable Platform authority; they do
+not create independent Platform runtimes. `platform_repo_url` in the Enterprise
+registry is authoritative when the registry is available.
+
+## Integration Ownership
+
+- The providing Domain or component owns the stable semantic contract
+  (`interface_id`).
+- Platform owns the deployed and operated realization (`connection_id`),
+  including brokers, gateways, endpoints, queues/topics, network paths,
+  security, capacity, resilience, observability, and support procedures.
+- Integration is covered by Platform; it is not a separate architecture level.
+
+## Upstream Inputs
+
+- Resolve Initiative demand through `platform-workstreams.yml`.
+- Open the Workstream-specific `WORKSTREAM.md` at `workstream_git_ref`.
+- Verify any `change_handoff_ref` against exact Git bytes before routing or
+  dispatch.
+
+## Policy
+
+- Treat `platform_id`, `connection_id`, `workstream_id`, and implementation
+  selectors as authoritative identities.
+- Fail closed on missing, ambiguous, inactive, or unverified routing inputs.
+- Keep runtime progress and operability evidence outside routing catalogs.

@@ -63,11 +63,11 @@ domains:
       pattern_index_ref: architecture/patterns/pattern-index.yml
 
   # Bounded domain that also publishes governed standards.
-  - domain_id: shared-platform
-    name: Shared Platform
-    owner: domain-arch-platform
+  - domain_id: order-standards
+    name: Order Domain and Standards
+    owner: domain-arch-order
     entry_type: both
-    domain_repo_url: https://github.com/<github-org>/<shared-platform-repo>
+    domain_repo_url: https://github.com/<github-org>/<order-domain-repo>
     domain_entrypoint: DOMAIN.md
     domain_git_ref: main
     status: active

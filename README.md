@@ -32,7 +32,7 @@ Canonical specification:
 
 ## Problem
 
-`AGENTS.md` works well for single-repository agent behavior, but enterprise delivery spans multiple repositories across architecture levels (enterprise, solution, domain). Teams need level-aware entrypoints, deterministic cross-repository routing, and explicit ownership and governance.
+`AGENTS.md` works well for single-repository agent behavior, but enterprise delivery spans multiple repositories across Enterprise, Solution, Domain, Platform, and implementation contexts. Teams need level-aware entrypoints, deterministic cross-repository routing, and explicit ownership and governance.
 
 ## What This Proposes
 
@@ -78,13 +78,17 @@ Short form:
 
 1. `AGENTS.md` remains the repo-local behavior contract. See the [`AGENTS.md` convention](https://github.com/agentsmd/agents.md) for background.
 2. Agents MUST start with `AGENTS.md`, and `AGENTS.md` MUST instruct agents to always read the repository's level entrypoint.
-3. `ENTERPRISE.md`, `SOLUTION.md`, and `DOMAIN.md` are navigation entrypoints, not duplicated data stores.
-4. Upstream links are explicit by level: `SOLUTION.md` and `DOMAIN.md` link to `ENTERPRISE.md` when the enterprise level exists.
+3. `ENTERPRISE.md`, `SOLUTION.md`, `DOMAIN.md`, and `PLATFORM.md` are navigation entrypoints, not duplicated data stores.
+4. Upstream links are explicit by level: `SOLUTION.md`, `DOMAIN.md`, and `PLATFORM.md` link to `ENTERPRISE.md` when the enterprise level exists.
 5. `DOMAIN.md` does not use `SOLUTION.md` as a required parent link because solution-to-domain relationships are many-to-many and belong in routing catalogs or handoff artifacts. For example, a shared "identity" domain may serve both a "customer portal" solution and an "internal tools" solution simultaneously.
 6. YAML is canonical for routing catalogs.
 7. Routing fails closed on missing selectors, ambiguous selectors, non-routable statuses, and unresolved normative references by default.
 8. Implementations must not fall back to repo-name heuristics or keyword inference for core routing.
-9. `dev` is an implementation execution role anchored at the domain layer, not a separate architecture level; see the spec for detailed `da`/`dev` ownership and traversal rules.
+9. `dev` is an implementation execution role anchored at its owning Domain or
+   Platform architecture boundary, not a separate architecture level.
+10. Platform is a durable ownership boundary parallel to Domain downstream of
+    Solution. Platform covers operational integration; Integration is not a
+    separate architecture level.
 
 ## Conformance Profiles
 
@@ -95,14 +99,18 @@ Short form:
 3. `initiatives.yml` exists when enterprise and solution levels both exist.
 4. `domain-workstreams.yml` exists when solution and domain levels both exist.
 5. `domain-implementations.yml` exists when selector-driven domain-to-implementation routing is in scope.
+6. `platform-workstreams.yml` exists when a Solution-to-Platform boundary is in scope.
+7. `platform-implementations.yml` exists when selector-driven Platform-to-implementation routing is in scope.
 
 `Governed` checklist:
 
 1. All `Core` requirements are satisfied.
 2. A domain governance registry exists, for example `domain-registry.yml`.
 3. Domain and `both` registry entries use `domain_entrypoint`; standards-only entries use `standards_provider.entrypoint`. Repository targets include `domain_git_ref`.
-4. A solution scope or index manifest exists, for example `solution-index.yml`.
-5. A governance state artifact exists with `spec_name`, `spec_version`, and `layers`.
+4. Governed Platform routing uses `platform-registry.yml` with stable
+   `platform_id`, `platform_entrypoint`, and `platform_git_ref`.
+5. A solution scope or index manifest exists, for example `solution-index.yml`.
+6. A governance state artifact exists with `spec_name`, `spec_version`, and `layers`.
 
 Routed adoption means deterministic selector-based resolution at each architecture boundary that exists in the operating model. Absent boundaries do not require placeholder catalogs.
 
@@ -123,10 +131,18 @@ Canonical catalogs and selectors:
 | `domain-workstreams.yml` | Solution | `workstream_id` | `domain_id` + workstream context + repo target |
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 | `domain-registry.yml` 2.x | Enterprise | `domain_id` | governed domain and/or standards-provider target |
+| `platform-registry.yml` | Enterprise | `platform_id` | governed Platform repository + `PLATFORM.md` |
+| `platform-workstreams.yml` | Solution | `workstream_id` | `platform_id` + Platform workstream context |
+| `platform-implementations.yml` | Platform | `implementation_id` | Platform implementation location + optional entrypoint/ref |
 
 An optional `domain-change-handoff.yml` companion carries the immutable,
 machine-readable SA-to-Domain requested change for a Workstream. It is not a
 routing catalog or runtime progress record.
+
+`platform-change-handoff.yml` provides the corresponding SA-to-Platform
+contract. It may reference stable `interface_id` and `connection_id` elements;
+Platform owns the operated connection, while the providing Domain/component
+retains semantic interface ownership.
 
 Default routable statuses are `active` and `in_progress`.
 
@@ -162,6 +178,13 @@ Domain repository note:
 
 1. In a Domain repo, `AGENTS.md` should make the bounded-context boundary explicit. A short pattern is: `You are operating strictly inside the <Domain Name> bounded context. Never modify or reference artifacts owned by another domain without escalation through the authoritative routing or governance artifacts.`
 
+Platform repository note:
+
+1. In a Platform repo, `AGENTS.md` should make operational integration
+   ownership explicit: Platform owns `connection_id` realization and
+   operability, but does not take ownership of the authoritative semantic
+   contract referenced by `interface_id`.
+
 ## Repository Contents
 
 ```text
@@ -179,7 +202,11 @@ Domain repository note:
 |-- .github/                                       # issue templates, PR template, CI, CODEOWNERS
 |-- schemas/                                       # authoritative JSON schemas for canonical artifacts
 |   |-- domain-change-handoff.schema.json          # portable SA-to-Domain requested-change contract
-|-- packs/                                         # copy-paste starter packs per role (ea/sa/da/dev)
+|   |-- platform-registry.schema.json              # governed Platform identities and repository targets
+|   |-- platform-workstreams.schema.json           # SA-to-Platform routing
+|   |-- platform-change-handoff.schema.json        # portable SA-to-Platform requested-change contract
+|   `-- platform-implementations.schema.json       # Platform-to-implementation routing
+|-- packs/                                         # copy-paste starter packs per role (ea/sa/da/platform/dev)
 |-- skills/
 |   `-- ea-convention/                             # ea-convention skill (manage, validate, scaffold)
 |       |-- SKILL.md                               # skill definition and operations
@@ -191,12 +218,17 @@ Domain repository note:
 |           |-- ENTERPRISE.md.template             # enterprise entrypoint
 |           |-- SOLUTION.md.template               # solution entrypoint
 |           |-- DOMAIN.md.template                 # domain entrypoint
-|           |-- AGENTS.{ea,sa,da,dev}.md.template  # role-specific AGENTS.md
-|           |-- CLAUDE.{ea,sa,da,dev}.md.template  # role-specific CLAUDE.md bridge templates
+|           |-- PLATFORM.md.template               # Platform/SRE entrypoint
+|           |-- AGENTS.{ea,sa,da,platform,dev}.md.template # role-specific AGENTS.md
+|           |-- CLAUDE.{ea,sa,da,platform,dev}.md.template # role-specific CLAUDE.md bridges
 |           |-- initiatives.yml.template           # enterprise routing catalog
 |           |-- domain-workstreams.yml.template    # solution routing catalog
 |           |-- domain-change-handoff.yml.template # optional SA-to-Domain requested-change contract
 |           |-- domain-implementations.yml.template # domain-to-implementation routing catalog
+|           |-- platform-registry.yml.template     # Platform governance registry
+|           |-- platform-workstreams.yml.template  # Solution-to-Platform routing catalog
+|           |-- platform-change-handoff.yml.template # SA-to-Platform requested change
+|           |-- platform-implementations.yml.template # Platform-to-implementation routing
 |           |-- domain-registry.yml.template       # domain governance registry
 |           |-- solution-index.yml.template        # solution scope manifest
 |           |-- initiative-pipeline.yml.template   # portfolio pipeline source
@@ -222,10 +254,15 @@ Recommended default owners:
 | `ENTERPRISE.md` | EA |
 | `SOLUTION.md` | SA |
 | `DOMAIN.md` | DA |
+| `PLATFORM.md` | Platform Architecture / Platform Engineering / SRE |
 | `initiatives.yml` | EA/PMO |
 | `domain-workstreams.yml` | SA |
 | `domain-change-handoff.yml` | SA |
 | `domain-implementations.yml` | DA |
+| `platform-registry.yml` | EA / Platform governance |
+| `platform-workstreams.yml` | SA |
+| `platform-change-handoff.yml` | SA |
+| `platform-implementations.yml` | Platform Architecture / Platform Engineering / SRE |
 
 If roles are collapsed in one team or repository, ownership MUST be explicitly declared in the relevant entrypoint.
 

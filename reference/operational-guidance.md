@@ -87,6 +87,8 @@ Recommended harness/context practices:
 3. Add mechanical doc freshness checks in CI.
 4. Start traversal with `AGENTS.md`, then the applicable level entrypoint, then the canonical selector catalog for the next boundary.
 5. Treat `DOMAIN.md` plus `domain-implementations.yml` as the bounded-context contract for domain-scoped execution.
+6. Treat `PLATFORM.md` plus `platform-implementations.yml` as the durable
+   Platform and operational integration contract for Platform/SRE-scoped work.
 
 For additional harness-oriented guidance, see [harness-engineering.md](harness-engineering.md).
 

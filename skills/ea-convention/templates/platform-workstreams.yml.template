@@ -1,0 +1,32 @@
+# SA-to-Platform workstream selector. Integration demand targets Platform; it
+# must not be represented as a Domain workstream.
+
+spec_name: platform-workstreams
+spec_version: "1.0.0"
+workspace_id: <workspace-id-or-null>
+initiative_id: <initiative-id-or-null>
+generated_at_utc: <iso8601>
+generated_by: <sa-user-or-agent>
+workstreams:
+  - workstream_id: <ws-initiative-platform>
+    workstream_uuid: <uuid-v4>
+    initiative_id: <initiative-id>
+    platform_id: <platform-id>
+    platform_name: <platform-display-name>
+    name: <initiative-x-platform-display-name>
+    workstream_entrypoint: <inputs/workstreams/WORKSTREAM_ID/WORKSTREAM.md-or-null>
+    workstream_git_ref: <branch-tag-or-commit-ref>
+    platform_repo_url: <https://github.com/org/platform-repo>
+    workstream_path: <repo-relative-folder-or-null>
+    handoff_ref: <opaque-legacy-ref-or-null>
+    # change_handoff_ref:
+    #   ref_version: v1
+    #   artifact_path: <inputs/workstreams/WORKSTREAM_ID/platform-change-handoff.yml>
+    #   commit_sha: <full-40-or-64-character-commit>
+    #   digest: <sha256:64-hex-digest>
+    status: active
+    owner: <platform-owner-or-team>
+    metadata:
+      priority: <high|medium|low>
+      milestone: <yyyy-q#-or-null>
+notes: <optional-notes>

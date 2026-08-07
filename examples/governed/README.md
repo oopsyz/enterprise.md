@@ -10,11 +10,13 @@ enterprise-repo/
   ENTERPRISE.md
   initiatives.yml
   domain-registry.yml
+  platform-registry.yml
 
 solution-repo/
   AGENTS.md
   SOLUTION.md
   domain-workstreams.yml
+  platform-workstreams.yml
   solution-index.yml
 
 domain-repo/
@@ -22,11 +24,18 @@ domain-repo/
   DOMAIN.md
   domain-implementations.yml
   governance-state.yml
+
+platform-repo/
+  AGENTS.md
+  PLATFORM.md
+  platform-implementations.yml
 ```
 
 ## What's New Over Core
 
 - `domain-registry.yml` — enterprise-level domain governance registry
+- `platform-registry.yml` — enterprise-level Platform governance registry
+- `platform-workstreams.yml` — Solution-to-Platform demand routing
 - `solution-index.yml` — solution scope and index manifest
 - `governance-state.yml` — per-domain governance state with layer statuses
 - `domain-registry.yml` 2.0 standards-provider subtype and default provider

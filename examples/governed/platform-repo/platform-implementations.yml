@@ -1,0 +1,11 @@
+spec_name: platform-implementations
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: jms-platform
+    status: active
+    repo:
+      url: https://github.com/acme/integration-runtime
+      paths: ["deploy/jms/*"]
+      entrypoint: deploy/jms/README.md
+      git_ref: main
+    owners: [platform-engineering]

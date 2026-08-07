@@ -1,0 +1,11 @@
+spec_name: platform-implementations
+spec_version: "1.0.0"
+implementations:
+  - implementation_id: <platform-implementation-id>
+    status: active
+    repo:
+      url: https://github.com/<org>/<repo>
+      paths: ["**"]
+      entrypoint: README.md
+      git_ref: main
+    owners: [<team>]

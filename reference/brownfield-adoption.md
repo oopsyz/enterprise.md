@@ -30,6 +30,7 @@ Create `AGENTS.md` plus the applicable level entrypoint before adding catalogs:
 1. `ENTERPRISE.md` for enterprise context
 2. `SOLUTION.md` for solution context
 3. `DOMAIN.md` for domain context
+4. `PLATFORM.md` for durable Platform and operational integration context
 
 Keep these entrypoints short. They should establish:
 
@@ -45,7 +46,8 @@ Do not adopt all catalogs at once unless the operating model needs them:
 
 1. add `initiatives.yml` only when enterprise-to-solution routing exists
 2. add `domain-workstreams.yml` only when solution-to-domain routing exists
-3. add `domain-implementations.yml` only when selector-driven domain-to-implementation routing is needed
+3. add `platform-workstreams.yml` only when Solution-to-Platform routing exists
+4. add `domain-implementations.yml` only when selector-driven domain-to-implementation routing is needed
 
 This keeps the initial rollout small while preserving the convention's fail-closed semantics.
 
@@ -74,7 +76,7 @@ This preserves deterministic navigation without requiring the external repo to a
 
 ### Repositories Without Entrypoints
 
-If a target repo has no `AGENTS.md`, `ENTERPRISE.md`, `SOLUTION.md`, or `DOMAIN.md`:
+If a target repo has no `AGENTS.md`, `ENTERPRISE.md`, `SOLUTION.md`, `DOMAIN.md`, or `PLATFORM.md`:
 
 1. do not infer ownership from the repo name alone
 2. route to the exact file identified by the authoritative catalog
@@ -103,7 +105,9 @@ A common brownfield rollout sequence is:
 1. start with one Domain repo and one implementation target
 2. add `domain-implementations.yml` and validate the traversal
 3. add a Solution repo with `domain-workstreams.yml`
-4. add enterprise-level routing only when portfolio-level resolution is needed
+4. add Platform routing only for real durable Platform ownership boundaries;
+   do not relabel integration platforms as Domains
+5. add enterprise-level routing only when portfolio-level resolution is needed
 
 This sequence lets the organization prove value early without a large central migration.
 

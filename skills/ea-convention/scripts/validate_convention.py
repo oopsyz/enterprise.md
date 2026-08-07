@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
 Enterprise Convention Validator
-Validates referential integrity and schema conformance for ea/sa/da convention artifacts.
+Validates referential integrity and schema conformance for EA, SA, Domain, and
+Platform convention artifacts.
 
 Usage:
     python validate_convention.py [--root REPO_ROOT] [--schema-dir SCHEMA_DIR]
                                   [--repo-url REPO_URL]
                                   [--initiatives PATH] [--domain-registry PATH]
                                   [--solution-index PATH] [--workstreams PATH]
-                                  [--da-root PATH]
+                                  [--platform-registry PATH]
+                                  [--platform-workstreams PATH]
+                                  [--da-root PATH] [--platform-root PATH]
                                   [--active-only] [--allow-empty]
 
 Path arguments are relative to --root. They default to the reference layout
@@ -16,7 +19,7 @@ Path arguments are relative to --root. They default to the reference layout
 must supply the correct paths explicitly.
 
 Partial-adoption topology support:
-  The spec allows EA-only, SA+DA, DA-only, and full EA+SA+DA topologies.
+  The spec allows partial EA, SA, Domain, and Platform topologies.
   Missing layer catalogs are treated as absent (skipped with a note) unless the
   user explicitly supplied that path — in which case the file is expected to exist.
   This means a DA-only repo will not fail on missing EA or SA catalogs.
@@ -28,6 +31,9 @@ DA layout:
   domain-implementations.yml at --da-root, or a nested layout with one
   subdirectory per domain under --da-root. Custom layouts may still require
   explicit review.
+
+Platform layout follows the same rule using platform-implementations.yml at
+--platform-root or one subdirectory per platform.
 
 Exit codes:
     0  clean
@@ -71,9 +77,12 @@ except ImportError:
 DEFAULTS = {
     "initiatives":     "ea/architecture/portfolio/initiatives.yml",
     "domain_registry": "ea/architecture/enterprise/domain-registry.yml",
+    "platform_registry": "ea/architecture/enterprise/platform-registry.yml",
     "solution_index":  "sa/solution-index.yml",
     "workstreams":     "sa/architecture/solution/domain-workstreams.yml",
+    "platform_workstreams": "sa/architecture/solution/platform-workstreams.yml",
     "da_root":         "da",
+    "platform_root":   "platform",
 }
 
 SCHEMA_BY_BASENAME = {
@@ -84,6 +93,10 @@ SCHEMA_BY_BASENAME = {
     "solution-index.yml":          "solution-index.schema.json",
     "domain-roadmap.yml":          "domain-roadmap.schema.json",
     "domain-change-handoff.yml":  "domain-change-handoff.schema.json",
+    "platform-registry.yml":      "platform-registry.schema.json",
+    "platform-workstreams.yml":   "platform-workstreams.schema.json",
+    "platform-implementations.yml": "platform-implementations.schema.json",
+    "platform-change-handoff.yml": "platform-change-handoff.schema.json",
 }
 
 ROUTABLE_STATUSES = {"active", "in_progress"}
@@ -93,6 +106,10 @@ SUPPORTED_MAJORS = {
     "pattern-index": {1},
     "standards-resolution-receipt": {1},
     "domain-change-handoff": {1},
+    "platform-registry": {1},
+    "platform-workstreams": {1},
+    "platform-implementations": {1},
+    "platform-change-handoff": {1},
 }
 
 # --- Error collection ---
@@ -271,8 +288,10 @@ def validate_change_handoff(
     workstreams_path: Path,
     workstream_index: int,
     workstream: dict[str, Any],
+    schema_basename: str = "domain-change-handoff.schema.json",
+    target_id_field: str = "domain_id",
 ) -> None:
-    """Validate an accessible typed SA-to-Domain handoff and its catalog agreement."""
+    """Validate an accessible typed SA handoff and its catalog agreement."""
     ref = workstream.get("change_handoff_ref")
     if not isinstance(ref, dict):
         err("ERR_CHANGE_HANDOFF_INVALID",
@@ -322,7 +341,7 @@ def validate_change_handoff(
     handoff = as_mapping(raw, f"{commit_sha}:{artifact_path}")
     validate_schema(
         raw,
-        schema_dir / "domain-change-handoff.schema.json",
+        schema_dir / schema_basename,
         Path(str(artifact_path)),
     )
     validate_supported_version(handoff, Path(str(artifact_path)))
@@ -330,7 +349,7 @@ def validate_change_handoff(
     agreements = (
         ("workstream_id", workstream.get("workstream_id"), handoff.get("workstream_id")),
         ("initiative_id", workstream.get("initiative_id"), handoff.get("initiative_id")),
-        ("target.domain_id", workstream.get("domain_id"), (handoff.get("target") or {}).get("domain_id") if isinstance(handoff.get("target"), dict) else None),
+        (f"target.{target_id_field}", workstream.get(target_id_field), (handoff.get("target") or {}).get(target_id_field) if isinstance(handoff.get("target"), dict) else None),
     )
     for field, catalog_value, handoff_value in agreements:
         if catalog_value != handoff_value:
@@ -510,6 +529,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
 
     initiatives_path = root / paths["initiatives"]
     domain_registry_path = root / paths["domain_registry"]
+    platform_registry_path = root / paths["platform_registry"]
 
     initiative_ids: set[str] = set()
     has_initiatives = False
@@ -615,6 +635,45 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 path=domain_registry_path)
         print(f"  domains: {len(domain_ids)} ({', '.join(sorted(domain_ids)) or 'none'})")
 
+    platform_ids: set[str] = set()
+    platform_repo_urls_by_id: dict[str, str] = {}
+    has_platform_registry = False
+    if not platform_registry_path.exists():
+        if "platform_registry" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['platform_registry']} not found")
+        else:
+            note("platform-registry.yml absent — EA Platform registry not present in this repo")
+    else:
+        catalog_count += 1
+        has_platform_registry = True
+        platform_registry_raw = load_yaml(platform_registry_path)
+        validate_schema(
+            platform_registry_raw,
+            schema_dir / "platform-registry.schema.json",
+            platform_registry_path,
+        )
+        platform_registry_data = as_mapping(platform_registry_raw, platform_registry_path)
+        validate_supported_version(platform_registry_data, platform_registry_path)
+        platforms_list = platform_registry_data.get("platforms", [])
+        platform_ids = ensure_unique_ids(platforms_list, "platform_id", platform_registry_path)
+        for index, platform in enumerate(as_list(platforms_list)):
+            if not isinstance(platform, dict):
+                continue
+            platform_id = platform.get("platform_id", "")
+            platform_url = platform.get("platform_repo_url", "")
+            platform_entrypoint = platform.get("platform_entrypoint", "")
+            normalized_platform_url = normalize_repo_url(platform_url)
+            if isinstance(platform_id, str) and platform_id and normalized_platform_url:
+                platform_repo_urls_by_id[platform_id] = normalized_platform_url
+            if platform_entrypoint and is_local_path(platform_url, this_repo_url):
+                if not file_exists_local(root, platform_entrypoint):
+                    err(
+                        "ERR_ENTRYPOINT_MISSING",
+                        f"platforms[{index}] platform_entrypoint '{platform_entrypoint}' not found",
+                        path=platform_registry_path,
+                    )
+        print(f"  platforms: {len(platform_ids)} ({', '.join(sorted(platform_ids)) or 'none'})")
+
     if has_initiatives:
         for index, init in enumerate(as_list(initiatives_data.get("initiatives", []))):
             if not isinstance(init, dict):
@@ -645,6 +704,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
 
     solution_index_path = root / paths["solution_index"]
     workstreams_path = root / paths["workstreams"]
+    platform_workstreams_path = root / paths["platform_workstreams"]
 
     if not solution_index_path.exists():
         if "solution_index" in explicit_paths:
@@ -667,6 +727,20 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 if vfield in domain:
                     warn(f"domains[{di}] contains vertical-specific field '{vfield}' — move to metadata: for industry annotations",
                          path=solution_index_path)
+        si_platforms = si_data.get("platforms", [])
+        if si_platforms and not isinstance(si_platforms, list):
+            err("ERR_INVALID_YAML", "expected a list for 'platforms'", path=solution_index_path)
+        for pi, platform in enumerate(as_list(si_platforms)):
+            if not isinstance(platform, dict):
+                err("ERR_INVALID_YAML", f"'platforms' entry {pi} is not a mapping", path=solution_index_path)
+                continue
+            platform_id = platform.get("platform_id")
+            if platform_id and has_platform_registry and platform_id not in platform_ids:
+                err(
+                    "ERR_PLATFORM_NOT_FOUND",
+                    f"platforms[{pi}] platform_id '{platform_id}' not in platform-registry",
+                    path=solution_index_path,
+                )
         print(f"  solution-index: ok")
 
     workstream_ids: set[str] = set()
@@ -780,6 +854,136 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                 routable_ws += 1
 
         print(f"  workstreams: {len(workstream_ids)} total, {routable_ws} routable")
+
+    platform_workstream_ids: set[str] = set()
+    if not platform_workstreams_path.exists():
+        if "platform_workstreams" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['platform_workstreams']} not found")
+        else:
+            note("platform-workstreams.yml absent — SA Platform workstream catalog not present in this repo")
+    else:
+        catalog_count += 1
+        platform_ws_raw = load_yaml(platform_workstreams_path)
+        validate_schema(
+            platform_ws_raw,
+            schema_dir / "platform-workstreams.schema.json",
+            platform_workstreams_path,
+        )
+        platform_ws_data = as_mapping(platform_ws_raw, platform_workstreams_path)
+        validate_supported_version(platform_ws_data, platform_workstreams_path)
+
+        platform_ws_file_init_id = platform_ws_data.get("initiative_id", "")
+        if platform_ws_file_init_id and has_initiatives and platform_ws_file_init_id not in initiative_ids:
+            err(
+                "ERR_INITIATIVE_NOT_FOUND",
+                f"platform workstreams file initiative_id '{platform_ws_file_init_id}' not in initiatives",
+                path=platform_workstreams_path,
+            )
+
+        platform_workstreams_list = platform_ws_data.get("workstreams", [])
+        platform_workstream_ids = ensure_unique_ids(
+            platform_workstreams_list, "workstream_id", platform_workstreams_path
+        )
+        duplicate_cross_target_ids = workstream_ids & platform_workstream_ids
+        for duplicate_id in sorted(duplicate_cross_target_ids):
+            err(
+                "ERR_SELECTOR_AMBIGUOUS",
+                f"workstream_id '{duplicate_id}' appears in both Domain and Platform workstream catalogs",
+                path=platform_workstreams_path,
+            )
+
+        routable_platform_ws = 0
+        for index, workstream in enumerate(as_list(platform_workstreams_list)):
+            if not isinstance(workstream, dict):
+                continue
+            initiative_id = workstream.get("initiative_id", "")
+            if has_initiatives and not initiative_id:
+                err(
+                    "ERR_SELECTOR_MISSING",
+                    f"workstreams[{index}] requires initiative_id when initiatives.yml is present",
+                    path=platform_workstreams_path,
+                )
+            if initiative_id and has_initiatives and initiative_id not in initiative_ids:
+                err(
+                    "ERR_INITIATIVE_NOT_FOUND",
+                    f"workstreams[{index}] initiative_id '{initiative_id}' not in initiatives",
+                    path=platform_workstreams_path,
+                )
+
+            platform_id = workstream.get("platform_id", "")
+            if platform_id and has_platform_registry and platform_id not in platform_ids:
+                err(
+                    "ERR_PLATFORM_NOT_FOUND",
+                    f"workstreams[{index}] platform_id '{platform_id}' not in platform-registry",
+                    path=platform_workstreams_path,
+                )
+
+            status = workstream.get("status")
+            entrypoint = workstream.get("workstream_entrypoint")
+            platform_repo_url = workstream.get("platform_repo_url")
+            normalized_workstream_url = normalize_repo_url(platform_repo_url)
+            registry_url = platform_repo_urls_by_id.get(platform_id)
+            effective_url = normalized_workstream_url or registry_url
+
+            if normalized_workstream_url and registry_url and normalized_workstream_url != registry_url:
+                err(
+                    "ERR_CONFLICT",
+                    f"workstreams[{index}] platform_repo_url '{platform_repo_url}' does not match authoritative platform-registry.yml value '{registry_url}' for platform_id '{platform_id}'",
+                    path=platform_workstreams_path,
+                )
+            if "workstream_entrypoint" not in workstream:
+                err(
+                    "ERR_ENTRYPOINT_MISSING",
+                    f"workstreams[{index}] must include workstream_entrypoint; use null before materialization",
+                    path=platform_workstreams_path,
+                )
+            if status in routable_statuses and not isinstance(entrypoint, str):
+                err(
+                    "ERR_ENTRYPOINT_MISSING",
+                    f"workstreams[{index}] routable status '{status}' requires a non-null workstream_entrypoint",
+                    path=platform_workstreams_path,
+                )
+            if not has_platform_registry and not normalized_workstream_url:
+                err(
+                    "ERR_TARGET_UNREACHABLE",
+                    f"workstreams[{index}] requires platform_repo_url when no platform-registry.yml is provided",
+                    path=platform_workstreams_path,
+                )
+            if entrypoint and is_local_path(effective_url, this_repo_url):
+                if not file_exists_local(root, entrypoint):
+                    err(
+                        "ERR_ENTRYPOINT_MISSING",
+                        f"workstreams[{index}] workstream_entrypoint '{entrypoint}' not found",
+                        path=platform_workstreams_path,
+                    )
+            if "change_handoff_ref" in workstream:
+                if is_local_path(effective_url, this_repo_url):
+                    validate_change_handoff(
+                        root=root,
+                        schema_dir=schema_dir,
+                        workstreams_path=platform_workstreams_path,
+                        workstream_index=index,
+                        workstream=workstream,
+                        schema_basename="platform-change-handoff.schema.json",
+                        target_id_field="platform_id",
+                    )
+                else:
+                    warn(
+                        f"workstreams[{index}] change_handoff_ref is structurally valid but its remote Git artifact was not available for cross-artifact verification",
+                        path=platform_workstreams_path,
+                    )
+            if status == "inactive":
+                warn(
+                    f"Platform workstream '{workstream.get('workstream_id', '')}' is inactive — not routable",
+                    path=platform_workstreams_path,
+                )
+            elif status in routable_statuses:
+                routable_platform_ws += 1
+
+        print(
+            f"  platform workstreams: {len(platform_workstream_ids)} total, "
+            f"{routable_platform_ws} routable"
+        )
 
     # -------------------------
     # 3. DOMAIN LAYER
@@ -927,7 +1131,128 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                       + (f", {roadmap_count} roadmap item(s) [proposed ext]" if roadmap_count else ""))
 
     # -------------------------
-    # 4. RESULTS
+    # 4. PLATFORM LAYER
+    # -------------------------
+    print("\n[ Platform Layer ]")
+
+    platform_root = root / paths["platform_root"]
+    if not platform_root.exists():
+        if "platform_root" in explicit_paths:
+            err("ERR_ENTRYPOINT_MISSING", f"{paths['platform_root']}/ not found")
+        else:
+            note("platform/ directory absent — Platform layer not present in this repo")
+    else:
+        flat_platform_impl_path = platform_root / "platform-implementations.yml"
+        platform_dirs = [directory for directory in platform_root.iterdir() if directory.is_dir()]
+        if flat_platform_impl_path.exists():
+            platform_targets = [("flat-root", platform_root, flat_platform_impl_path)]
+        else:
+            platform_targets = [
+                (
+                    directory.name,
+                    directory,
+                    directory / "platform-implementations.yml",
+                )
+                for directory in sorted(platform_dirs)
+            ]
+            if not platform_targets:
+                if "platform_root" in explicit_paths:
+                    warn(
+                        f"'{paths['platform_root']}' has no Platform subdirectories and no flat platform-implementations.yml — Platform validation was skipped."
+                    )
+                else:
+                    note("platform/ exists but contains no Platform subdirectories")
+
+        for platform_id, platform_dir, implementation_path in platform_targets:
+            if not implementation_path.exists():
+                warn(f"Platform '{platform_id}' has no platform-implementations.yml")
+                continue
+
+            catalog_count += 1
+            implementation_raw = load_yaml(implementation_path)
+            validate_schema(
+                implementation_raw,
+                schema_dir / "platform-implementations.schema.json",
+                implementation_path,
+            )
+            implementation_data = as_mapping(implementation_raw, implementation_path)
+            validate_supported_version(implementation_data, implementation_path)
+            implementations_raw = implementation_data.get("implementations", [])
+            implementation_ids = ensure_unique_ids(
+                implementations_raw, "implementation_id", implementation_path
+            )
+            implementations = as_list(implementations_raw)
+
+            for index, implementation in enumerate(implementations):
+                if not isinstance(implementation, dict):
+                    continue
+                for successor in as_list(implementation.get("replaced_by", [])):
+                    if successor not in implementation_ids:
+                        err(
+                            "ERR_SELECTOR_MISSING",
+                            f"implementations[{index}].replaced_by references missing implementation_id '{successor}'",
+                            path=implementation_path,
+                        )
+
+            bindings: dict[str, list[tuple[str, int]]] = defaultdict(list)
+            routable_implementations = 0
+            for index, implementation in enumerate(implementations):
+                if not isinstance(implementation, dict):
+                    continue
+                if implementation.get("status") in routable_statuses:
+                    routable_implementations += 1
+                repo = implementation.get("repo") or {}
+                if not isinstance(repo, dict):
+                    continue
+                repo_paths = repo.get("paths") or ["*"]
+                if not isinstance(repo_paths, list):
+                    continue
+                repo_ids = [canonical_repo_id(implementation_path, repo.get("url"))]
+                aliases = repo.get("aliases") or []
+                if isinstance(aliases, list):
+                    repo_ids.extend(
+                        alias.rstrip("/").lower()
+                        for alias in aliases
+                        if isinstance(alias, str) and alias
+                    )
+                for repo_id in dict.fromkeys(repo_ids):
+                    for repo_path in repo_paths:
+                        if not isinstance(repo_path, str):
+                            continue
+                        for prior_path, prior_index in bindings[repo_id]:
+                            if glob_paths_overlap(repo_path, prior_path):
+                                err(
+                                    "ERR_OVERLAPPING_PATHS",
+                                    f"implementations[{index}] repo binding ({repo_id}, {repo_path}) overlaps implementations[{prior_index}] path '{prior_path}'",
+                                    path=implementation_path,
+                                )
+                        bindings[repo_id].append((repo_path, index))
+                    path_values = [path_value for path_value, _ in bindings[repo_id]]
+                    if "*" in path_values and len(path_values) > 1:
+                        err(
+                            "ERR_OVERLAPPING_PATHS",
+                            f"repo binding set for {repo_id} mixes '*' with scoped paths, violating the uniqueness invariant",
+                            path=implementation_path,
+                        )
+
+                if implementation.get("status") in routable_statuses:
+                    repo_url = repo.get("url", "")
+                    repo_entrypoint = repo.get("entrypoint", "")
+                    if repo_entrypoint and is_local_path(repo_url, this_repo_url):
+                        if not file_exists_local(root, repo_entrypoint):
+                            err(
+                                "ERR_ENTRYPOINT_MISSING",
+                                f"implementations[{index}] repo.entrypoint '{repo_entrypoint}' not found",
+                                path=implementation_path,
+                            )
+
+            print(
+                f"  {platform_id}: {len(implementation_ids)} impl(s), "
+                f"{routable_implementations} routable"
+            )
+
+    # -------------------------
+    # 5. RESULTS
     # -------------------------
     print()
     if catalog_count == 0 and not allow_empty:
@@ -967,12 +1292,17 @@ DA layout:
   domain-implementations.yml directly at --da-root, or a nested layout with one
   subdirectory per domain under --da-root. Custom layouts may need manual review.
 
+Platform layout follows the same flat-or-nested rule at --platform-root.
+
 Default paths (reference layout):
   --initiatives     ea/architecture/portfolio/initiatives.yml
   --domain-registry ea/architecture/enterprise/domain-registry.yml
+  --platform-registry ea/architecture/enterprise/platform-registry.yml
   --solution-index  sa/solution-index.yml
   --workstreams     sa/architecture/solution/domain-workstreams.yml
+  --platform-workstreams sa/architecture/solution/platform-workstreams.yml
   --da-root         da
+  --platform-root   platform
         """
     )
     parser.add_argument("--root", default=".",
@@ -986,12 +1316,18 @@ Default paths (reference layout):
                         help=f"Path to initiatives.yml (default: {DEFAULTS['initiatives']})")
     parser.add_argument("--domain-registry", default=None, dest="domain_registry",
                         help=f"Path to domain-registry.yml (default: {DEFAULTS['domain_registry']})")
+    parser.add_argument("--platform-registry", default=None, dest="platform_registry",
+                        help=f"Path to platform-registry.yml (default: {DEFAULTS['platform_registry']})")
     parser.add_argument("--solution-index", default=None, dest="solution_index",
                         help=f"Path to solution-index.yml (default: {DEFAULTS['solution_index']})")
     parser.add_argument("--workstreams", default=None,
                         help=f"Path to domain-workstreams.yml (default: {DEFAULTS['workstreams']})")
+    parser.add_argument("--platform-workstreams", default=None, dest="platform_workstreams",
+                        help=f"Path to platform-workstreams.yml (default: {DEFAULTS['platform_workstreams']})")
     parser.add_argument("--da-root", default=None, dest="da_root",
                         help=f"Path to DA domain root directory (default: {DEFAULTS['da_root']})")
+    parser.add_argument("--platform-root", default=None, dest="platform_root",
+                        help=f"Path to Platform root directory (default: {DEFAULTS['platform_root']})")
     parser.add_argument("--active-only", action="store_true",
                         help="Treat only status=active as routable (default: active + in_progress)")
     parser.add_argument("--allow-empty", action="store_true",

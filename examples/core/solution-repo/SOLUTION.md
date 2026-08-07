@@ -24,15 +24,20 @@ Purpose: Solution architecture entrypoint for BSS Modernization.
 SOLUTION.md                                        <- you are here
 AGENTS.md                                          <- repo-specific agent instructions
 domain-workstreams.yml                             <- workstream selector catalog (WORKSTREAM_ID routing)
+platform-workstreams.yml                           <- Platform demand routing
 ```
 
 ## Canonical Artifacts
 
 - [domain-workstreams.yml](domain-workstreams.yml)
+- [platform-workstreams.yml](platform-workstreams.yml)
 
 ## Routing
 
 `WORKSTREAM_ID` -> `domain-workstreams.yml` -> `domain_id` + `workstream_entrypoint` + `workstream_git_ref`
+
+Platform-targeted selectors resolve through `platform-workstreams.yml` to
+`platform_id`, `workstream_entrypoint`, and `workstream_git_ref`.
 
 ## SA Container Context
 

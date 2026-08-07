@@ -1,0 +1,7 @@
+# CLAUDE
+
+Role: platform
+Bootstrap: Read `AGENTS.md` first.
+Instruction: Then read `PLATFORM.md` (mandatory entrypoint for this level).
+Guardrail: `AGENTS.md` and `PLATFORM.md` remain the canonical navigation contracts. Runtime state and telemetry belong in runtime-owned systems.
+Boundary: Own operational integration through Platform artifacts while preserving the semantic contract authority referenced by `interface_id`.

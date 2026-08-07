@@ -9,6 +9,7 @@ Ready-to-drop role packs for the enterprise.md convention. Each pack contains th
 | [`ea/`](ea/) | Enterprise Architect | Enterprise repo | `ENTERPRISE.md`, `initiatives.yml`, `domain-registry.yml` |
 | [`sa/`](sa/) | Solution Architect | Solution repo | `SOLUTION.md`, `solution-index.yml`, `domain-workstreams.yml` |
 | [`da/`](da/) | Domain Architect | Domain repo | `DOMAIN.md`, `domain-implementations.yml` |
+| [`platform/`](platform/) | Platform Architecture / Platform Engineering / SRE | Platform repo | `PLATFORM.md`, `platform-implementations.yml` |
 | [`dev/`](dev/) | Developer | Implementation repo | `AGENTS.md`, `CLAUDE.md` (points agents to the Domain repo for context) |
 
 ## How to use
@@ -25,6 +26,7 @@ Placeholders follow the pattern `<kebab-case-description>`. Common ones:
 | `<enterprise-id>` | Stable enterprise identifier |
 | `<solution-key>` | Stable kebab-case solution key |
 | `<domain-id>` | Stable kebab-case domain identifier |
+| `<platform-id>` | Stable kebab-case Platform identifier |
 | `<initiative-id>` | Stable kebab-case initiative identifier |
 | `<enterprise-repo-url>` | Full URL to the enterprise repo |
 
@@ -56,6 +58,12 @@ packs/
 |   |-- CLAUDE.md
 |   |-- DOMAIN.md
 |   `-- domain-implementations.yml
+|
+|-- platform/                        <- Platform and operational integration repo
+|   |-- AGENTS.md
+|   |-- CLAUDE.md
+|   |-- PLATFORM.md
+|   `-- platform-implementations.yml
 |
 `-- dev/                             <- Implementation repo
     |-- AGENTS.md

@@ -1,0 +1,6 @@
+# AGENTS
+
+Role: platform
+Instruction: Always read `PLATFORM.md` (mandatory entrypoint for this level).
+Guardrail: Preserve the `PLATFORM.md` contract and keep mutable runtime state in runtime-owned systems.
+Boundary: This repository owns durable Platform and operational integration architecture. Do not assume ownership of Domain business semantics; link each operated `connection_id` to the authoritative `interface_id` contract.

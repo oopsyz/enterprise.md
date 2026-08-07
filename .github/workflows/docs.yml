@@ -56,7 +56,9 @@ jobs:
             --schema-dir schemas \
             --initiatives examples/core/enterprise-repo/initiatives.yml \
             --workstreams examples/core/solution-repo/domain-workstreams.yml \
-            --da-root examples/core/domain-repo
+            --platform-workstreams examples/core/solution-repo/platform-workstreams.yml \
+            --da-root examples/core/domain-repo \
+            --platform-root examples/core/platform-repo
 
       - name: Validate governed examples
         run: |
@@ -65,9 +67,12 @@ jobs:
             --schema-dir schemas \
             --initiatives examples/governed/enterprise-repo/initiatives.yml \
             --domain-registry examples/governed/enterprise-repo/domain-registry.yml \
+            --platform-registry examples/governed/enterprise-repo/platform-registry.yml \
             --solution-index examples/governed/solution-repo/solution-index.yml \
             --workstreams examples/governed/solution-repo/domain-workstreams.yml \
-            --da-root examples/governed/domain-repo
+            --platform-workstreams examples/governed/solution-repo/platform-workstreams.yml \
+            --da-root examples/governed/domain-repo \
+            --platform-root examples/governed/platform-repo
 
       - name: Check starter pack header contract
         run: |
@@ -76,4 +81,5 @@ jobs:
             packs/ea/architecture/enterprise/domain-registry.yml \
             packs/sa/architecture/solution/domain-workstreams.yml \
             packs/sa/solution-index.yml \
-            packs/da/domain-implementations.yml
+            packs/da/domain-implementations.yml \
+            packs/platform/platform-implementations.yml

@@ -79,9 +79,12 @@ def schema_dir() -> Path:
 DEFAULT_PATHS = {
     "initiatives": "ea/architecture/portfolio/initiatives.yml",
     "domain_registry": "ea/architecture/enterprise/domain-registry.yml",
+    "platform_registry": "ea/architecture/enterprise/platform-registry.yml",
     "solution_index": "sa/solution-index.yml",
     "workstreams": "sa/architecture/solution/domain-workstreams.yml",
+    "platform_workstreams": "sa/architecture/solution/platform-workstreams.yml",
     "da_root": "da",
+    "platform_root": "platform",
 }
 
 
