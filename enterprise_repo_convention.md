@@ -267,11 +267,21 @@ This standard defines file names and semantics, not fixed directories.
 | `domain-workstreams.yml` | Solution | `workstream_id` | workstream context (see Section 5.3) |
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 
+`domain-change-handoff.yml` is an optional canonical companion artifact rather
+than a routing catalog. It carries the portable, immutable requested-change
+contract for one Solution-to-Domain Workstream when a catalog row declares a
+typed `change_handoff_ref`.
+
 Catalog resolution is defined per boundary. This specification does not guarantee automatic selector propagation across boundaries; the caller must possess or obtain the selector for the next boundary independently. Implementations MAY define handoff mechanisms that carry selectors across boundaries, but such mechanisms are implementation-specific.
 
 Format rules:
 
 1. YAML is the canonical format for all catalogs in this proposal.
+2. Canonical routing catalogs MUST NOT embed mutable orchestration or execution
+   progress. In particular, `domain-workstreams.yml` MUST NOT contain a
+   top-level `execution` field. Runtimes MUST record progress, processed or
+   skipped workstreams, and similar operational state in separate runtime-owned
+   state artifacts or receipts.
 
 Catalog intent at a glance:
 
@@ -324,6 +334,8 @@ Catalog headers MUST follow the canonical schema for that catalog type:
 4. Governed companion artifacts with authoritative schemas in this repository follow the same header discipline:
    1. `domain-registry.yml` MUST include `spec_name` and `spec_version`.
    2. `solution-index.yml` MUST include `spec_name` and `spec_version`.
+   3. `domain-change-handoff.yml`, when present, MUST include
+      `spec_name: domain-change-handoff` and `spec_version`.
 
 Version rules:
 
@@ -379,6 +391,14 @@ Some organizations keep a first-party Domain repo as the canonical architecture 
 4. `domain-workstreams.yml` entries MUST include `domain_repo_url` unless the runtime has access to an authoritative `domain-registry.yml` that can resolve `domain_id` to the stable domain repository. In topologies without an authoritative domain registry, `domain_repo_url` in `domain-workstreams.yml` is the self-sufficient repository target for the owning domain. When `domain_repo_url` is omitted under this rule, implementations MUST interpret `workstream_entrypoint` and `workstream_git_ref` relative to the authoritative `domain_repo_url` resolved from `domain-registry.yml`.
 5. `workstream_entrypoint` MAY be `null` while the workstream context has not yet been materialized. For any routable workstream status, `workstream_entrypoint` MUST be non-null.
 6. `domain-workstreams.yml` entries MAY include `workstream_path` to identify the repo-relative folder that contains the workstream artifacts.
+   Entries MAY also include a typed `change_handoff_ref` containing
+   `ref_version: v1`, a safe repository-relative `artifact_path`, a full
+   commit SHA, and the exact `sha256:` content digest. The referenced
+   repository is `domain_repo_url`, or the repository resolved for
+   `domain_id` through the authoritative registry. The existing
+   `handoff_ref` remains an opaque string/null compatibility field and MUST
+   NOT be reinterpreted as this artifact path. The companion remains optional
+   in the 1.x catalog line.
 7. `domain-implementations.yml` entries MUST include:
    1. `implementation_id`: stable primary key. MUST be unique within the catalog. MUST NOT change even if the underlying repository is renamed, moved, or split.
    2. `status`: lifecycle state from the vocabulary defined in Section 5.4.
@@ -424,8 +444,29 @@ workstreams:
     workstream_git_ref: feature/ws-init-example-order
     domain_repo_url: https://github.com/example/order-domain-repo
     workstream_path: inputs/workstreams/ws-init-example-order/
+    change_handoff_ref:
+      ref_version: v1
+      artifact_path: inputs/workstreams/ws-init-example-order/domain-change-handoff.yml
+      commit_sha: 0123456789abcdef0123456789abcdef01234567
+      digest: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
     status: active
 ```
+
+#### domain-change-handoff.yml
+
+The optional handoff is owned by Solution Architecture and consumed by the
+target Domain Architecture context. It is requested-change content, not a new
+change-request identity, OA work-item identity, execution record, gate, or
+realization ledger. Its authoritative structure is
+[`schemas/domain-change-handoff.schema.json`](schemas/domain-change-handoff.schema.json).
+
+It MUST identify one `workstream_id`, its originating `initiative_id`, one
+Domain target, a pinned V2 Solution design artifact, a requested delta using
+stable requirement or architecture-element identifiers, and at least one
+stable acceptance criterion. `baseline_state: existing` requires a pinned
+baseline reference. `baseline_state: not_materialized` prohibits that
+reference and requires a non-empty reason. Platform handoffs are outside this
+1.0 contract and MUST NOT be represented by changing `target.kind`.
 
 #### domain-implementations.yml
 
@@ -538,6 +579,15 @@ Implementations MAY extend the routable set to include `approved` and/or `ready`
    1. `domain-workstreams.yml[].initiative_id` -> `initiatives.yml[].initiative_id`
    2. `domain-workstreams.yml[].domain_id` -> `domain-registry.yml[].domain_id`
    3. `solution_entrypoint` / `domain_entrypoint` / `workstream_entrypoint` / `repo.entrypoint` -> a real file in the referenced repository/revision when the corresponding entrypoint field is non-null. The applicable revision field is `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as appropriate.
+   4. When `change_handoff_ref` is present, the exact Git bytes at its full
+      commit MUST match its digest and the `domain-change-handoff` schema. The
+      handoff `workstream_id`, `initiative_id`, and target `domain_id` MUST
+      equal the catalog row; acceptance `criterion_id` values MUST be unique.
+      Requirement and architecture-element identifiers MUST resolve against
+      the pinned Solution context before the handoff authorizes downstream
+      work. A validator lacking the referenced repository MAY report the
+      verification as unavailable, but a routing runtime MUST fail closed
+      before dispatch rather than treat catalog structure as proof of bytes.
 6. Implementations MUST NOT fall back to repo-name heuristics, keyword search, or other inferred context.
 7. Deprecated targets are read-only discovery targets. A resolver MAY return a deprecated entry for traceability or migration context, but MUST NOT route write operations through it.
 8. When a deprecated entry includes `replaced_by`, the resolver SHOULD surface those successor `implementation_id` values as migration hints. These hints do not override the fail-closed requirement for write routing.
@@ -727,11 +777,16 @@ Validators for this convention MUST check:
 4. cross-file reference integrity for all normative references in Section 5.5
 5. status-policy compliance
 6. catalog version compatibility against Section 5.2
+7. when an accessible `change_handoff_ref` is present, exact Git-byte digest,
+   handoff schema, catalog agreement, and acceptance-criterion identity
 
 When the referenced repository or revision is accessible to the validator, it SHOULD also check:
 
 1. referenced repository URLs are reachable with validator identity (or provider API equivalent)
 2. referenced entrypoint paths exist in the target repository/revision declared by `solution_git_ref`, `domain_git_ref`, `workstream_git_ref`, or `repo.git_ref` as applicable
+3. referenced `change_handoff_ref` bytes exist at the declared immutable
+   commit; a routing runtime MUST perform this check before dispatch even when
+   an offline catalog validator could not access the remote repository
 
 Companion operational guidance, including CI realization patterns and observability practices, is maintained in `reference/operational-guidance.md`.
 
@@ -745,6 +800,7 @@ Companion operational guidance, including CI realization patterns and observabil
 | `DOMAIN.md` | DA | domain context entrypoint |
 | `initiatives.yml` | EA/PMO | enterprise->solution routing |
 | `domain-workstreams.yml` | SA | solution->domain routing |
+| `domain-change-handoff.yml` | SA | portable requested-change contract for one Domain-targeted Workstream |
 | `domain-implementations.yml` | DA | domain->implementation routing |
 | implementation repo local artifacts | Dev | implementation execution within DA-defined target scope |
 | governance state artifact | governance + level owners | stage gates and progress |
@@ -922,6 +978,7 @@ Reference implementation layout, operational mapping patterns, agent context gui
 |---|---|---|
 | [schemas/initiatives.schema.json](schemas/initiatives.schema.json) | `https://example.com/enterprise.md/schemas/initiatives.schema.json` | Structural validation for enterprise-to-solution routing catalogs |
 | [schemas/domain-workstreams.schema.json](schemas/domain-workstreams.schema.json) | `https://example.com/enterprise.md/schemas/domain-workstreams.schema.json` | Structural validation for solution-to-domain workstream routing catalogs |
+| [schemas/domain-change-handoff.schema.json](schemas/domain-change-handoff.schema.json) | `https://example.com/enterprise.md/schemas/domain-change-handoff.schema.json` | Portable immutable Solution-to-Domain requested-change contract |
 | [schemas/domain-implementations.schema.json](schemas/domain-implementations.schema.json) | `https://example.com/enterprise.md/schemas/domain-implementations.schema.json` | Structural validation for domain-to-implementation routing catalogs |
 | [schemas/domain-registry.schema.json](schemas/domain-registry.schema.json) | `https://example.com/enterprise.md/schemas/domain-registry.schema.json` | Structural validation for governed-profile domain registries |
 | [schemas/solution-index.schema.json](schemas/solution-index.schema.json) | `https://example.com/enterprise.md/schemas/solution-index.schema.json` | Structural validation for governed-profile solution manifests |

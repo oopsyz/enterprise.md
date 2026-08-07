@@ -8,6 +8,9 @@ The format is loosely based on Keep a Changelog, with project-level draft/spec r
 
 ### Added
 
+- optional canonical `domain-change-handoff` 1.0 artifact and typed
+  `change_handoff_ref` for immutable SA-to-Domain Workstream change content;
+  legacy `handoff_ref` remains opaque and unchanged
 - governed standards-provider routing, versioned pattern indexes, resolution
   receipts, a runtime resolver, and a standards-field-preserving initiative
   selector generator

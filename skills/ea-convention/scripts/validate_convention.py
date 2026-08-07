@@ -38,7 +38,10 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -80,6 +83,7 @@ SCHEMA_BY_BASENAME = {
     "domain-registry.yml":         "domain-registry.schema.json",
     "solution-index.yml":          "solution-index.schema.json",
     "domain-roadmap.yml":          "domain-roadmap.schema.json",
+    "domain-change-handoff.yml":  "domain-change-handoff.schema.json",
 }
 
 ROUTABLE_STATUSES = {"active", "in_progress"}
@@ -88,6 +92,7 @@ SUPPORTED_MAJORS = {
     "domain-registry": {1, 2},
     "pattern-index": {1},
     "standards-resolution-receipt": {1},
+    "domain-change-handoff": {1},
 }
 
 # --- Error collection ---
@@ -226,6 +231,115 @@ def safe_repo_target(root: Path, relative: Any) -> Path | None:
     except ValueError:
         return None
     return candidate
+
+
+def git_blob_bytes(
+    root: Path, commit_sha: str, artifact_path: str, *, error_path: Path
+) -> bytes | None:
+    """Read exact artifact bytes from an immutable Git commit.
+
+    The handoff digest binds Git-tree bytes, not a potentially dirty working
+    file. Callers validate the full commit and safe repo-relative path before
+    reaching this helper.
+    """
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), "show", f"{commit_sha}:{artifact_path}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=15,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        err("ERR_CHANGE_HANDOFF_UNVERIFIED",
+            f"could not read the handoff from Git: {exc}",
+            path=error_path)
+        return None
+    if completed.returncode != 0:
+        detail = completed.stderr.decode("utf-8", errors="replace").strip()
+        err("ERR_CHANGE_HANDOFF_UNVERIFIED",
+            f"could not read handoff '{artifact_path}' at commit '{commit_sha}': {detail}",
+            path=error_path)
+        return None
+    return completed.stdout
+
+
+def validate_change_handoff(
+    *,
+    root: Path,
+    schema_dir: Path,
+    workstreams_path: Path,
+    workstream_index: int,
+    workstream: dict[str, Any],
+) -> None:
+    """Validate an accessible typed SA-to-Domain handoff and its catalog agreement."""
+    ref = workstream.get("change_handoff_ref")
+    if not isinstance(ref, dict):
+        err("ERR_CHANGE_HANDOFF_INVALID",
+            f"workstreams[{workstream_index}] change_handoff_ref must be a mapping",
+            path=workstreams_path)
+        return
+
+    artifact_path = ref.get("artifact_path")
+    commit_sha = ref.get("commit_sha")
+    recorded_digest = ref.get("digest")
+    safe_path = safe_repo_target(root, artifact_path)
+    if safe_path is None:
+        err("ERR_CHANGE_HANDOFF_INVALID",
+            f"workstreams[{workstream_index}] change_handoff_ref artifact_path is unsafe",
+            path=workstreams_path)
+        return
+    if not isinstance(commit_sha, str) or not re.fullmatch(r"(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})", commit_sha):
+        err("ERR_CHANGE_HANDOFF_INVALID",
+            f"workstreams[{workstream_index}] change_handoff_ref requires a full commit SHA",
+            path=workstreams_path)
+        return
+    if not isinstance(recorded_digest, str) or not re.fullmatch(r"sha256:[0-9a-fA-F]{64}", recorded_digest):
+        err("ERR_CHANGE_HANDOFF_INVALID",
+            f"workstreams[{workstream_index}] change_handoff_ref requires a sha256 digest",
+            path=workstreams_path)
+        return
+
+    blob = git_blob_bytes(
+        root, commit_sha, str(artifact_path), error_path=workstreams_path
+    )
+    if blob is None:
+        return
+    actual_digest = f"sha256:{hashlib.sha256(blob).hexdigest()}"
+    if actual_digest.lower() != recorded_digest.lower():
+        err("ERR_CHANGE_HANDOFF_DIGEST_MISMATCH",
+            f"workstreams[{workstream_index}] handoff digest is {actual_digest}, expected {recorded_digest}",
+            path=workstreams_path)
+        return
+
+    try:
+        raw = yaml.safe_load(blob.decode("utf-8-sig"))
+    except (UnicodeDecodeError, yaml.YAMLError) as exc:
+        err("ERR_CHANGE_HANDOFF_INVALID",
+            f"workstreams[{workstream_index}] handoff is not valid UTF-8 YAML: {exc}",
+            path=workstreams_path)
+        return
+    handoff = as_mapping(raw, f"{commit_sha}:{artifact_path}")
+    validate_schema(
+        raw,
+        schema_dir / "domain-change-handoff.schema.json",
+        Path(str(artifact_path)),
+    )
+    validate_supported_version(handoff, Path(str(artifact_path)))
+
+    agreements = (
+        ("workstream_id", workstream.get("workstream_id"), handoff.get("workstream_id")),
+        ("initiative_id", workstream.get("initiative_id"), handoff.get("initiative_id")),
+        ("target.domain_id", workstream.get("domain_id"), (handoff.get("target") or {}).get("domain_id") if isinstance(handoff.get("target"), dict) else None),
+    )
+    for field, catalog_value, handoff_value in agreements:
+        if catalog_value != handoff_value:
+            err("ERR_CHANGE_HANDOFF_CONFLICT",
+                f"workstreams[{workstream_index}] {field} '{catalog_value}' does not match handoff value '{handoff_value}'",
+                path=workstreams_path)
+
+    criteria = handoff.get("acceptance_criteria", [])
+    ensure_unique_ids(criteria, "criterion_id", f"{commit_sha}:{artifact_path}")
 
 
 def validate_standards_entrypoint(
@@ -605,6 +719,7 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
             ws_url = domain_repo_url if isinstance(domain_repo_url, str) else ""
             normalized_ws_url = normalize_repo_url(domain_repo_url)
             registry_ws_url = domain_repo_urls_by_id.get(ws_dom_id)
+            effective_ws_url = normalized_ws_url or registry_ws_url
 
             if "workstream_repo_url" in ws:
                 warn(f"workstreams[{index}] uses legacy field 'workstream_repo_url' - rename to 'domain_repo_url'",
@@ -632,11 +747,26 @@ def run(root: Path, schema_dir: Path, paths: dict, explicit_paths: set,
                     f"workstreams[{index}] requires domain_repo_url when no domain-registry.yml is provided",
                     path=workstreams_path)
 
-            if entrypoint and is_local_path(ws_url, this_repo_url):
+            if entrypoint and is_local_path(effective_ws_url, this_repo_url):
                 if not file_exists_local(root, entrypoint):
                     err("ERR_ENTRYPOINT_MISSING",
                         f"workstreams[{index}] workstream_entrypoint '{entrypoint}' not found",
                         path=workstreams_path)
+
+            if "change_handoff_ref" in ws:
+                if is_local_path(effective_ws_url, this_repo_url):
+                    validate_change_handoff(
+                        root=root,
+                        schema_dir=schema_dir,
+                        workstreams_path=workstreams_path,
+                        workstream_index=index,
+                        workstream=ws,
+                    )
+                else:
+                    warn(
+                        f"workstreams[{index}] change_handoff_ref is structurally valid but its remote Git artifact was not available for cross-artifact verification",
+                        path=workstreams_path,
+                    )
 
             for vfield in ("oda_component_name", "tmfc_component_id"):
                 if vfield in ws:

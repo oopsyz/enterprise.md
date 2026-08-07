@@ -1,0 +1,47 @@
+# Canonical portable SA-to-Domain requested-change contract for one Workstream.
+# Runtime progress, OA work-item identity, gates, decisions, PR state, and
+# realization evidence do not belong in this artifact.
+spec_name: domain-change-handoff
+spec_version: "1.0.0"
+workstream_id: <workstream-id>
+initiative_id: <initiative-id>
+solution_design_ref:
+  ref_version: v2
+  artifact_id: <solution-design-artifact-id>
+  version: <solution-design-version>
+  repository_url: <https://github.com/org/solution-repo>
+  repository_entrypoint: <SOLUTION.md>
+  artifact_path: <architecture/solution/architecture-design.yml>
+  commit_sha: <full-40-or-64-character-commit>
+  digest: <sha256:64-hex-digest>
+target:
+  kind: domain
+  domain_id: <domain-id>
+  baseline_state: <existing|not_materialized>
+  # For existing: include baseline_ref and omit baseline_absence_reason.
+  # For not_materialized: omit baseline_ref and provide the reason.
+  baseline_ref:
+    baseline_id: <domain-baseline-id>
+    artifact_ref:
+      ref_version: v2
+      artifact_id: <domain-baseline-artifact-id>
+      version: <domain-baseline-version>
+      repository_url: <https://github.com/org/domain-repo>
+      repository_entrypoint: <DOMAIN.md>
+      artifact_path: <architecture/domain/domain-design.yml>
+      commit_sha: <full-40-or-64-character-commit>
+      digest: <sha256:64-hex-digest>
+  # baseline_absence_reason: <why-no-accepted-baseline-exists>
+requested_delta:
+  requirements:
+    add:
+      - <stable-requirement-id>
+  architecture_elements:
+    use: []
+    add: []
+    change: []
+    retire: []
+acceptance_criteria:
+  - criterion_id: <stable-criterion-id>
+    statement: <testable-acceptance-statement>
+external_refs: []

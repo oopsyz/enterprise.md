@@ -30,6 +30,13 @@ workstreams:
     domain_repo_url: <https://github.com/<org>/<domain-repo>>
     workstream_path: <repo-relative-folder-or-null>
     handoff_ref: <component-handoff-ref-or-null>
+    # Optional canonical SA-to-Domain requested-change contract. The legacy
+    # handoff_ref above remains an opaque compatibility value.
+    # change_handoff_ref:
+    #   ref_version: v1
+    #   artifact_path: <inputs/workstreams/<WORKSTREAM_ID>/domain-change-handoff.yml>
+    #   commit_sha: <full-40-or-64-character-commit>
+    #   digest: <sha256:64-hex-digest>
     status: active
     owner: <domain-arch-owner-or-team>
     metadata:
@@ -48,14 +55,15 @@ workstreams:
   #   domain_repo_url: <https://github.com/<org>/<proposed-domain-repo>>
   #   workstream_path: <repo-relative-folder-or-null>
   #   handoff_ref: <component-handoff-ref-or-null>
+  #   change_handoff_ref:
+  #     ref_version: v1
+  #     artifact_path: <inputs/workstreams/<WORKSTREAM_ID>/domain-change-handoff.yml>
+  #     commit_sha: <full-40-or-64-character-commit>
+  #     digest: <sha256:64-hex-digest>
   #   status: approved
   #   owner: <proposed-owner>
   #   metadata:
   #     priority: <high|medium|low>
   #     milestone: <yyyy-q#-or-null>
 
-execution:
-  state: not_started
-  processed_workstreams: []
-  skipped_workstreams: []
 notes: <optional notes>

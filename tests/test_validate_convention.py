@@ -8,6 +8,9 @@ enforcement.
 
 from __future__ import annotations
 
+import hashlib
+import json
+import subprocess
 from pathlib import Path
 
 
@@ -17,6 +20,92 @@ def errs(validator) -> str:
 
 def warns(validator) -> str:
     return "\n".join(validator.warnings)
+
+
+def commit_handoff(repo, handoff: dict) -> tuple[str, str, str]:
+    artifact_path = "inputs/workstreams/ws-init-a-order/domain-change-handoff.yml"
+    repo.write("inputs/workstreams/ws-init-a-order/WORKSTREAM.md", "# Workstream\n")
+    repo.write(artifact_path, json.dumps(handoff, indent=2) + "\n")
+    commands = (
+        ["git", "init", "-q"],
+        ["git", "config", "core.autocrlf", "false"],
+        ["git", "config", "user.email", "tests@example.com"],
+        ["git", "config", "user.name", "Convention Tests"],
+        ["git", "add", "--", "inputs"],
+        ["git", "commit", "-q", "-m", "Add workstream handoff"],
+    )
+    for command in commands:
+        subprocess.run(command, cwd=repo.root, check=True, capture_output=True)
+    commit_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=repo.root, check=True,
+        capture_output=True, text=True,
+    ).stdout.strip()
+    blob = subprocess.run(
+        ["git", "show", f"{commit_sha}:{artifact_path}"], cwd=repo.root,
+        check=True, capture_output=True,
+    ).stdout
+    return artifact_path, commit_sha, "sha256:" + hashlib.sha256(blob).hexdigest()
+
+
+def handoff_document(*, domain_id: str = "order", duplicate_criterion: bool = False) -> dict:
+    criteria = [{
+        "criterion_id": "ac-order-001",
+        "statement": "The Order domain represents the requested capability.",
+    }]
+    if duplicate_criterion:
+        criteria.append({
+            "criterion_id": "ac-order-001",
+            "statement": "A conflicting duplicate identifier is not portable.",
+        })
+    return {
+        "spec_name": "domain-change-handoff",
+        "spec_version": "1.0.0",
+        "workstream_id": "ws-init-a-order",
+        "initiative_id": "init-a",
+        "solution_design_ref": {
+            "ref_version": "v2",
+            "artifact_id": "art-solution-design",
+            "version": "1.0.0",
+            "repository_url": "https://github.com/acme/solution-a",
+            "repository_entrypoint": "SOLUTION.md",
+            "artifact_path": "architecture/solution/design.yml",
+            "commit_sha": "a" * 40,
+            "digest": "sha256:" + "b" * 64,
+        },
+        "target": {
+            "kind": "domain",
+            "domain_id": domain_id,
+            "baseline_state": "not_materialized",
+            "baseline_absence_reason": "No accepted domain baseline exists yet.",
+        },
+        "requested_delta": {
+            "requirements": {"add": ["req-family-plan-eligibility"]},
+        },
+        "acceptance_criteria": criteria,
+    }
+
+
+def workstream_catalog(artifact_path: str, commit_sha: str, digest: str, *, legacy=False) -> str:
+    legacy_line = "    handoff_ref: opaque-legacy-key\n" if legacy else ""
+    change_ref = "" if legacy else (
+        "    change_handoff_ref:\n"
+        "      ref_version: v1\n"
+        f"      artifact_path: {artifact_path}\n"
+        f"      commit_sha: {commit_sha}\n"
+        f"      digest: {digest}\n"
+    )
+    return (
+        'spec_name: domain-workstreams\nspec_version: "1.0.0"\n'
+        "workstreams:\n"
+        "  - workstream_id: ws-init-a-order\n"
+        "    initiative_id: init-a\n"
+        "    domain_id: order\n"
+        "    workstream_entrypoint: inputs/workstreams/ws-init-a-order/WORKSTREAM.md\n"
+        "    workstream_git_ref: feature/ws-init-a-order\n"
+        "    domain_repo_url: https://github.com/acme/domain-order\n"
+        f"{legacy_line}{change_ref}"
+        "    status: active\n"
+    )
 
 
 class TestHappyPath:
@@ -265,6 +354,58 @@ class TestReferentialIntegrity:
         ))
         assert repo.run() == 1
         assert "standards selection requires domain-registry 2.x" in errs(validator)
+
+
+class TestDomainChangeHandoff:
+    def test_legacy_handoff_ref_remains_opaque(self, repo, validator):
+        repo.write("inputs/workstreams/ws-init-a-order/WORKSTREAM.md", "# Workstream\n")
+        repo.write(
+            repo.paths["workstreams"],
+            workstream_catalog("unused.yml", "a" * 40, "sha256:" + "b" * 64, legacy=True),
+        )
+        assert repo.run(repo_url="https://github.com/acme/domain-order") == 0, errs(validator)
+
+    def test_local_change_handoff_is_read_from_its_commit_and_agrees(self, repo, validator):
+        artifact_path, commit_sha, digest = commit_handoff(repo, handoff_document())
+        repo.write(repo.paths["workstreams"], workstream_catalog(artifact_path, commit_sha, digest))
+        assert repo.run(repo_url="https://github.com/acme/domain-order") == 0, errs(validator)
+
+    def test_local_change_handoff_digest_mismatch_fails_closed(self, repo, validator):
+        artifact_path, commit_sha, _ = commit_handoff(repo, handoff_document())
+        repo.write(
+            repo.paths["workstreams"],
+            workstream_catalog(artifact_path, commit_sha, "sha256:" + "0" * 64),
+        )
+        assert repo.run(repo_url="https://github.com/acme/domain-order") == 1
+        assert "ERR_CHANGE_HANDOFF_DIGEST_MISMATCH" in errs(validator)
+
+    def test_local_change_handoff_catalog_disagreement_fails_closed(self, repo, validator):
+        artifact_path, commit_sha, digest = commit_handoff(
+            repo, handoff_document(domain_id="billing")
+        )
+        repo.write(repo.paths["workstreams"], workstream_catalog(artifact_path, commit_sha, digest))
+        assert repo.run(repo_url="https://github.com/acme/domain-order") == 1
+        assert "ERR_CHANGE_HANDOFF_CONFLICT" in errs(validator)
+
+    def test_acceptance_criterion_identity_is_unique(self, repo, validator):
+        artifact_path, commit_sha, digest = commit_handoff(
+            repo, handoff_document(duplicate_criterion=True)
+        )
+        repo.write(repo.paths["workstreams"], workstream_catalog(artifact_path, commit_sha, digest))
+        assert repo.run(repo_url="https://github.com/acme/domain-order") == 1
+        assert "ERR_SELECTOR_AMBIGUOUS" in errs(validator)
+
+    def test_remote_change_handoff_is_not_misreported_as_content_verified(self, repo, validator):
+        repo.write(
+            repo.paths["workstreams"],
+            workstream_catalog(
+                "inputs/workstreams/ws-init-a-order/domain-change-handoff.yml",
+                "a" * 40,
+                "sha256:" + "b" * 64,
+            ),
+        )
+        assert repo.run(repo_url="https://github.com/acme/other") == 0, errs(validator)
+        assert "remote Git artifact was not available" in warns(validator)
 
 
 class TestHeaderContract:

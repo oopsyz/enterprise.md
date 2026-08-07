@@ -41,6 +41,7 @@ files when creating convention artifacts — never use ad-hoc content.
 | `pattern-index.yml.template` | Standards-provider machine index |
 | `solution-index.yml.template` | SA solution index |
 | `domain-workstreams.yml.template` | SA workstream selector |
+| `domain-change-handoff.yml.template` | Optional canonical SA-to-Domain requested-change contract |
 | `domain-implementations.yml.template` | DA implementation selector |
 
 When using a template, read the file and substitute placeholder values (e.g.
@@ -99,10 +100,15 @@ INITIATIVE_ID
 - A domain may have **multiple workstreams** from different initiatives.
 - A workstream is a **demand unit** against a domain, not a unique implementation unit.
 - `domain-workstreams.yml` is dual-purpose: deterministic routing metadata + inbound demand signals.
+- `domain-workstreams.yml` must not embed mutable orchestration or execution progress; runtimes keep that state in separate runtime-owned artifacts or receipts.
 - The **domain architect** reconciles competing workstreams into a coherent domain change plan.
 - DA runtime identity is **domain-scoped**: `domain_id` is the canonical DA session and ownership identity, not `workstream_id`.
 - `domain_repo_url` identifies the **owning domain repository target** for the workstream, not a separate DA container or runtime identity. When `domain-registry.yml` is present, its `domain_repo_url` is authoritative and any copy in `domain-workstreams.yml` must match it.
 - A workstream handoff is attachable to an existing domain-scoped DA session; it does not create a new ownership boundary.
+- `handoff_ref` remains an opaque legacy compatibility value. Optional
+  `change_handoff_ref` identifies a canonical `domain-change-handoff` by
+  repository-relative path, full commit, and SHA-256 digest; it is portable
+  requested-change content, never runtime progress or an OA work-item identity.
 
 ### Three-Artifact Domain Chain (proposed)
 
@@ -119,6 +125,11 @@ INITIATIVE_ID
 - `domain-workstreams.yml[].initiative_id` → must exist in `initiatives.yml[].initiative_id`
 - `domain-workstreams.yml[].domain_id` → must exist in `domain-registry.yml[].domain_id`
 - `domain-workstreams.yml[].workstream_entrypoint` → must be present; may be `null` before materialization, but must be a real file path for routable statuses
+- When `domain-workstreams.yml[].change_handoff_ref` is present, its exact Git
+  bytes must validate against `domain-change-handoff.schema.json`, agree on
+  `workstream_id`, `initiative_id`, and `domain_id`, and carry unique
+  `criterion_id` values. Remote consumers must perform the same verification
+  before routing; a catalog-only check does not prove remote bytes.
 - `domain-roadmap.yml[].workstream_ids[]` → each must exist in `domain-workstreams.yml[].workstream_id`
 - `domain-roadmap.yml[].implementation_ids[]` → each must exist in `domain-implementations.yml[].implementation_id`
 - `domain-registry.yml[].domain_entrypoint` → must be a real file path
@@ -293,6 +304,8 @@ All paths are relative to `--root`. Defaults match the reference layout (see Lay
 **Schema validation** (requires `jsonschema` — skipped gracefully if not installed):
 
 - Each canonical YAML conforms to its JSON Schema in `schemas/`
+- Each accessible `change_handoff_ref` resolves to exact Git bytes whose digest,
+  `domain-change-handoff` schema, and catalog agreement validate
 
 **Lint validation** (always runs):
 
@@ -416,6 +429,16 @@ Required fields:
 Optional fields:
 
 - `metadata.priority`, `metadata.milestone`
+- `change_handoff_ref` pointing to a canonical `domain-change-handoff` artifact
+  by path, full commit, and SHA-256 digest; do not reinterpret legacy
+  `handoff_ref`
+
+When a canonical handoff is requested, read
+`domain-change-handoff.yml.template`, substitute stable IDs and immutable
+artifact references, and retain exactly one target-baseline branch:
+`baseline_ref` for `existing`, or `baseline_absence_reason` for
+`not_materialized`. Commit the handoff in the target Domain repository before
+recording its exact commit and digest in `change_handoff_ref`.
 
 Steps:
 

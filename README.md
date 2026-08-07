@@ -124,6 +124,10 @@ Canonical catalogs and selectors:
 | `domain-implementations.yml` | Domain | `implementation_id` | repo location + optional entrypoint/ref |
 | `domain-registry.yml` 2.x | Enterprise | `domain_id` | governed domain and/or standards-provider target |
 
+An optional `domain-change-handoff.yml` companion carries the immutable,
+machine-readable SA-to-Domain requested change for a Workstream. It is not a
+routing catalog or runtime progress record.
+
 Default routable statuses are `active` and `in_progress`.
 
 Core and Governed implementations must provide at least one deterministic bootstrap mechanism for the topmost level present:
@@ -174,6 +178,7 @@ Domain repository note:
 |-- releases/                                      # release notes drafts
 |-- .github/                                       # issue templates, PR template, CI, CODEOWNERS
 |-- schemas/                                       # authoritative JSON schemas for canonical artifacts
+|   |-- domain-change-handoff.schema.json          # portable SA-to-Domain requested-change contract
 |-- packs/                                         # copy-paste starter packs per role (ea/sa/da/dev)
 |-- skills/
 |   `-- ea-convention/                             # ea-convention skill (manage, validate, scaffold)
@@ -190,6 +195,7 @@ Domain repository note:
 |           |-- CLAUDE.{ea,sa,da,dev}.md.template  # role-specific CLAUDE.md bridge templates
 |           |-- initiatives.yml.template           # enterprise routing catalog
 |           |-- domain-workstreams.yml.template    # solution routing catalog
+|           |-- domain-change-handoff.yml.template # optional SA-to-Domain requested-change contract
 |           |-- domain-implementations.yml.template # domain-to-implementation routing catalog
 |           |-- domain-registry.yml.template       # domain governance registry
 |           |-- solution-index.yml.template        # solution scope manifest
@@ -218,6 +224,7 @@ Recommended default owners:
 | `DOMAIN.md` | DA |
 | `initiatives.yml` | EA/PMO |
 | `domain-workstreams.yml` | SA |
+| `domain-change-handoff.yml` | SA |
 | `domain-implementations.yml` | DA |
 
 If roles are collapsed in one team or repository, ownership MUST be explicitly declared in the relevant entrypoint.

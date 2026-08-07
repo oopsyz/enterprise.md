@@ -293,10 +293,6 @@ workstreams:
     metadata:
       priority: high
       milestone: 2026-q1
-execution:
-  state: not_started
-  processed_workstreams: []
-  skipped_workstreams: []
 notes: Monorepo proof of concept.
 "@
 
