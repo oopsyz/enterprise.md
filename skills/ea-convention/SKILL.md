@@ -103,6 +103,7 @@ INITIATIVE_ID
 - The **domain architect** reconciles competing workstreams into a coherent domain change plan.
 - DA runtime identity is **domain-scoped**: `domain_id` is the canonical DA session and ownership identity, not `workstream_id`.
 - `domain_repo_url` identifies the **owning domain repository target** for the workstream, not a separate DA container or runtime identity. When `domain-registry.yml` is present, its `domain_repo_url` is authoritative and any copy in `domain-workstreams.yml` must match it.
+- `workstream_entrypoint` identifies the Workstream-specific navigation document, normally `WORKSTREAM.md`, resolved in the owning Domain repository at `workstream_git_ref`. It is independent from the registry's Domain-level `domain_entrypoint` (`DOMAIN.md`) at `domain_git_ref`; consumers must not require the two paths or refs to match.
 - A workstream handoff is attachable to an existing domain-scoped DA session; it does not create a new ownership boundary.
 - `handoff_ref` remains an opaque legacy compatibility value. Optional
   `change_handoff_ref` identifies a canonical `domain-change-handoff` by
@@ -123,7 +124,7 @@ INITIATIVE_ID
 
 - `domain-workstreams.yml[].initiative_id` → must exist in `initiatives.yml[].initiative_id`
 - `domain-workstreams.yml[].domain_id` → must exist in `domain-registry.yml[].domain_id`
-- `domain-workstreams.yml[].workstream_entrypoint` → must be present; may be `null` before materialization, but must be a real file path for routable statuses
+- `domain-workstreams.yml[].workstream_entrypoint` → must be present; may be `null` before materialization, but for routable statuses must resolve to the Workstream-specific navigation file at `workstream_git_ref`, independently of `domain_entrypoint`
 - When `domain-workstreams.yml[].change_handoff_ref` is present, its exact Git
   bytes must validate against `domain-change-handoff.schema.json`, agree on
   `workstream_id`, `initiative_id`, and `domain_id`, and carry unique
@@ -420,7 +421,7 @@ Required fields:
 - `domain_id`: must exist in `domain-registry.yml`
 - `domain_name`: human-readable domain name
 - `name`: workstream display name
-- `workstream_entrypoint`: path to domain DOMAIN.md
+- `workstream_entrypoint`: path to the Workstream-specific `WORKSTREAM.md`, not the Domain-level `DOMAIN.md`
 - `domain_repo_url`: URL of the owning domain repo for self-sufficient routing
 - `workstream_path`: path to domain directory
 - `status`: `active` or `inactive`
