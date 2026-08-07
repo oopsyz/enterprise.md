@@ -1,6 +1,5 @@
 ---
 name: ea-convention
-version: "1.0.0"
 description: >
   Use this skill when the user wants to manage, validate, or navigate the
   ea/sa/da/dev enterprise convention artifacts. Triggers include: adding an
